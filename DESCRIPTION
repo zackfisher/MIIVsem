@@ -2,7 +2,7 @@ Package: MIIVsem
 Title: Model Implied Instrumental Variable (MIIV) Estimation of Structural
     Equation Models
 Version: 0.4.4
-Author: Zachary Fisher, Ken Bollen and Kathleen Gates.
+Author: Zachary Fisher, Ken Bollen, Kathleen Gates, and Mikko Rönkkö.
 Maintainer: Zachary Fisher <fish.zachary@gmail.com>
 Description: Functions for estimating structural equation models using model-
     implied instrumental variables.

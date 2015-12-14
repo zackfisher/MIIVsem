@@ -404,7 +404,7 @@ miive <- function(model = model, data = NULL, overid = NULL, varcov = NULL,
     S.MI      <- crossprod(V.r) / N
     S.OB      <- as(cov(data[, unlist(dvs), drop = FALSE]), "Matrix")
     S.RS      <- S.OB - S.MI
-    u.hat     <- bdiag(split(t(E[,dvs]),1:ncol(E[,dvs])))# for sarg.
+    u.hat     <- bdiag(split(t(E[,dvs]),1:ncol(E[,dvs, drop = FALSE])))# for sarg.
     P.z       <- X1 %*% X1inv %*% t(X1)
     srg       <- diag(crossprod(u.hat,P.z) %*% u.hat / (crossprod(u.hat)/ N))
     srg.df    <- unlist(lapply(d, function(x) length(x$IV) - length(x$IVobs)))
@@ -432,7 +432,8 @@ miive <- function(model = model, data = NULL, overid = NULL, varcov = NULL,
     
     if (restrictions == FALSE){
       I     <- Diagonal(N)
-      omega <- solve(kronecker(diag(diag(S.EE[unlist(dvs),unlist(dvs)])), I))
+      omega <- solve(kronecker(diag(diag(S.EE[unlist(dvs),unlist(dvs), drop = FALSE]),
+                                    nrow = length(dvs), ncol = length(dvs)), I))
       S.EEr <- as.matrix(solve(t(Y1hat) %*% omega %*% Y1hat))
       rownames(S.EEr) <- b$iv
       b$se <- cbind(sqrt(diag(S.EEr)))

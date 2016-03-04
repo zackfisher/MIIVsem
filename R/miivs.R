@@ -61,6 +61,8 @@ miivs <- function(model, miivs.out = FALSE) {
     stop(paste("Enter numerical constraints using labels."))
   }
   
+
+  
   hof <- unique(pt[pt$op == "=~" & pt$rhs %in% pt[pt$op == "=~", "lhs"],"lhs"])
   
   if (length(hof) > 0) {higher_order <- TRUE} else {higher_order <- FALSE}
@@ -78,15 +80,13 @@ miivs <- function(model, miivs.out = FALSE) {
     latEnd <- setdiff(lavNames(fit, type = "lv.nox"), fof)
     latExo <- c(lavNames(fit, type = "lv.x"), fof) 
     latExo <- setdiff(latExo, sof) 
-    manEnd <- lavNames(fit, type = "ov.nox")
-    manExo <- lavNames(fit, type = "ov.x")
   }
+  
+  # determine maximum path length for
   
   if (higher_order == FALSE){
     latEnd <- lavNames(fit, type = "lv.nox")
     latExo <- lavNames(fit, type = "lv.x") 
-    manEnd <- lavNames(fit, type = "ov.nox")
-    manExo <- lavNames(fit, type = "ov.x")
   }
   
   y1 <- na.omit( pt[pt$mat    == "lambda" & 
@@ -94,19 +94,21 @@ miivs <- function(model, miivs.out = FALSE) {
                     pt$ustart == 1, 
                     "rhs"] )
   
-  y2 <- na.omit( pt[pt$mat  == "lambda" &
+  y2 <- na.omit( pt[pt$op  == "=~" &
                     pt$lhs %in% latEnd  & 
                     is.na(pt$ustart), 
                     "rhs"] )
+  
+  y2 <- na.omit( unique( c(y2, 
+                           intersect(
+                             lavNames(fit, type = "ov.nox"), 
+                             lavNames(fit, type = "eqs.y")))))
+                    
   
   x1 <- na.omit( pt[pt$mat  == "lambda" &
                     pt$lhs %in% latExo &
                     pt$ustart == 1,
                     "rhs"] )
-  
-  x1 <- c(x1, na.omit( pt[pt$mat  == "beta" & 
-                       pt$rhs %in% manExo, 
-                       "rhs"]) ) 
   
   x2 <- na.omit( pt[pt$mat == "lambda" & 
                     pt$lhs %in% latExo & 
@@ -119,24 +121,10 @@ miivs <- function(model, miivs.out = FALSE) {
                       c("lhs", "rhs")] )
   
   colnames(y1names) <- c("lat", "obs")
-  
-  y2names <- na.omit( pt[pt$mat == "lambda" & 
-                         pt$lhs %in% latEnd & 
-                         is.na(pt$ustart), 
-                         c("lhs", "rhs")] )
-  
-  colnames(y2names) <- c("lat", "obs")
 
   x1names <- na.omit( pt[pt$mat == "lambda" & 
                          pt$lhs %in% latExo & 
                          pt$ustart == 1,  
-                         c("lhs", "rhs")] )
-  
-  colnames(x1names) <- c("lat", "obs")
-  
-  x2names <- na.omit( pt[pt$mat == "lambda" & 
-                         pt$lhs %in% latExo  & 
-                         (pt$ustart != 1 | is.na(pt$ustart)),  
                          c("lhs", "rhs")] )
   
   colnames(x1names) <- c("lat", "obs")
@@ -167,32 +155,62 @@ miivs <- function(model, miivs.out = FALSE) {
     n2 <- n2names$obs
   }
   
-  LA <- inspect(fit)$lambda
-  if (!is.null(inspect(fit)$beta)) {BA <- inspect(fit)$beta}
-  TH <- inspect(fit)$theta
-  PS <- inspect(fit)$psi
+  if (!is.null(inspect(fit)$lambda)) {LA <- inspect(fit)$lambda}
+  if (!is.null(inspect(fit)$beta))   {BA <- inspect(fit)$beta}
+  if (!is.null(inspect(fit)$theta))  {TH <- inspect(fit)$theta}
+  if (!is.null(inspect(fit)$psi))    {PS <- inspect(fit)$psi}
   
-  class(LA) <- "matrix"
-  if (!is.null(inspect(fit)$beta)) {class(BA) <- "matrix"}
-  class(TH) <- "matrix"
-  class(PS) <- "matrix"
+  if (!is.null(inspect(fit)$lambda)) {class(LA) <- "matrix"}
+  if (!is.null(inspect(fit)$beta))   {class(BA) <- "matrix"}
+  if (!is.null(inspect(fit)$theta))  {class(TH) <- "matrix"}
+  if (!is.null(inspect(fit)$psi))    {class(PS) <- "matrix"}
   
-  LY2 <- LA[,latEnd, drop = FALSE]
-  LY2 <- LY2[!apply(LY2, 1, function(row) all(row ==0 )),, drop = FALSE]
-  LX2 <- LA[,latExo, drop = FALSE]
-  LX2 <- LX2[!apply(LX2, 1, function(row) all(row ==0 )),, drop = FALSE]
+  if (!is.null(inspect(fit)$lambda)) {
+    nz <- na.omit( pt[pt$op  == "=~" &
+                      pt$lhs %in% latEnd  & 
+                      is.na(pt$ustart), 
+                      c("lhs", "rhs")] )
+    if (nrow(nz) > 0){
+      for (i in 1:nrow(nz)){ # i =1
+        LA[nz[i,"rhs"], nz[i,"lhs"]] <- nrow(pt)*2 + i
+      }
+    }
+  }
+  
+  
+  if (!is.null(inspect(fit)$lambda)) {
+    LY2 <- LA[,latEnd, drop = FALSE]
+    LY2 <- LY2[!apply(LY2, 1, function(row) all(row ==0 )),, drop = FALSE]
+    LX2 <- LA[,latExo, drop = FALSE]
+    LX2 <- LX2[!apply(LX2, 1, function(row) all(row ==0 )),, drop = FALSE]
+  }
   
   if (!is.null(inspect(fit)$beta)) {
     BA1 <- BA[latEnd,latEnd, drop = FALSE]
     GA1 <- BA[latEnd,latExo, drop = FALSE]
   }
-  TE1 <- as.matrix(forceSymmetric(Matrix(TH), "L"))
-  TE1 <- TE1[c(y1, y2), c(y1, y2), drop = FALSE] 
-  TD1 <- as.matrix(forceSymmetric(Matrix(TH), "L"))
-  TD1 <- TD1[c(x1, x2), c(x1, x2), drop = FALSE] 
-  PS1 <- as.matrix(forceSymmetric(Matrix(PS), "L"))
-  dimnames(PS1) <- dimnames(PS)
-  PS1 <- PS1[latEnd, latEnd, drop = FALSE] 
+  
+  if (!is.null(inspect(fit)$theta)) {
+    TE1 <- as.matrix(forceSymmetric(Matrix(TH), "L"))
+    TE1 <- TE1[c(y1, y2), c(y1, y2), drop = FALSE] 
+    TD1 <- as.matrix(forceSymmetric(Matrix(TH), "L"))
+    TD1 <- TD1[c(x1, x2), c(x1, x2), drop = FALSE] 
+  }
+  
+  if (!is.null(inspect(fit)$psi)) {
+    PS1 <- as.matrix(forceSymmetric(Matrix(PS), "L"))
+    dimnames(PS1) <- dimnames(PS)
+    PS1 <- PS1[latEnd, latEnd, drop = FALSE] 
+  }
+  
+  # if there are no latent variables in the model
+  # change the psi matrix to theta
+  if (length(lavNames(fit, type = "lv")) == 0) {
+    TE1 <- as.matrix(forceSymmetric(Matrix(PS), "L"))
+    dimnames(TE1) <- dimnames(PS)
+    TE1 <- TE1[y2, y2, drop = FALSE] 
+  }
+  
   
   dv <- c(y1, y2, x2)
   
@@ -211,7 +229,7 @@ miivs <- function(model, miivs.out = FALSE) {
   eqns <- replicate(length(dv), eqns, simplify = FALSE)
   
 
-  for (i in 1:length(dv)){ # i =5
+  for (i in 1:length(dv)){ 
     
     eqns[[i]]$DVobs <- dv[i]
     
@@ -290,23 +308,39 @@ miivs <- function(model, miivs.out = FALSE) {
             }
           } 
     
-        if (eqns[[i]]$DVobs %in% y2) { # i =5
+        if (eqns[[i]]$DVobs %in% y2) {
             eqns[[i]]$EQtype <- "y2"
             eqns[[i]]$DVlat <- NA
-             
-            tmp <- LY2[which(rownames(LY2) %in% eqns[[i]]$DVobs),,drop=FALSE]
-            eqns[[i]]$IVlat <- colnames(tmp)[which(tmp[1,] != 0)]
             
-            for ( m in 1:length(eqns[[i]]$IVlat)){ # m =1
+            tmp <- na.omit( pt[pt$op  == "=~" &
+                               pt$rhs == eqns[[i]]$DVobs  &  
+                               is.na(pt$ustart),  "lhs"] )
+            
+            tmp <- na.omit( unique( c(tmp, 
+                                      pt[pt$op  == "~" &
+                                         pt$lhs == eqns[[i]]$DVobs  &  
+                                         is.na(pt$ustart),  "rhs"])))
+            eqns[[i]]$IVlat <- tmp
+            
+            for ( m in 1:length(eqns[[i]]$IVlat)){ 
               z <- eqns[[i]]$IVlat[m]
+              
+               c2 <- ""
+                
                 if (z %in% y1names$lat){
                   c2 <- y1names[y1names$lat == z, "obs"]
                 }
                 if (z %in% x1names$lat){
                   c2 <- x1names[x1names$lat == z, "obs"]
                 }
+                
+                if (!(z %in% y1names$lat) & !(z %in% x1names$lat)){
+                  eqns[[i]]$IVobs <- c(eqns[[i]]$IVobs, z)
+                }
+                
               eqns[[i]]$IVobs <- c(eqns[[i]]$IVobs, c2)
               eqns[[i]]$IVobs <- eqns[[i]]$IVobs[eqns[[i]]$IVobs!=""]
+              
               eqns[[i]]$CD <- c(eqns[[i]]$CD, c2)
               eqns[[i]]$CD <- eqns[[i]]$CD[eqns[[i]]$CD!=""]
             }
@@ -346,13 +380,21 @@ miivs <- function(model, miivs.out = FALSE) {
 
 
   if (higher_order == FALSE){
-    if (is.null(inspect(fit)$beta)) {
-      TE_on_y2 <- LY2 
+    
+    if (nrow(LY2) < 1) {TE_on_y2 <- NULL}
+    
+    if (nrow(LY2) > 1) {
+      
+      
+      if (is.null(inspect(fit)$beta)) {
+        TE_on_y2 <- LY2 
+      }
+      if (!is.null(inspect(fit)$beta)) {
+        TE_on_y1 <- solve(diag(nrow(BA1)) - BA1) 
+        TE_on_y2 <- LY2 %*% TE_on_y1 
+      }
     }
-    if (!is.null(inspect(fit)$beta)) {
-      TE_on_y1 <- solve(diag(nrow(BA1)) - BA1) 
-      TE_on_y2 <- LY2 %*% TE_on_y1 
-    }
+    
   }
   
   
@@ -360,17 +402,16 @@ miivs <- function(model, miivs.out = FALSE) {
     TE_on_n2 <- solve(diag(nrow(BA2)) - BA2)
   }
 
-  for (i in 1:length(eqns)){
-    
+  for (i in 1:length(eqns)){ 
     if (eqns[[i]]$EQtype == "n2") {
       eqns[[i]]$TE <- eqns[[i]]$DVobs
       tmp <- TE_on_n2[which(rownames(TE_on_n2) %in% eqns[[i]]$DVlat),,drop=FALSE]
       t2  <- colnames(tmp)[which(tmp[1,] != 0)]
       eqns[[i]]$TE <- c(eqns[[i]]$TE, t2)
       eqns[[i]]$TE <- eqns[[i]]$TE[eqns[[i]]$TE!=""]
-    } # end n2
+    } # end  n2
     
-    if (eqns[[i]]$EQtype == "y1") { # i =1
+    if (eqns[[i]]$EQtype == "y1") { 
       eqns[[i]]$TE <- eqns[[i]]$DVobs
       tmp <- TE_on_y1[which(rownames(TE_on_y1) %in% eqns[[i]]$DVlat),,drop=FALSE]
       t2  <- colnames(tmp)[which(tmp[1,] != 0)]
@@ -378,7 +419,7 @@ miivs <- function(model, miivs.out = FALSE) {
       eqns[[i]]$TE <- eqns[[i]]$TE[eqns[[i]]$TE!=""]
     } # end y1
     
-    if (eqns[[i]]$EQtype == "y2") { # i =5
+    if (eqns[[i]]$EQtype == "y2") { 
       eqns[[i]]$TE <- eqns[[i]]$DVobs
       tmp <- TE_on_y2[which(rownames(TE_on_y2) %in% eqns[[i]]$DVobs),,drop=FALSE]
       t2  <- colnames(tmp)[which(tmp[1,] != 0)]
@@ -403,7 +444,8 @@ miivs <- function(model, miivs.out = FALSE) {
   if (higher_order == FALSE & !is.null(inspect(fit)$beta)) {
     add_length <- ncol(GA1)
   }  
-  if (is.null(inspect(fit)$beta)) {add_length <- 0}  
+  if (is.null(inspect(fit)$beta))   {add_length <- 0}
+  if (nrow(LY2) < 1) {add_length <- 0}
     
   effects <- list(DVobs = "", TE = "")
   effects <- replicate(add_length, effects, simplify = FALSE)
@@ -420,10 +462,15 @@ miivs <- function(model, miivs.out = FALSE) {
     }
   }
   effects <- append(lapply(eqns, "[", c("DVobs", "TE")), effects)
-    
+   
+  for (i in 1:length(eqns)) { 
+    eqns[[i]]$PIV <- lavNames(fit, type = "ov.x")
+    eqns[[i]]$PIV <- eqns[[i]]$PIV[eqns[[i]]$PIV != ""]
+  }
+
   for (i in 1:length(eqns)) { 
     C <- unlist(eqns[[i]]$CD)
-      for (j in 1:length(effects)) {
+      for (j in 1:length(effects)) { 
         E <- unlist(effects[[j]]$TE)
         if (!any(C %in% E)) {
             eqns[[i]]$PIV <- c(eqns[[i]]$PIV, effects[[j]]$DVobs)
@@ -432,9 +479,21 @@ miivs <- function(model, miivs.out = FALSE) {
     eqns[[i]]$PIV <- eqns[[i]]$PIV[eqns[[i]]$PIV != ""]
   }
   
-  for (i in 1:length(eqns)) {
+  ## remove and PIVs which are predicted by the DV
+  for (i in 1:length(eqns)) { 
+    if (eqns[[i]]$DVobs %in% lavNames(fit, type = "eqs.y")){
+      tdv <- eqns[[i]]$DVobs
+      for (j in 1:length(eqns)) {
+        if (tdv %in% eqns[[j]]$IVobs) {
+          eqns[[i]]$PIV <- setdiff(eqns[[i]]$PIV, eqns[[j]]$DVobs)
+        }
+      }
+    }
+  }
+  
+  for (i in 1:length(eqns)) { 
     C <- eqns[[i]]$CD
-       for (j in 1:length(C)) {
+       for (j in 1:length(C)) { 
           W <- C[j]
           t2 <- c()
  
@@ -505,7 +564,35 @@ miivs <- function(model, miivs.out = FALSE) {
         }
       eqns[[i]]$IV <- setdiff(eqns[[i]]$IV, eqns[[i]]$W)
       eqns[[i]]$IV <- eqns[[i]]$IV[eqns[[i]]$IV != ""]
-  }
+    }
+  
+    ## identified all descendants of parent and removes
+    ## them from IVs
+    for (i in 1:length(eqns)) { # i = 7;
+      parent  <- eqns[[i]]$DVobs
+      parents <- parent
+      for (j in 1:length(eqns)){ 
+        if ( length(intersect(parents,eqns[[j]]$IVobs)) > 0 ){ 
+          parents <- c(parents, eqns[[j]]$DVobs)
+          parents <- parents[parents != ""]
+        }
+      }
+      for (k in length(eqns):1){
+        if ( length(intersect(parents,eqns[[k]]$IVobs)) > 0 ){ 
+          parents <- c(parents, eqns[[k]]$DVobs)
+          parents <- parents[parents != ""]
+        }
+      }
+      eqns[[i]]$IV <- setdiff(eqns[[i]]$IV, parents)
+      eqns[[i]]$IV <- eqns[[i]]$IV[eqns[[i]]$IV != ""]
+    }
+        
+    ## remove any remaining parents
+    for (i in 1:length(eqns)) {
+          eqns[[i]]$IV <- setdiff(eqns[[i]]$IV, eqns[[i]]$DVobs)
+          eqns[[i]]$IV <- eqns[[i]]$IV[eqns[[i]]$IV != ""]
+    }
+  
     eq_plabels <- pt[is.na(pt$ustart) & 
                      !is.na(pt$plabel) &
                      pt$mat %in% c("lambda","beta"), 

@@ -171,6 +171,7 @@ miive <- function(model = model, data = NULL, overid = NULL, varcov = NULL,
     iv_user <- unlist(lapply(iv_list, "[", c("IV_user")), use.names=FALSE)
   
     eqns_not_to_estimate <- c()
+    
     for (i in 1:length(d)){
     
       dv <- d[[i]]$DVobs
@@ -345,7 +346,6 @@ miive <- function(model = model, data = NULL, overid = NULL, varcov = NULL,
       b <- solve(sYX %*% solve(sXX) %*% sXY) %*% sYX %*% solve(sXX) %*% sXy
     }
   }
-  
 
   dvs <- unlist(lapply(d, function(x) unlist(x$DVobs))) 
   ivs <- unlist(lapply(d, function(x) unlist(x$IVobs)))
@@ -392,7 +392,6 @@ miive <- function(model = model, data = NULL, overid = NULL, varcov = NULL,
     } 
   )
   B.ur <- as(B.ur,"Matrix") + Diagonal(nrow(B)) 
-  dimnames(B.ur) <- list(all,all)
   }
   
   if (covariance == FALSE){
@@ -427,6 +426,7 @@ miive <- function(model = model, data = NULL, overid = NULL, varcov = NULL,
       rownames(S.EEr) <- gl
       b$se <- cbind(sqrt(diag(S.EEr)))
       # for test of restrictions only
+      dimnames(S.EEur) <- dimnames(S.EE) ## added this temporarily
       omega.ur <- solve(kronecker(diag(diag(S.EEur[unlist(dvs),unlist(dvs)])), I))
       S.EEur.r <- as.matrix(solve(t(Y1hat) %*% omega.ur %*% Y1hat))
     }

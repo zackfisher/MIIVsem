@@ -193,7 +193,7 @@ miivs <- function(model, miivs.out = FALSE) {
   if (!is.null(inspect(fit)$theta)) {
     TE1 <- as.matrix(forceSymmetric(Matrix(TH), "L"))
     TE1 <- TE1[c(y1, y2), c(y1, y2), drop = FALSE] 
-    TD1 <- as.matrix(forceSymmetric(Matrix(TH), "L"))
+    TD1 <- TH
     TD1 <- TD1[c(x1, x2), c(x1, x2), drop = FALSE] 
   }
   
@@ -611,10 +611,21 @@ miivs <- function(model, miivs.out = FALSE) {
       for (i in 1:nrow(rs)){
         
         if (!rs$lhs[i] %in% fix_labels & !rs$rhs[i] %in% fix_labels){
-
-          left  <- pt[pt$plabel == rs$lhs[i], "lhs"]
-          right <- pt[pt$plabel == rs$rhs[i], "lhs"]
           
+          if (pt[pt$plabel == rs$lhs[i], "op"] == "=~" &
+              pt[pt$plabel == rs$lhs[i], "op"] == "=~" )
+            {
+              left  <- pt[pt$plabel == rs$lhs[i], "lhs"]
+              right <- pt[pt$plabel == rs$rhs[i], "lhs"]
+          }
+        
+          if (pt[pt$plabel == rs$lhs[i], "op"] == "~" &
+              pt[pt$plabel == rs$lhs[i], "op"] == "~" )
+          {
+            left  <- pt[pt$plabel == rs$lhs[i], "rhs"]
+            right <- pt[pt$plabel == rs$rhs[i], "rhs"]
+          }
+            
           if (left %in% y1names$lat){
             left <- y1names[y1names$lat == left, "obs"]
           }
@@ -633,13 +644,30 @@ miivs <- function(model, miivs.out = FALSE) {
           
           
           constr[[i]]$DV   <- c(left, right)
-          constr[[i]]$SET  <- c(pt[pt$plabel == rs$lhs[i], "rhs"],
-                                pt[pt$plabel == rs$rhs[i], "rhs"])
+          
+          if (pt[pt$plabel == rs$lhs[i], "op"] == "=~" &
+              pt[pt$plabel == rs$lhs[i], "op"] == "=~" )
+          {
+            constr[[i]]$SET  <- c(pt[pt$plabel == rs$lhs[i], "rhs"],
+                                  pt[pt$plabel == rs$rhs[i], "rhs"])
+            constr[[i]]$NAME <- paste(constr[[i]]$SET[1],
+                                      " = ",
+                                      constr[[i]]$SET[2],
+                                      sep = "")
+          }
+          
+          if (pt[pt$plabel == rs$lhs[i], "op"] == "~" &
+              pt[pt$plabel == rs$lhs[i], "op"] == "~" )
+          {
+            constr[[i]]$SET  <- c(pt[pt$plabel == rs$lhs[i], "lhs"],
+                                  pt[pt$plabel == rs$rhs[i], "lhs"])
+            constr[[i]]$NAME <- paste(constr[[i]]$DV[1],
+                                      " = ",
+                                      constr[[i]]$DV[2],
+                                      sep = "")
+          }
           constr[[i]]$FIX  <- 0
-          constr[[i]]$NAME <- paste(constr[[i]]$SET[1],
-                                    " = ",
-                                    constr[[i]]$SET[2],
-                                    sep = "")
+
         }
         
         if (rs$lhs[i] %in% fix_labels | rs$rhs[i] %in% fix_labels){

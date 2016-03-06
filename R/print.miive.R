@@ -1,6 +1,6 @@
 #' @method print miive 
 #' @export
-print.miive <- function(x, digits = 3,...){
+print.miive <- function(x, digits = 2,...){
   #options(scipen=10, digits=digits)
   cat("\n")
   cat("MIIVsem results \n")

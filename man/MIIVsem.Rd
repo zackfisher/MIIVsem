@@ -12,7 +12,8 @@ using model-implied instrumental variables (MIIVs).
 \author{
 Zachary Fisher, \cr
 Ken Bollen, \cr
-Kathleen Gates \cr
+Kathleen Gates, \cr
+Mikko Rönkkö \cr
 
 Maintainer: Zachary Fisher
 }

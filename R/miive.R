@@ -5,7 +5,8 @@
 #' @param model A model specified using lavaan model syntax. See the \code{model} argument within the \code{\link[lavaan]{lavaanify}} function for more information.
 #' @param data A data frame, list or environment or an object coercible by as.data.frame to data frame.
 #' @param instruments A user-supplied list of valid MIIVs for each equation. See Example 2 below. 
-#' @param overid A user-specified degree of overidentification (\code{overid}). See Example 3 below. 
+#' @param overid A user-specified degree of overidentification (\code{overid}). See Example 3 below.
+#' @param tests A boolean indicating whether parameter and model tests are to be calculated. Default is \code{TRUE} 
 #' @param print.miivs A logical indicating whether or not to display MIIVs in output.
 #' @param varcov Option for estimating conditional variance and coavariance paramaters. Default is \code{NULL}.
 #' @param bootstrap.se Option \code{"pairs"} or \code{"residual"} for obtaining bootstrap standard errors, t-tests, and bootstrap P values. Default is \code{NULL}.
@@ -116,16 +117,17 @@
 #'  
 #'  
 #' @export
-miive <- function(model = model, data = NULL, overid = NULL, varcov = NULL, 
+miive <- function(model = model, data = NULL, overid = NULL,
+                  tests = TRUE, varcov = NULL, 
                   print.miivs = FALSE, bootstrap.se = NULL, instruments = NULL,
                   cov = NULL, means = NULL, N = NULL){
-
+  
   if ( "miivs" == class(model) ){ mod <- model; d <- mod$eqns; } 
   if ( "miivs" != class(model) ){ mod <- miivs(model); d <- mod$eqns; } 
-
+  
   if (is.null(cov)) { covariance = FALSE }
   if (!is.null(cov)){ covariance = TRUE  }
-
+  
   if (covariance == TRUE & !is.null(bootstrap.se)){
     stop(paste("Bootstrap procedures not supported when using covariance matrix as input."))
   }
@@ -566,10 +568,12 @@ miive <- function(model = model, data = NULL, overid = NULL, varcov = NULL,
                      "Z", "P(|Z|)","Sargan", "df", "P(Chi)")
   }
   
-  # No tests, just report the point estimates
+  # No tests or SEs, just report the point estimates
   
   else{
-    browser()
+    dat <- b[,c("dv", "iv", "b")]
+    colnames(dat) <- c("DV", "EV", "Estimate")
+    restests <- NULL
   }
   modeqns <- mod$df
   
@@ -596,7 +600,8 @@ miive <- function(model = model, data = NULL, overid = NULL, varcov = NULL,
                    restrictions = restrictions, 
                    varcov = varcov, 
                    bootstrap.se =  bootstrap.se,
-                   covariance = covariance)
+                   covariance = covariance,
+                   tests = tests)
   
   res <- list(model = d, dat = dat, modeqns = modeqns, 
               ctrlopts = ctrlopts, 

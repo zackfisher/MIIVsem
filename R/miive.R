@@ -550,38 +550,95 @@ miive <- function(model = model, data = NULL, overid = NULL, varcov = NULL,
     }
   }
   
-  
+
   dat <- b[,c("dv", "iv", "b", "se", "z", "p","srg", "srg.df", "srg.p")]
   colnames(dat) <- c("DV", "EV", "Estimate", "StdErr", 
                      "Z", "P(|Z|)","Sargan", "df", "P(Chi)")
-  }
-  
-  # No tests, just report the point estimates
-  
-  else{
-    browser()
-  }
+
   modeqns <- mod$df
-  
-  # 
-  # Optionally calculate variance covariance matrix and boostrap.
-  #
-  
+
+  lavsyntax <- NULL
   if (!is.null(varcov)){
-    vcovlist <- miivvarcov(model,varcov,dat, data, covariance)
-    vcov <- vcovlist[[1]]
-    lavsyntax <- vcovlist[[2]]
-  }
-  else{
-    lavsyntax <- NULL
-    vcov <- NULL
+   
+    estimator <- varcov
+    
+    fit <- lavaan(model, 
+                auto.fix.first = TRUE, 
+                auto.var = TRUE, 
+                auto.cov.lv.x = TRUE)
+    
+    lavsyntax <- lavExport(fit, export = FALSE)
+    
+    ls <- strsplit(lavsyntax, "\n") 
+
+    for (i in 1:nrow(dat)){
+      dv  <- dat[i,"DV"]
+      iv  <- dat[i,"EV"]
+      est <- dat[i,"Estimate"]
+
+      for (m in 1:length(ls[[1]])){ 
+        line <- ls[[1]][m] 
+          if (grepl("=~", line)){
+            line <- strsplit(line, "=~")
+            
+              if (iv == gsub(".*\\*","",line[[1]][1]) & 
+                  dv == gsub(".*\\*","",line[[1]][2])){
+                ls[[1]][m] <- paste(iv, " =~ ", est, "*", dv,sep="")
+              }
+          }
+          if (grepl(" ~ ", line)){
+            line <- strsplit(line, "~")
+    
+              if (iv == gsub(".*\\*","",line[[1]][1]) & 
+                  dv == gsub(".*\\*","",line[[1]][2])){
+                  ls[[1]][m] <- paste(iv, " ~ ", est, "*", dv,sep="")
+              }
+          }
+          if (grepl("==", line)){
+            ls[[1]][m] <- NA
+          }
+      }
+    }
+      
+    ls[[1]]  <- ls[[1]][!is.na(ls[[1]])]
+    lavsyntax <- paste(unlist(ls), "\n", collapse="")
+    lavsyntax <- gsub("NA", "1", lavsyntax)
+    if (covariance == FALSE){
+      fitcov   <- lavaan(lavsyntax, data = data, 
+                  auto.fix.first = TRUE, estimator = estimator,
+                  auto.var=TRUE, auto.cov.lv.x = TRUE)
+    }
+    if (covariance == TRUE){
+      fitcov   <- lavaan(lavsyntax, sample.cov = cov, 
+                         sample.nobs = N, auto.fix.first = TRUE, 
+                         estimator = estimator, auto.var=TRUE, 
+                         auto.cov.lv.x = TRUE)
+    }
+    pe  <-  parameterEstimates(fitcov)
+    cpe <-  pe[pe$op == "~~" & pe$lhs != pe$rhs,]
+    if (dim(cpe)[1] != 0){
+      cpe$x <- paste(cpe$lhs, cpe$op, cpe$rhs, sep=" ")
+      cpe <- cpe[,c("x","est", "se", "z", "pvalue")]
+      colnames(cpe) <- c( "","Estimate", 
+                            "StdErr", "Z", "P(|Z|)")
+    }
+    if (dim(cpe)[1] == 0){ cpe <- NULL }
+   
+    vpe <- pe[pe$op == "~~" & pe$lhs == pe$rhs,]
+    vpe <- vpe[,c("lhs","est", "se", "z", "pvalue")]
+    if (dim(vpe)[1] != 0){
+      colnames(vpe) <- c( "","Estimate", "StdErr", "Z", "P(|Z|)")
+    }
+    if (dim(vpe)[1] == 0){ vpe <- NULL }
+      vcov <- list(cov = cpe, var = vpe)
+    
   }
   
   if (!is.null(bootstrap.se)){
     dat <- miivboot(d = d, dat = dat, restrictions = restrictions, data = data, 
                     bootstrap.se = bootstrap.se, reps=1000, R = R, L = L, B = B)
   }
-  
+
   ctrlopts <- list(print.miivs = print.miivs, 
                    restrictions = restrictions, 
                    varcov = varcov, 

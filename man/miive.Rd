@@ -4,22 +4,30 @@
 \alias{miive}
 \title{Model-implied instrumental variable (MIIV) estimation}
 \usage{
-miive(model = model, data = NULL, overid = NULL, varcov = NULL,
-  print.miivs = FALSE, bootstrap.se = NULL, instruments = NULL,
-  cov = NULL, means = NULL, N = NULL)
+miive(model = model, data = NULL, estimator = "2SLS",
+  wininitial = "2SLS", wmatrix = "unadjusted", overid = NULL,
+  print.miivs = FALSE, varcov = NULL, bootstrap.se = NULL,
+  instruments = NULL, cov = NULL, means = NULL, N = NULL,
+  tests = TRUE)
 }
 \arguments{
 \item{model}{A model specified using lavaan model syntax. See the \code{model} argument within the \code{\link[lavaan]{lavaanify}} function for more information.}
 
 \item{data}{A data frame, list or environment or an object coercible by as.data.frame to data frame.}
 
-\item{overid}{A user-specified degree of overidentification (\code{overid}). See Example 3 below.}
+\item{estimator}{Options \code{"2SLS"} or \code{"GMM"} for estimating the model parameters. Default is \code{"2SLS"}.}
 
-\item{varcov}{Option for estimating conditional variance and coavariance paramaters. Default is \code{NULL}.}
+\item{wininitial}{Options \code{"identity"} or \code{"2SLS"} for the first stage weight matrix. Default is \code{"2SLS"}.}
+
+\item{wmatrix}{Options \code{"unadjusted"} or \code{"robust"} for the second stage weight matrix. Default is \code{"unadjusted"}.}
+
+\item{overid}{A user-specified degree of overidentification (\code{overid}). See Example 3 below.}
 
 \item{print.miivs}{A logical indicating whether or not to display MIIVs in output.}
 
-\item{bootstrap.se}{Option \code{"pairs"} or \code{"residual"} for obtaining bootstrap standard errors, t-tests, and bootstrap P values. Default is \code{NULL}.}
+\item{varcov}{Option for estimating conditional variance and coavariance paramaters. Default is \code{NULL}.}
+
+\item{bootstrap.se}{Options \code{"pairs"} or \code{"residual"} for obtaining bootstrap standard errors, t-tests, and bootstrap P values. Default is \code{NULL}.}
 
 \item{instruments}{A user-supplied list of valid MIIVs for each equation. See Example 2 below.}
 
@@ -28,6 +36,10 @@ miive(model = model, data = NULL, overid = NULL, varcov = NULL,
 \item{means}{A sample mean vector. Default is \code{NULL}.}
 
 \item{N}{Numeric. The number of observations in the sample. Default is \code{NULL}.}
+
+\item{tests}{A boolean indicating whether parameter and model tests are to be calculated. Default is \code{TRUE}}
+
+\item{overid}{A user-specified degree of overidentification (\code{overid}). See Example 3 below.}
 }
 \value{
 model

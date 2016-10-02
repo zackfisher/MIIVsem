@@ -5,13 +5,17 @@
 #' @param model A model specified using lavaan model syntax. See the \code{model} argument within the \code{\link[lavaan]{lavaanify}} function for more information.
 #' @param data A data frame, list or environment or an object coercible by as.data.frame to data frame.
 #' @param instruments A user-supplied list of valid MIIVs for each equation. See Example 2 below. 
+#' @param estimator Options \code{"2SLS"} or \code{"GMM"} for estimating the model parameters. Default is \code{"2SLS"}.
+#' @param wininitial Options \code{"identity"} or \code{"2SLS"} for the first stage weight matrix. Default is \code{"2SLS"}.
+#' @param wmatrix Options \code{"unadjusted"} or \code{"robust"} for the second stage weight matrix. Default is \code{"unadjusted"}.
 #' @param overid A user-specified degree of overidentification (\code{overid}). See Example 3 below. 
 #' @param print.miivs A logical indicating whether or not to display MIIVs in output.
 #' @param varcov Option for estimating conditional variance and coavariance paramaters. Default is \code{NULL}.
-#' @param bootstrap.se Option \code{"pairs"} or \code{"residual"} for obtaining bootstrap standard errors, t-tests, and bootstrap P values. Default is \code{NULL}.
+#' @param bootstrap.se Options \code{"pairs"} or \code{"residual"} for obtaining bootstrap standard errors, t-tests, and bootstrap P values. Default is \code{NULL}.
 #' @param cov A named numeric matrix. Default is \code{NULL}.
 #' @param means A sample mean vector. Default is \code{NULL}.
 #' @param N Numeric. The number of observations in the sample. Default is \code{NULL}.
+#' @param tests A boolean indicating whether parameter and model tests are to be calculated. Default is \code{TRUE}
 #'
 #' @return model
 #' @return dat
@@ -116,20 +120,28 @@
 #'  
 #'  
 #' @export
-miive <- function(model = model, data = NULL, overid = NULL, varcov = NULL, 
-                  print.miivs = FALSE, bootstrap.se = NULL, instruments = NULL,
-                  cov = NULL, means = NULL, N = NULL){
-
+miive <- function(model = model, data = NULL, estimator = "2SLS", wininitial = "2SLS",
+                  wmatrix = "unadjusted", overid = NULL, print.miivs = FALSE,
+                  varcov = NULL, bootstrap.se = NULL, instruments = NULL,
+                  cov = NULL, means = NULL, N = NULL, tests = TRUE){
+  
+  
+  if (estimator != "2SLS"){stop(paste("Only 2SLS currently supported."))}
+  if (wininitial != "2SLS"){stop(paste("Only 2SLS currently supported."))}
+  if (wmatrix != "unadjusted"){stop(paste("Only unadjusted wmatrix supported."))}
+  
   if ( "miivs" == class(model) ){ mod <- model; d <- mod$eqns; } 
   if ( "miivs" != class(model) ){ mod <- miivs(model); d <- mod$eqns; } 
-
+  
   if (is.null(cov)) { covariance = FALSE }
   if (!is.null(cov)){ covariance = TRUE  }
-
+  
   if (covariance == TRUE & !is.null(bootstrap.se)){
     stop(paste("Bootstrap procedures not supported when using covariance matrix as input."))
   }
-  
+  if (covariance == TRUE & estimator == "GMM"){
+    stop(paste("GMM estimator not currently supported when using covariance matrix as input."))
+  }
   if (covariance == TRUE){
     if (is.null(means)){
       stop(paste("Must supply a vector of means when using covariance matrix as input."))
@@ -139,15 +151,15 @@ miive <- function(model = model, data = NULL, overid = NULL, varcov = NULL,
     }
     means  <- setNames(means, colnames(cov))
   }
-
+  
   if (covariance == FALSE){
     means  <- colMeans(data) 
     N      <- nrow(data)
     data.c <- apply(data, 2, function(y) y - mean(y)) 
   }
-
+  
   means <- matrix(means, nrow = 1, ncol = length(means), dimnames = list("", names(means)) )
-
+  
   if ( length(mod$constr) == 0 ) { restrictions <- FALSE }
   if ( length(mod$constr)  > 0 ) { restrictions <- TRUE  }
   
@@ -155,87 +167,73 @@ miive <- function(model = model, data = NULL, overid = NULL, varcov = NULL,
     stop(paste("Cannot supply both instruments list and overid."))
   }
   
-  if (!is.null(instruments)){
+  if (!is.null(instruments)) {
     table   <- lavParTable(instruments)
-    table   <- table[table$op == "~", ]
+    table   <- table[table$op == "~",]
     dv_list <- unique(table$lhs)
     iv_list <- list(DV_user = "", IV_user = "")
     iv_list <- replicate(length(dv_list), iv_list, simplify = FALSE)
-  
-    for (i in 1:length(dv_list)){
+    
+    
+    for (i in 1:length(dv_list)) {
+      
       iv_list[[i]]$DV_user <- dv_list[i]
-      iv_list[[i]]$IV_user <- c(table[table$lhs == dv_list[i],]$rhs)
+      iv_list[[i]]$IV_user <- c(table[table$lhs == dv_list[i], ]$rhs)
     }
-  
+    
     dv_user <- unlist(lapply(iv_list, "[", c("DV_user")), use.names=FALSE)
     iv_user <- unlist(lapply(iv_list, "[", c("IV_user")), use.names=FALSE)
-  
+    
     eqns_not_to_estimate <- c()
     
-    for (i in 1:length(d)){
+    dv_user <-
+      unlist(lapply(iv_list, "[", c("DV_user")), use.names = FALSE)
+    iv_user <-
+      unlist(lapply(iv_list, "[", c("IV_user")), use.names = FALSE)
     
+    eqns_not_to_estimate <- c()
+    
+    for (i in 1:length(d)) {
+      
       dv <- d[[i]]$DVobs
       index <- which(dv_user == dv)
-    
+      
       # if the equation isn't listed remove it
       if (is.integer(index) && length(index) == 0L) {
-        eqns_not_to_estimate <- c(eqns_not_to_estimate, i) 
+        eqns_not_to_estimate <- c(eqns_not_to_estimate, i)
       }
       
       if (is.integer(index) && length(index) != 0L) {
-      iv_user  <- iv_list[[index]]$IV_user
-      iv_miivs <- d[[i]]$IV
-      n_pred   <- length(d[[i]]$IVobs)
-    
-      if (length(iv_user) < n_pred) {
-        stop(paste("Need at least ", n_pred," instruments for ", dv))}
-    
-      check <- iv_user[which(!(iv_user%in%iv_miivs))]
-    
-      if ( !(is.character(check) && length(check) == 0L) ) {  
-         stop(paste("Instruments for ", dv," are not valid."))} 
+        
+        iv_user  <- iv_list[[index]]$IV_user
+        iv_miivs <- d[[i]]$IV
+        n_pred   <- length(d[[i]]$IVobs)
+        
+        if (length(iv_user) < n_pred) {
+          stop(paste("Need at least ", n_pred, " instruments for ", dv))
+        }
+        
+        check <- iv_user[which(!(iv_user %in% iv_miivs))]
+        
+        if (!(is.character(check) && length(check) == 0L)) {
+          stop(paste("Instruments for ", dv, " are not valid."))
+        }
+        
+        d[[i]]$IV <- iv_user
+      }
+    }
+    if (length(eqns_not_to_estimate) > 0) {
+      d <- d[-eqns_not_to_estimate]
+    }
+  } 
   
-      d[[i]]$IV <- iv_user
-    
-      }
-    }
-    if (length(eqns_not_to_estimate) > 0){d <- d[-eqns_not_to_estimate]}
-  } 
-
-
-  optim <- function(d, overid, data){
-    for (i in 1:length(d)){
-      y  <- as.matrix( cbind(data[,d[[i]]$DVobs] ) )
-      P  <- d[[i]]$IVobs
-      k  <- overid + length(d[[i]]$IVobs) 
-      
-      if (k > length(d[[i]]$IV) ) {
-        d[[i]]$NOTE <- paste("* Maximum number of MIIVs is less than requested degree of overidentification. See df for degree of overidentification.", sep="")
-        d[[i]]$MSG <- "*"
-      }
-
-      else if (k <= length(d[[i]]$IV) ) {
-        cd <- cor(data)
-        cd <- cbind(cd[,P])
-        cd[cd == 1] <- 0
-        cd_m <- as.matrix(cd)
-    
-        cd_m <- cbind( apply(cd_m, 1, max) ) 
-        ord_names <- rownames(cd_m)[order(cd_m, 
-                                        decreasing=TRUE)][1:nrow(cd_m)]
-    
-        temp <- d[[i]]$IV
-        temp <- temp[order(match(temp,ord_names))]
-        d[[i]]$IV <- temp[1:k]
-      }
-    }
-    return(d)
-  } 
-
-  if (!is.null(overid)){ d <- optim(d, overid, data)}
+  
+  if (!is.null(overid)){ d <- optimMIIV(d, overid, data)}
+  
+  
   
   if (restrictions == TRUE){
-
+    
     for(i in 1:length(d)){
       if (covariance == TRUE){
         gl0 <-  paste(d[[i]]$DVobs, "_",d[[i]]$IVobs, sep="")
@@ -255,16 +253,16 @@ miive <- function(model = model, data = NULL, overid = NULL, varcov = NULL,
     dimnames(L) <- list(unlist(lapply(con, "[[", c("NAME"))), c(" "))
     
     for (r in 1:length(con)){
-     if (con[[r]]$FIX == 0 ){ 
-       R[r, paste(con[[r]]$SET[1],"_",con[[r]]$DV[1], sep="")] <-  1
-       R[r, paste(con[[r]]$SET[2],"_",con[[r]]$DV[2], sep="")] <- -1
-       L[r] <- 0
-     }
-  
-     if (con[[r]]$FIX != 0 ){
-       R[r, paste(con[[r]]$SET,"_",con[[r]]$DV, sep="")] <- 1
-       L[r] <- con[[r]]$FIX
-     }
+      if (con[[r]]$FIX == 0 ){ 
+        R[r, paste(con[[r]]$SET[1],"_",con[[r]]$DV[1], sep="")] <-  1
+        R[r, paste(con[[r]]$SET[2],"_",con[[r]]$DV[2], sep="")] <- -1
+        L[r] <- 0
+      }
+      
+      if (con[[r]]$FIX != 0 ){
+        R[r, paste(con[[r]]$SET,"_",con[[r]]$DV, sep="")] <- 1
+        L[r] <- con[[r]]$FIX
+      }
     }
   } 
   
@@ -272,6 +270,10 @@ miive <- function(model = model, data = NULL, overid = NULL, varcov = NULL,
     R <- NULL
     L <- NULL
   }
+  
+  #
+  # Start of MIIV estimation
+  #
   
   if (covariance == FALSE){ 
     for (i in 1:length(d)){
@@ -293,11 +295,11 @@ miive <- function(model = model, data = NULL, overid = NULL, varcov = NULL,
     Y1 <- as(Matrix(Y1), "sparseMatrix")
     
     X1inv    <- solve(crossprod(X1)) 
-    Y1hat    <- X1%*% X1inv %*% t(X1)%*%Y1
+    Y1hat    <- X1%*% (X1inv %*% (t(X1) %*% Y1))
     
     if (restrictions == TRUE){
       b <- solve(rbind(cbind(as.matrix(t(Y1hat) %*% Y1hat), t(R)), cbind(R, matrix(0, 
-           ncol=nrow(R), nrow=nrow(R))))) %*% rbind(as.matrix(t(Y1hat) %*% y1), L)
+                                                                                   ncol=nrow(R), nrow=nrow(R))))) %*% rbind(as.matrix(t(Y1hat) %*% y1), L)
       b <- cbind(b[1:ncol(R)])
       b.unr <- solve(t(Y1hat)%*%Y1) %*% t(Y1hat)%*%y1
       b.unr <- cbind(b.unr[1:ncol(R)])
@@ -306,7 +308,7 @@ miive <- function(model = model, data = NULL, overid = NULL, varcov = NULL,
       b <- solve(t(Y1hat)%*%Y1) %*% t(Y1hat)%*%y1
     }
   } 
- 
+  
   if (covariance == TRUE){ 
     for (i in 1:length(d)){
       if (i == 1){
@@ -333,10 +335,10 @@ miive <- function(model = model, data = NULL, overid = NULL, varcov = NULL,
       }
       
     }
-  
+    
     if (restrictions == TRUE){
       left  <- solve(rbind(cbind(sYX %*% solve(sXX) %*% sXY, t(R)), 
-               cbind(R, matrix(0, ncol=nrow(R), nrow=nrow(R)))))
+                           cbind(R, matrix(0, ncol=nrow(R), nrow=nrow(R)))))
       right <-  rbind(sYX %*% solve(sXX) %*% sXy, L)
       b <- left %*% right
       b.unr <- solve(sYX %*% solve(sXX) %*% sXY) %*% sYX %*% solve(sXX) %*% sXy
@@ -346,7 +348,7 @@ miive <- function(model = model, data = NULL, overid = NULL, varcov = NULL,
       b <- solve(sYX %*% solve(sXX) %*% sXY) %*% sYX %*% solve(sXX) %*% sXy
     }
   }
-
+  
   dvs <- unlist(lapply(d, function(x) unlist(x$DVobs))) 
   ivs <- unlist(lapply(d, function(x) unlist(x$IVobs)))
   if (covariance == FALSE){
@@ -370,285 +372,250 @@ miive <- function(model = model, data = NULL, overid = NULL, varcov = NULL,
   nod <- nod[!grepl("_Int", nod)]
   all <- c(dvs, nod)
   mx  <- as.matrix(b[,c("iv","dv","b")])
-
+  
   B <- outer(all, all, 
-    function(x, y) {
-      mapply(function(x.sub, y.sub) {
-        val <- mx[mx[, 1] == x.sub & mx[, 2] == y.sub, 3]
-        if(length(val) == 0L) 0 else as.numeric(as.character(val))*-1
-      }, x, y)
-    } 
+             function(x, y) {
+               mapply(function(x.sub, y.sub) {
+                 val <- mx[mx[, 1] == x.sub & mx[, 2] == y.sub, 3]
+                 if(length(val) == 0L) 0 else as.numeric(as.character(val))*-1
+               }, x, y)
+             } 
   )
   B <- as(B,"Matrix") + Diagonal(nrow(B)); dimnames(B) <- list(all,all)
   
   if (restrictions == TRUE){ 
     mx.ur <- as.matrix(b.ur[,c("iv","dv","b")])
     B.ur <- outer(all, all, 
-    function(x, y) {
-      mapply(function(x.sub, y.sub) {
-        val <- mx.ur[mx.ur[, 1] == x.sub & mx.ur[, 2] == y.sub, 3]
-        if(length(val) == 0L) 0 else as.numeric(as.character(val))*-1
-      }, x, y)
-    } 
-  )
-  B.ur <- as(B.ur,"Matrix") + Diagonal(nrow(B)) 
+                  function(x, y) {
+                    mapply(function(x.sub, y.sub) {
+                      val <- mx.ur[mx.ur[, 1] == x.sub & mx.ur[, 2] == y.sub, 3]
+                      if(length(val) == 0L) 0 else as.numeric(as.character(val))*-1
+                    }, x, y)
+                  } 
+    )
+    B.ur <- as(B.ur,"Matrix") + Diagonal(nrow(B)) 
   }
   
-  if (covariance == FALSE){
-    Y         <- as(as.matrix(data)[,all, drop=FALSE], "Matrix")
-    Y.c       <- as(apply(Y, 2, function(y) y - mean(y)), "Matrix")
-    E         <- Y.c %*% B; colnames(E) <- all
-    S.EE      <- (t(B) %*% crossprod(Y.c) %*% B) / N
-    V         <- E %*% solve(B); colnames(V) <- all
-    V.r       <- V[,unlist(dvs), drop = FALSE]
-    S.MI      <- crossprod(V.r) / N
-    S.OB      <- as(cov(data[, unlist(dvs), drop = FALSE]), "Matrix")
-    S.RS      <- S.OB - S.MI
-    u.hat     <- bdiag(split(t(E[,dvs]),1:ncol(E[,dvs, drop = FALSE])))# for sarg.
-    P.z       <- X1 %*% X1inv %*% t(X1)
-    srg       <- diag(crossprod(u.hat,P.z) %*% u.hat / (crossprod(u.hat)/ N))
-    srg.df    <- unlist(lapply(d, function(x) length(x$IV) - length(x$IVobs)))
-    srg       <- data.frame(srg.df, srg)
-    srg$srg.p <- apply(srg, 1, function(x)  1 - pchisq(x[2] ,df = x[1]))
-    srg$dv    <- dvs
-    b         <- merge(b, srg, all.x=TRUE)
-    b         <- b[order(b$id), ]
-    b[dups, c("srg","srg.df","srg.p")] <- NA
-    
-    if (restrictions == TRUE){
-      S.EEur <- (t(B.ur) %*% t(Y.c) %*% Y.c %*% B.ur) / N
-      I <- Diagonal(N)
-      omega <- solve(kronecker(diag(diag(S.EE[unlist(dvs),unlist(dvs)])), I) )
-      top <- cbind(as.matrix(t(Y1hat) %*% omega %*% Y1hat), t(R))
-      bot <- cbind(R, matrix(0, ncol=nrow(R), nrow=nrow(R)))
-      S.EEr <- as.matrix(solve(rbind(top, bot)) )
-      S.EEr <- (S.EEr[1:length(gl),1:length(gl)])
-      rownames(S.EEr) <- gl
-      b$se <- cbind(sqrt(diag(S.EEr)))
-      # for test of restrictions only
-      dimnames(S.EEur) <- dimnames(S.EE) ## added this temporarily
-      omega.ur <- solve(kronecker(diag(diag(S.EEur[unlist(dvs),unlist(dvs)])), I))
-      S.EEur.r <- as.matrix(solve(t(Y1hat) %*% omega.ur %*% Y1hat))
-    }
-    
-    if (restrictions == FALSE){
-      I     <- Diagonal(N)
-      omega <- solve(kronecker(diag(diag(S.EE[unlist(dvs),unlist(dvs), drop = FALSE]),
-                                    nrow = length(dvs), ncol = length(dvs)), I))
-      S.EEr <- as.matrix(solve(t(Y1hat) %*% omega %*% Y1hat))
-      rownames(S.EEr) <- b$iv
-      b$se <- cbind(sqrt(diag(S.EEr)))
-    }
-    
-  }
-
-  if (covariance == TRUE){
-    S.EE <- t(B) %*% cov[colnames(B), colnames(B)] %*% B
-    S.OB <- cov[colnames(B), colnames(B)]
-    S.MI <-  t(solve(B)) %*% S.EE %*% solve(B)
-    S.RS <- S.OB - S.MI
-    se <- cbind(diag(S.EE[dvs,dvs]/N)) ##
-    colnames(se) <- "se"
-    rownames(se) <- dvs
-    b <- merge(b, se, by.x = "dv", by.y = "row.names")
-    b <- b[order(b$id), ]
-    if (restrictions == TRUE){
-      R0 <- matrix(0, ncol=nrow(R), nrow=nrow(R))
-      omega <- diag((solve(rbind(cbind(sYX %*% solve(sXX) %*% sXY, t(R)), 
-               cbind(R, R0))))[1:length(gl),1:length(gl)])
-    }
-    if (restrictions == FALSE){
-      omega <- diag((solve(sYX %*% solve(sXX) %*% sXY))) 
-    }
-    b$se <- sqrt(b$se*omega)
-    ybar <- t(means); colnames(ybar) <- "ybar"; 
-    xbar <- ybar; colnames(xbar) <- "xbar";
-    int <- merge(b, xbar, by.x = "iv", by.y = "row.names") 
-    int <- int[order(int$id), ];
-    int$yb <- int$xbar*int$b
-    int <- aggregate(yb~dv+eq,int,sum)
-    int <- merge(int, ybar, by.x = "dv", by.y = "row.names") 
-    int$b <- int$ybar - int$yb; int$iv <- "Int";
-    int$ybar <- int$yb <- NULL; int$se <- NA; int$id <- NA;
-    int[order(as.numeric(as.character(int$eq))), ]
-    b$id <- 2; int$id <- 1; 
-    b <- rbind(b,int)
-    b <- b[with(b, order(as.numeric(as.character(eq)), id)), ]
-    b$id <- 1:nrow(b)
-    b$srg <- NA
-    b$srg.df <- NA
-    b$srg.p <- NA
-  }
+  #
+  # Calculate tests 
+  #
   
-  restests   <- NULL
-  if (restrictions == TRUE & covariance == FALSE){ 
-    restlabels <- unlist(lapply(con, "[[", c("NAME")))
-    
-    #lrtest.est <- N * (log(det(S.EE[dvs,dvs,drop=FALSE])) - log(det(S.EEur[dvs,dvs,drop=FALSE])))
-    #lrtest.df <- nrow(R)
-    #lrtest.p <- pchisq(lrtest.est, lrtest.df, lower.tail = FALSE)
-    #lrtest.lab <- "Likelihood Ratio Test: Asymptotic Chi-squared"
-    #lrtest <- list(lrtest.est, lrtest.p, lrtest.df, lrtest.lab)
-    lrtest <- NULL
-    
-    waldtest.est <- t(R %*% b.ur$b - L) %*% solve(R %*% S.EEur.r %*% t(R)) %*% (R %*% b.ur$b - L)
-    waldtest.df <- nrow(R)
-    waldtest.p <- pchisq(waldtest.est, waldtest.df, lower.tail = FALSE)
-    waldtest.lab <- "Wald Test: Asymptotic Chi-squared"
-    waldtest <- list(waldtest.est, waldtest.p, waldtest.df, waldtest.lab)
-    
-    
-    restests <- list(lrtest,waldtest, restlabels)
-  }
-  
-  # get p values for coefficients
-  b$z <- apply(b[,c("b","se")], 1, function(x) x[1]/x[2])
-  b$p <- apply(b[,c("b","se")], 1, function(x) 2*(pnorm(abs(x[1]/x[2]), lower.tail=FALSE)))
-  b$iv <- as.character(b$iv)
-  b$dv <- as.character(b$dv)
-  if (covariance == FALSE) {b[ints, "iv"] <- "Int"} 
-  
-  if (restrictions == TRUE){
-    for (i in 1:length(con)){
-      if (con[[i]]$FIX !=0) {
-        b[b$dv == con[[i]]$SET & b$iv == con[[i]]$DV, c("se","z","p")]<-NA
-      }
-    }
-  }
-  
-  for (i in 1:length(d)){
-    d[[i]]$EST <- b[b$dv == d[[i]]$DVobs, "b"]
-  }
-  
-  for (i in 1:length(d)){ # i =1
-    
-    if (d[[i]]$NOTE != "") {
-      olddf <- b[b$eq == i & !is.na(b$srg.df),]$srg.df  
-      newdf <- paste(olddf,"*",sep="")
-      b[b$eq == i & !is.na(b$srg.df),]$srg.df <- newdf
-    }
+  if(tests){
     
     if (covariance == FALSE){
-      if (b[b$eq == i & !is.na(b$srg.df),]$srg.df == 0) {
-        b[b$eq == i & !is.na(b$srg.df),]$srg    <- NA
-        b[b$eq == i & !is.na(b$srg.df),]$srg.p  <- NA
-        b[b$eq == i & !is.na(b$srg.df),]$srg.df <- NA
-      }
-    }
-    
-    if (!any(is.na(d[[i]]$IVlat))) {
-      dvobs <- d[[i]]$DVobs
-      for(z in 1:length(d[[i]]$IVlat)){
-        ivobs <- d[[i]]$IVobs[z]
-        ivlat <- d[[i]]$IVlat[z]
-        b[b$dv == dvobs & b$iv == ivobs,]$iv <- ivlat
-      }
-    }
-    
-    if (!is.na(d[[i]]$DVlat)) {
-      b[b$dv == d[[i]]$DVobs, "dv"] <- d[[i]]$DVlat
-    }
-  }
-  
-
-  dat <- b[,c("dv", "iv", "b", "se", "z", "p","srg", "srg.df", "srg.p")]
-  colnames(dat) <- c("DV", "EV", "Estimate", "StdErr", 
-                     "Z", "P(|Z|)","Sargan", "df", "P(Chi)")
-
-  modeqns <- mod$df
-
-  lavsyntax <- NULL
-  if (!is.null(varcov)){
-   
-    estimator <- varcov
-    
-    fit <- lavaan(model, 
-                auto.fix.first = TRUE, 
-                auto.var = TRUE, 
-                auto.cov.lv.x = TRUE)
-    
-    lavsyntax <- lavExport(fit, export = FALSE)
-    
-    ls <- strsplit(lavsyntax, "\n") 
-
-    for (i in 1:nrow(dat)){
-      dv  <- dat[i,"DV"]
-      iv  <- dat[i,"EV"]
-      est <- dat[i,"Estimate"]
-
-      for (m in 1:length(ls[[1]])){ 
-        line <- ls[[1]][m] 
-          if (grepl("=~", line)){
-            line <- strsplit(line, "=~")
-            
-              if (iv == gsub(".*\\*","",line[[1]][1]) & 
-                  dv == gsub(".*\\*","",line[[1]][2])){
-                ls[[1]][m] <- paste(iv, " =~ ", est, "*", dv,sep="")
-              }
-          }
-          if (grepl(" ~ ", line)){
-            line <- strsplit(line, "~")
-    
-              if (iv == gsub(".*\\*","",line[[1]][1]) & 
-                  dv == gsub(".*\\*","",line[[1]][2])){
-                  ls[[1]][m] <- paste(iv, " ~ ", est, "*", dv,sep="")
-              }
-          }
-          if (grepl("==", line)){
-            ls[[1]][m] <- NA
-          }
-      }
-    }
+      Y         <- as(as.matrix(data)[,all, drop=FALSE], "Matrix")
+      Y.c       <- as(apply(Y, 2, function(y) y - mean(y)), "Matrix")
+      E         <- Y.c %*% B; colnames(E) <- all
+      S.EE      <- (t(B) %*% crossprod(Y.c) %*% B) / N
+      V         <- E %*% solve(B); colnames(V) <- all
+      V.r       <- V[,unlist(dvs), drop = FALSE]
+      S.MI      <- crossprod(V.r) / N
+      S.OB      <- as(cov(data[, unlist(dvs), drop = FALSE]), "Matrix")
+      S.RS      <- S.OB - S.MI
+      u.hat     <- bdiag(split(t(E[,dvs]),1:ncol(E[,dvs, drop = FALSE])))# for sarg.
+      ##P.z       <- X1 %*% X1inv %*% t(X1)
+      ##srg       <- diag(crossprod(u.hat,P.z) %*% u.hat / (crossprod(u.hat)/ N))
+      srg       <- diag(t(u.hat) %*% (X1 %*% (X1inv %*% (t(X1) %*% u.hat))) / (crossprod(u.hat)/ N) )
+      srg.df    <- unlist(lapply(d, function(x) length(x$IV) - length(x$IVobs)))
+      srg       <- data.frame(srg.df, srg)
+      srg$srg.p <- apply(srg, 1, function(x)  1 - pchisq(x[2] ,df = x[1]))
+      srg$dv    <- dvs
+      b         <- merge(b, srg, all.x=TRUE)
+      b         <- b[order(b$id), ]
+      b[dups, c("srg","srg.df","srg.p")] <- NA
       
-    ls[[1]]  <- ls[[1]][!is.na(ls[[1]])]
-    lavsyntax <- paste(unlist(ls), "\n", collapse="")
-    lavsyntax <- gsub("NA", "1", lavsyntax)
-    if (covariance == FALSE){
-      fitcov   <- lavaan(lavsyntax, data = data, 
-                  auto.fix.first = TRUE, estimator = estimator,
-                  auto.var=TRUE, auto.cov.lv.x = TRUE)
+      if (restrictions == TRUE){
+        S.EEur <- (t(B.ur) %*% t(Y.c) %*% Y.c %*% B.ur) / N
+        I <- Diagonal(N)
+        omega <- solve(kronecker(diag(diag(S.EE[unlist(dvs),unlist(dvs)])), I) )
+        top <- cbind(as.matrix(t(Y1hat) %*% omega %*% Y1hat), t(R))
+        bot <- cbind(R, matrix(0, ncol=nrow(R), nrow=nrow(R)))
+        S.EEr <- as.matrix(solve(rbind(top, bot)) )
+        S.EEr <- (S.EEr[1:length(gl),1:length(gl)])
+        rownames(S.EEr) <- gl
+        b$se <- cbind(sqrt(diag(S.EEr)))
+        # for test of restrictions only
+        dimnames(S.EEur) <- dimnames(S.EE) ## added this temporarily
+        omega.ur <- solve(kronecker(diag(diag(S.EEur[unlist(dvs),unlist(dvs)])), I))
+        S.EEur.r <- as.matrix(solve(t(Y1hat) %*% omega.ur %*% Y1hat))
+      }
+      
+      if (restrictions == FALSE){
+        I     <- Diagonal(N)
+        omega <- solve(kronecker(diag(diag(S.EE[unlist(dvs),unlist(dvs), drop = FALSE]),
+                                      nrow = length(dvs), ncol = length(dvs)), I))
+        S.EEr <- as.matrix(solve(t(Y1hat) %*% omega %*% Y1hat))
+        rownames(S.EEr) <- b$iv
+        b$se <- cbind(sqrt(diag(S.EEr)))
+      }
+      
     }
-    if (covariance == TRUE){
-      fitcov   <- lavaan(lavsyntax, sample.cov = cov, 
-                         sample.nobs = N, auto.fix.first = TRUE, 
-                         estimator = estimator, auto.var=TRUE, 
-                         auto.cov.lv.x = TRUE)
-    }
-    pe  <-  parameterEstimates(fitcov)
-    cpe <-  pe[pe$op == "~~" & pe$lhs != pe$rhs,]
-    if (dim(cpe)[1] != 0){
-      cpe$x <- paste(cpe$lhs, cpe$op, cpe$rhs, sep=" ")
-      cpe <- cpe[,c("x","est", "se", "z", "pvalue")]
-      colnames(cpe) <- c( "","Estimate", 
-                            "StdErr", "Z", "P(|Z|)")
-    }
-    if (dim(cpe)[1] == 0){ cpe <- NULL }
-   
-    vpe <- pe[pe$op == "~~" & pe$lhs == pe$rhs,]
-    vpe <- vpe[,c("lhs","est", "se", "z", "pvalue")]
-    if (dim(vpe)[1] != 0){
-      colnames(vpe) <- c( "","Estimate", "StdErr", "Z", "P(|Z|)")
-    }
-    if (dim(vpe)[1] == 0){ vpe <- NULL }
-      vcov <- list(cov = cpe, var = vpe)
     
+    if (covariance == TRUE){
+      S.EE <- t(B) %*% cov[colnames(B), colnames(B)] %*% B
+      S.OB <- cov[colnames(B), colnames(B)]
+      S.MI <-  t(solve(B)) %*% S.EE %*% solve(B)
+      S.RS <- S.OB - S.MI
+      se <- cbind(diag(S.EE[dvs,dvs]/N)) ##
+      colnames(se) <- "se"
+      rownames(se) <- dvs
+      b <- merge(b, se, by.x = "dv", by.y = "row.names")
+      b <- b[order(b$id), ]
+      if (restrictions == TRUE){
+        R0 <- matrix(0, ncol=nrow(R), nrow=nrow(R))
+        omega <- diag((solve(rbind(cbind(sYX %*% solve(sXX) %*% sXY, t(R)), 
+                                   cbind(R, R0))))[1:length(gl),1:length(gl)])
+      }
+      if (restrictions == FALSE){
+        omega <- diag((solve(sYX %*% solve(sXX) %*% sXY))) 
+      }
+      b$se <- sqrt(b$se*omega)
+      ybar <- t(means); colnames(ybar) <- "ybar"; 
+      xbar <- ybar; colnames(xbar) <- "xbar";
+      int <- merge(b, xbar, by.x = "iv", by.y = "row.names") 
+      int <- int[order(int$id), ];
+      int$yb <- int$xbar*int$b
+      int <- aggregate(yb~dv+eq,int,sum)
+      int <- merge(int, ybar, by.x = "dv", by.y = "row.names") 
+      int$b <- int$ybar - int$yb; int$iv <- "Int";
+      int$ybar <- int$yb <- NULL; int$se <- NA; int$id <- NA;
+      int[order(as.numeric(as.character(int$eq))), ]
+      b$id <- 2; int$id <- 1; 
+      b <- rbind(b,int)
+      b <- b[with(b, order(as.numeric(as.character(eq)), id)), ]
+      b$id <- 1:nrow(b)
+      b$srg <- NA
+      b$srg.df <- NA
+      b$srg.p <- NA
+    }
+    
+    restests   <- NULL
+    if (restrictions == TRUE & covariance == FALSE){ 
+      restlabels <- unlist(lapply(con, "[[", c("NAME")))
+      
+      #lrtest.est <- N * (log(det(S.EE[dvs,dvs,drop=FALSE])) - log(det(S.EEur[dvs,dvs,drop=FALSE])))
+      #lrtest.df <- nrow(R)
+      #lrtest.p <- pchisq(lrtest.est, lrtest.df, lower.tail = FALSE)
+      #lrtest.lab <- "Likelihood Ratio Test: Asymptotic Chi-squared"
+      #lrtest <- list(lrtest.est, lrtest.p, lrtest.df, lrtest.lab)
+      lrtest <- NULL
+      
+      waldtest.est <- t(R %*% b.ur$b - L) %*% solve(R %*% S.EEur.r %*% t(R)) %*% (R %*% b.ur$b - L)
+      waldtest.df <- nrow(R)
+      waldtest.p <- pchisq(waldtest.est, waldtest.df, lower.tail = FALSE)
+      waldtest.lab <- "Wald Test: Asymptotic Chi-squared"
+      waldtest <- list(waldtest.est, waldtest.p, waldtest.df, waldtest.lab)
+      
+      
+      restests <- list(lrtest,waldtest, restlabels)
+    }
+    
+    # get p values for coefficients
+    b$z <- apply(b[,c("b","se")], 1, function(x) x[1]/x[2])
+    b$p <- apply(b[,c("b","se")], 1, function(x) 2*(pnorm(abs(x[1]/x[2]), lower.tail=FALSE)))
+    b$iv <- as.character(b$iv)
+    b$dv <- as.character(b$dv)
+    if (covariance == FALSE) {b[ints, "iv"] <- "Int"} 
+    
+    if (restrictions == TRUE){
+      for (i in 1:length(con)){
+        if (con[[i]]$FIX !=0) {
+          b[b$dv == con[[i]]$SET & b$iv == con[[i]]$DV, c("se","z","p")]<-NA
+        }
+      }
+    }
+    
+    for (i in 1:length(d)){
+      d[[i]]$EST <- b[b$dv == d[[i]]$DVobs, "b"]
+    }
+    
+    for (i in 1:length(d)){ # i =1
+      
+      if (d[[i]]$NOTE != "") {
+        olddf <- b[b$eq == i & !is.na(b$srg.df),]$srg.df  
+        newdf <- paste(olddf,"*",sep="")
+        b[b$eq == i & !is.na(b$srg.df),]$srg.df <- newdf
+      }
+      
+      if (covariance == FALSE){
+        if (b[b$eq == i & !is.na(b$srg.df),]$srg.df == 0) {
+          b[b$eq == i & !is.na(b$srg.df),]$srg    <- NA
+          b[b$eq == i & !is.na(b$srg.df),]$srg.p  <- NA
+          b[b$eq == i & !is.na(b$srg.df),]$srg.df <- NA
+        }
+      }
+      
+      if (!any(is.na(d[[i]]$IVlat))) {
+        dvobs <- d[[i]]$DVobs
+        for(z in 1:length(d[[i]]$IVlat)){
+          ivobs <- d[[i]]$IVobs[z]
+          ivlat <- d[[i]]$IVlat[z]
+          b[b$dv == dvobs & b$iv == ivobs,]$iv <- ivlat
+        }
+      }
+      
+      if (!is.na(d[[i]]$DVlat)) {
+        b[b$dv == d[[i]]$DVobs, "dv"] <- d[[i]]$DVlat
+      }
+    }
+    
+    
+    dat <- b[,c("dv", "iv", "b", "se", "z", "p","srg", "srg.df", "srg.p")]
+    colnames(dat) <- c("DV", "EV", "Estimate", "StdErr", 
+                       "Z", "P(|Z|)","Sargan", "df", "P(Chi)")
+  }
+  
+  # No tests or SEs, just report the point estimates
+  
+  else{
+    dat <- b[,c("dv", "iv", "b")]
+    colnames(dat) <- c("DV", "EV", "Estimate")
+    restests <- NULL
+  }
+  modeqns <- mod$df
+  
+  # 
+  # Optionally calculate variance covariance matrix and boostrap.
+  #
+  
+  if (!is.null(varcov)){
+    vcovlist <- miivvarcov(model,varcov,dat, data, covariance)
+    vcov <- vcovlist[[1]]
+    lavsyntax <- vcovlist[[2]]
+  }
+  else{
+    lavsyntax <- NULL
+    vcov <- NULL
   }
   
   if (!is.null(bootstrap.se)){
     dat <- miivboot(d = d, dat = dat, restrictions = restrictions, data = data, 
                     bootstrap.se = bootstrap.se, reps=1000, R = R, L = L, B = B)
   }
-
+  
   ctrlopts <- list(print.miivs = print.miivs, 
                    restrictions = restrictions, 
                    varcov = varcov, 
                    bootstrap.se =  bootstrap.se,
-                   covariance = covariance)
+                   covariance = covariance,
+                   tests = tests)
+  
+  for (i in 1:length(d)){
+    LHS <- paste(d[[i]]$DVobs, collapse = ", ")
+    RHS <- paste(d[[i]]$IVobs, collapse = ", ")
+    Instruments <- paste(d[[i]]$IV, collapse = ", ")
+    Disturbance <- paste("e.",d[[i]]$CD, collapse = ", ", sep="")
+    modtemp <- as.data.frame(cbind(LHS, RHS, Disturbance, Instruments))
+    colnames(modtemp) <- c("LHS", "RHS", "Composite Disturbance", "MIIVs")
+    if (i == 1) {modeqns <- modtemp }
+    if (i >  1) {modeqns <- rbind(modeqns,modtemp) }
+  } 
   
   res <- list(model = d, dat = dat, modeqns = modeqns, 
               ctrlopts = ctrlopts, 
               restests = restests, vcov = vcov, 
-              lavsyntax = lavsyntax)
+              lavsyntax = lavsyntax,
+              overid = overid)
   
   class(res) <- "miive"
   res

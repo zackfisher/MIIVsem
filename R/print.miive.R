@@ -12,12 +12,9 @@ print.miive <- function(x, digits = 2,...){
   model <- x$model  #paste("t", i, )
   modeqns <- x$modeqns
   
-  if(ctrlopts$tests){
-    if (is.null(ctrlopts$bootstrap.se)) { `$`(dat , "P(|Z|)") <- round(`$`(dat , "P(|Z|)"),digits) }
-    if (!is.null(ctrlopts$bootstrap.se)) { `$`(dat , "P(t)") <- round(`$`(dat , "P(t)"),digits) }
-    `$`(dat , "P(Chi)") <- round(`$`(dat , "P(Chi)"),digits)
-  }
-  
+  if (is.null(ctrlopts$bootstrap.se)) { `$`(dat , "P(|Z|)") <- round(`$`(dat , "P(|Z|)"),digits) }
+  if (!is.null(ctrlopts$bootstrap.se)) { `$`(dat , "P(t)") <- round(`$`(dat , "P(t)"),digits) }
+  `$`(dat , "P(Chi)") <- round(`$`(dat , "P(Chi)"),digits)
   dat$DV[duplicated(dat$DV)] <- NA
   cf <- format(dat, digits = digits) ## use format to set other options like digits, justify , ...
   

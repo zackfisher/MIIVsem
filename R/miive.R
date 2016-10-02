@@ -139,15 +139,15 @@ miive <- function(model = model, data = NULL, overid = NULL, varcov = NULL,
     }
     means  <- setNames(means, colnames(cov))
   }
-  
+
   if (covariance == FALSE){
     means  <- colMeans(data) 
     N      <- nrow(data)
     data.c <- apply(data, 2, function(y) y - mean(y)) 
   }
-  
+
   means <- matrix(means, nrow = 1, ncol = length(means), dimnames = list("", names(means)) )
-  
+
   if ( length(mod$constr) == 0 ) { restrictions <- FALSE }
   if ( length(mod$constr)  > 0 ) { restrictions <- TRUE  }
   
@@ -161,48 +161,48 @@ miive <- function(model = model, data = NULL, overid = NULL, varcov = NULL,
     dv_list <- unique(table$lhs)
     iv_list <- list(DV_user = "", IV_user = "")
     iv_list <- replicate(length(dv_list), iv_list, simplify = FALSE)
-    
+  
     for (i in 1:length(dv_list)){
       iv_list[[i]]$DV_user <- dv_list[i]
       iv_list[[i]]$IV_user <- c(table[table$lhs == dv_list[i],]$rhs)
     }
-    
+  
     dv_user <- unlist(lapply(iv_list, "[", c("DV_user")), use.names=FALSE)
     iv_user <- unlist(lapply(iv_list, "[", c("IV_user")), use.names=FALSE)
-    
+  
     eqns_not_to_estimate <- c()
     
     for (i in 1:length(d)){
-      
+    
       dv <- d[[i]]$DVobs
       index <- which(dv_user == dv)
-      
+    
       # if the equation isn't listed remove it
       if (is.integer(index) && length(index) == 0L) {
         eqns_not_to_estimate <- c(eqns_not_to_estimate, i) 
       }
       
       if (is.integer(index) && length(index) != 0L) {
-        iv_user  <- iv_list[[index]]$IV_user
-        iv_miivs <- d[[i]]$IV
-        n_pred   <- length(d[[i]]$IVobs)
-        
-        if (length(iv_user) < n_pred) {
-          stop(paste("Need at least ", n_pred," instruments for ", dv))}
-        
-        check <- iv_user[which(!(iv_user%in%iv_miivs))]
-        
-        if ( !(is.character(check) && length(check) == 0L) ) {  
-          stop(paste("Instruments for ", dv," are not valid."))} 
-        
-        d[[i]]$IV <- iv_user
-        
+      iv_user  <- iv_list[[index]]$IV_user
+      iv_miivs <- d[[i]]$IV
+      n_pred   <- length(d[[i]]$IVobs)
+    
+      if (length(iv_user) < n_pred) {
+        stop(paste("Need at least ", n_pred," instruments for ", dv))}
+    
+      check <- iv_user[which(!(iv_user%in%iv_miivs))]
+    
+      if ( !(is.character(check) && length(check) == 0L) ) {  
+         stop(paste("Instruments for ", dv," are not valid."))} 
+  
+      d[[i]]$IV <- iv_user
+    
       }
     }
     if (length(eqns_not_to_estimate) > 0){d <- d[-eqns_not_to_estimate]}
   } 
-  
-  
+
+
   optim <- function(d, overid, data){
     for (i in 1:length(d)){
       y  <- as.matrix( cbind(data[,d[[i]]$DVobs] ) )
@@ -213,17 +213,17 @@ miive <- function(model = model, data = NULL, overid = NULL, varcov = NULL,
         d[[i]]$NOTE <- paste("* Maximum number of MIIVs is less than requested degree of overidentification. See df for degree of overidentification.", sep="")
         d[[i]]$MSG <- "*"
       }
-      
+
       else if (k <= length(d[[i]]$IV) ) {
         cd <- cor(data)
         cd <- cbind(cd[,P])
         cd[cd == 1] <- 0
         cd_m <- as.matrix(cd)
-        
+    
         cd_m <- cbind( apply(cd_m, 1, max) ) 
         ord_names <- rownames(cd_m)[order(cd_m, 
-                                          decreasing=TRUE)][1:nrow(cd_m)]
-        
+                                        decreasing=TRUE)][1:nrow(cd_m)]
+    
         temp <- d[[i]]$IV
         temp <- temp[order(match(temp,ord_names))]
         d[[i]]$IV <- temp[1:k]
@@ -231,11 +231,11 @@ miive <- function(model = model, data = NULL, overid = NULL, varcov = NULL,
     }
     return(d)
   } 
-  
+
   if (!is.null(overid)){ d <- optim(d, overid, data)}
   
   if (restrictions == TRUE){
-    
+
     for(i in 1:length(d)){
       if (covariance == TRUE){
         gl0 <-  paste(d[[i]]$DVobs, "_",d[[i]]$IVobs, sep="")
@@ -255,16 +255,16 @@ miive <- function(model = model, data = NULL, overid = NULL, varcov = NULL,
     dimnames(L) <- list(unlist(lapply(con, "[[", c("NAME"))), c(" "))
     
     for (r in 1:length(con)){
-      if (con[[r]]$FIX == 0 ){ 
-        R[r, paste(con[[r]]$SET[1],"_",con[[r]]$DV[1], sep="")] <-  1
-        R[r, paste(con[[r]]$SET[2],"_",con[[r]]$DV[2], sep="")] <- -1
-        L[r] <- 0
-      }
-      
-      if (con[[r]]$FIX != 0 ){
-        R[r, paste(con[[r]]$SET,"_",con[[r]]$DV, sep="")] <- 1
-        L[r] <- con[[r]]$FIX
-      }
+     if (con[[r]]$FIX == 0 ){ 
+       R[r, paste(con[[r]]$SET[1],"_",con[[r]]$DV[1], sep="")] <-  1
+       R[r, paste(con[[r]]$SET[2],"_",con[[r]]$DV[2], sep="")] <- -1
+       L[r] <- 0
+     }
+  
+     if (con[[r]]$FIX != 0 ){
+       R[r, paste(con[[r]]$SET,"_",con[[r]]$DV, sep="")] <- 1
+       L[r] <- con[[r]]$FIX
+     }
     }
   } 
   
@@ -272,10 +272,6 @@ miive <- function(model = model, data = NULL, overid = NULL, varcov = NULL,
     R <- NULL
     L <- NULL
   }
-  
-  #
-  # Start of MIIV estimation
-  #
   
   if (covariance == FALSE){ 
     for (i in 1:length(d)){
@@ -301,7 +297,7 @@ miive <- function(model = model, data = NULL, overid = NULL, varcov = NULL,
     
     if (restrictions == TRUE){
       b <- solve(rbind(cbind(as.matrix(t(Y1hat) %*% Y1hat), t(R)), cbind(R, matrix(0, 
-                                                                                   ncol=nrow(R), nrow=nrow(R))))) %*% rbind(as.matrix(t(Y1hat) %*% y1), L)
+           ncol=nrow(R), nrow=nrow(R))))) %*% rbind(as.matrix(t(Y1hat) %*% y1), L)
       b <- cbind(b[1:ncol(R)])
       b.unr <- solve(t(Y1hat)%*%Y1) %*% t(Y1hat)%*%y1
       b.unr <- cbind(b.unr[1:ncol(R)])
@@ -310,7 +306,7 @@ miive <- function(model = model, data = NULL, overid = NULL, varcov = NULL,
       b <- solve(t(Y1hat)%*%Y1) %*% t(Y1hat)%*%y1
     }
   } 
-  
+ 
   if (covariance == TRUE){ 
     for (i in 1:length(d)){
       if (i == 1){
@@ -337,10 +333,10 @@ miive <- function(model = model, data = NULL, overid = NULL, varcov = NULL,
       }
       
     }
-    
+  
     if (restrictions == TRUE){
       left  <- solve(rbind(cbind(sYX %*% solve(sXX) %*% sXY, t(R)), 
-                           cbind(R, matrix(0, ncol=nrow(R), nrow=nrow(R)))))
+               cbind(R, matrix(0, ncol=nrow(R), nrow=nrow(R)))))
       right <-  rbind(sYX %*% solve(sXX) %*% sXy, L)
       b <- left %*% right
       b.unr <- solve(sYX %*% solve(sXX) %*% sXY) %*% sYX %*% solve(sXX) %*% sXy
@@ -350,7 +346,7 @@ miive <- function(model = model, data = NULL, overid = NULL, varcov = NULL,
       b <- solve(sYX %*% solve(sXX) %*% sXY) %*% sYX %*% solve(sXX) %*% sXy
     }
   }
-  
+
   dvs <- unlist(lapply(d, function(x) unlist(x$DVobs))) 
   ivs <- unlist(lapply(d, function(x) unlist(x$IVobs)))
   if (covariance == FALSE){
@@ -374,36 +370,30 @@ miive <- function(model = model, data = NULL, overid = NULL, varcov = NULL,
   nod <- nod[!grepl("_Int", nod)]
   all <- c(dvs, nod)
   mx  <- as.matrix(b[,c("iv","dv","b")])
-  
+
   B <- outer(all, all, 
-             function(x, y) {
-               mapply(function(x.sub, y.sub) {
-                 val <- mx[mx[, 1] == x.sub & mx[, 2] == y.sub, 3]
-                 if(length(val) == 0L) 0 else as.numeric(as.character(val))*-1
-               }, x, y)
-             } 
+    function(x, y) {
+      mapply(function(x.sub, y.sub) {
+        val <- mx[mx[, 1] == x.sub & mx[, 2] == y.sub, 3]
+        if(length(val) == 0L) 0 else as.numeric(as.character(val))*-1
+      }, x, y)
+    } 
   )
   B <- as(B,"Matrix") + Diagonal(nrow(B)); dimnames(B) <- list(all,all)
   
   if (restrictions == TRUE){ 
     mx.ur <- as.matrix(b.ur[,c("iv","dv","b")])
     B.ur <- outer(all, all, 
-                  function(x, y) {
-                    mapply(function(x.sub, y.sub) {
-                      val <- mx.ur[mx.ur[, 1] == x.sub & mx.ur[, 2] == y.sub, 3]
-                      if(length(val) == 0L) 0 else as.numeric(as.character(val))*-1
-                    }, x, y)
-                  } 
-    )
-    B.ur <- as(B.ur,"Matrix") + Diagonal(nrow(B)) 
+    function(x, y) {
+      mapply(function(x.sub, y.sub) {
+        val <- mx.ur[mx.ur[, 1] == x.sub & mx.ur[, 2] == y.sub, 3]
+        if(length(val) == 0L) 0 else as.numeric(as.character(val))*-1
+      }, x, y)
+    } 
+  )
+  B.ur <- as(B.ur,"Matrix") + Diagonal(nrow(B)) 
   }
   
-  #
-  # Calculate tests 
-  #
-  
-  if(tests){
-    
   if (covariance == FALSE){
     Y         <- as(as.matrix(data)[,all, drop=FALSE], "Matrix")
     Y.c       <- as(apply(Y, 2, function(y) y - mean(y)), "Matrix")
@@ -451,7 +441,7 @@ miive <- function(model = model, data = NULL, overid = NULL, varcov = NULL,
     }
     
   }
-  
+
   if (covariance == TRUE){
     S.EE <- t(B) %*% cov[colnames(B), colnames(B)] %*% B
     S.OB <- cov[colnames(B), colnames(B)]
@@ -465,7 +455,7 @@ miive <- function(model = model, data = NULL, overid = NULL, varcov = NULL,
     if (restrictions == TRUE){
       R0 <- matrix(0, ncol=nrow(R), nrow=nrow(R))
       omega <- diag((solve(rbind(cbind(sYX %*% solve(sXX) %*% sXY, t(R)), 
-                                 cbind(R, R0))))[1:length(gl),1:length(gl)])
+               cbind(R, R0))))[1:length(gl),1:length(gl)])
     }
     if (restrictions == FALSE){
       omega <- diag((solve(sYX %*% solve(sXX) %*% sXY))) 

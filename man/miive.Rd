@@ -38,8 +38,6 @@ miive(model = model, data = NULL, estimator = "2SLS",
 \item{N}{Numeric. The number of observations in the sample. Default is \code{NULL}.}
 
 \item{tests}{A boolean indicating whether parameter and model tests are to be calculated. Default is \code{TRUE}}
-
-\item{overid}{A user-specified degree of overidentification (\code{overid}). See Example 3 below.}
 }
 \value{
 model

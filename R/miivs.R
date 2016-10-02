@@ -61,8 +61,6 @@ miivs <- function(model, miivs.out = FALSE) {
     stop(paste("Enter numerical constraints using labels."))
   }
   
-
-  
   hof <- unique(pt[pt$op == "=~" & pt$rhs %in% pt[pt$op == "=~", "lhs"],"lhs"])
   
   if (length(hof) > 0) {higher_order <- TRUE} else {higher_order <- FALSE}
@@ -82,7 +80,6 @@ miivs <- function(model, miivs.out = FALSE) {
     latExo <- setdiff(latExo, sof) 
   }
   
-  # determine maximum path length for
   
   if (higher_order == FALSE){
     latEnd <- lavNames(fit, type = "lv.nox")
@@ -129,6 +126,7 @@ miivs <- function(model, miivs.out = FALSE) {
   
   colnames(x1names) <- c("lat", "obs")
   
+
   n1 <- n2 <- c()
   
   if (higher_order == TRUE){ # Eta2
@@ -140,6 +138,7 @@ miivs <- function(model, miivs.out = FALSE) {
       n1names$rhs[i] <- x1names[x1names$lat == n1names$rhs[i], "obs"]
     }
     
+    # cannot allow 
     colnames(n1names) <- c("lat", "obs")
     
     n1 <- lavNames(fit, type = "lv.x")
@@ -214,7 +213,7 @@ miivs <- function(model, miivs.out = FALSE) {
   
   dv <- c(y1, y2, x2)
   
-  if (higher_order == TRUE){ 
+  if (higher_order == TRUE){ # i = 1
     
     dv <- c(n2, y1, y2, x2)
     
@@ -222,8 +221,7 @@ miivs <- function(model, miivs.out = FALSE) {
     BA2 <- BA[latExo,latExo]
     dv2 <- fof
   }
-
-
+  
   eqns <- list(DVobs = "", DVlat = "", IVobs = "", IVlat = "", EQtype = "",
                CD = "", TE = "", PIV = "", IV = "", W = "", NOTE = "")
   eqns <- replicate(length(dv), eqns, simplify = FALSE)
@@ -270,42 +268,91 @@ miivs <- function(model, miivs.out = FALSE) {
     
     
         if (eqns[[i]]$DVobs %in% y1) {
+            #------------------------------------------------------------------#
+            # eqns[[i]]$EQtype <- "y1"
+            # eqns[[i]]$DVlat  <- y1names[y1names$obs == dv[i], "lat"]
+            # 
+            # tmp <- BA1[rownames(BA1) %in% eqns[[i]]$DVlat,, drop=FALSE]
+            # eqns[[i]]$IVlat <- colnames(tmp)[which(tmp[1,] != 0)]
+            # 
+            # tmp <- GA1[which(rownames(GA1) %in% eqns[[i]]$DVlat),,drop=FALSE]
+            # tmp <- colnames(tmp)[which(tmp[1,] != 0)]
+            # eqns[[i]]$IVlat <- c(eqns[[i]]$IVlat,tmp)
+            # eqns[[i]]$IVlat <- eqns[[i]]$IVlat[eqns[[i]]$IVlat != ""]
+            # 
+            # for ( m in 1:length(eqns[[i]]$IVlat)){
+            #   z <- eqns[[i]]$IVlat[m]
+            #     if (z %in% y1names$lat){
+            #       c2 <- y1names[y1names$lat == z, "obs"]
+            #     }
+            #     if (z %in% x1names$lat){
+            #       c2 <- x1names[x1names$lat == z, "obs"]
+            #     }
+            #   eqns[[i]]$IVobs <- c(eqns[[i]]$IVobs, c2)
+            #   eqns[[i]]$IVobs <- eqns[[i]]$IVobs[eqns[[i]]$IVobs!=""]
+            #   eqns[[i]]$CD <- c(eqns[[i]]$CD, c2)
+            #   eqns[[i]]$CD <- eqns[[i]]$CD[eqns[[i]]$CD!=""]
+            # }
+            # 
+            # for ( m in 1:length(eqns[[i]]$DVobs)){
+            #   c2 <- eqns[[i]]$DVobs[m]
+            #   eqns[[i]]$CD <- c(eqns[[i]]$CD, c2)
+            #   eqns[[i]]$CD <- eqns[[i]]$CD[eqns[[i]]$CD!=""]
+            # }
+            # 
+            # for ( m in 1:length(eqns[[i]]$DVlat)){
+            #   c2 <- eqns[[i]]$DVlat[m]
+            #   eqns[[i]]$CD <- c(eqns[[i]]$CD, c2)
+            #   eqns[[i]]$CD <- eqns[[i]]$CD[eqns[[i]]$CD!=""]
+            # }
+            #------------------------------------------------------------------#
             eqns[[i]]$EQtype <- "y1"
-            eqns[[i]]$DVlat <- y1names[y1names$obs == dv[i], "lat"]
             
-            tmp <- BA1[rownames(BA1) %in% eqns[[i]]$DVlat,, drop=FALSE]
-            eqns[[i]]$IVlat <- colnames(tmp)[which(tmp[1,] != 0)]
+            eqns[[i]]$DVlat  <- y1names[y1names$obs == dv[i], "lat"]
             
-            tmp <- GA1[which(rownames(GA1) %in% eqns[[i]]$DVlat),,drop=FALSE]
-            tmp <- colnames(tmp)[which(tmp[1,] != 0)]
-            eqns[[i]]$IVlat <- c(eqns[[i]]$IVlat,tmp)
+            eqns[[i]]$CD     <- c(eqns[[i]]$CD,  eqns[[i]]$DVlat)
+            eqns[[i]]$CD     <- c(eqns[[i]]$CD,  eqns[[i]]$DVobs)
+            
+            IV_tmp <- pt[pt$op == "~" & pt$lhs == eqns[[i]]$DVlat,]$rhs
+            
+            for ( m in 1:length(IV_tmp)){ 
+              
+              z <- IV_tmp[m]
+        
+              if (z %in% y1names$lat) {
+                eqns[[i]]$IVobs <- c(eqns[[i]]$IVobs, y1names[y1names$lat == z, "obs"])
+                eqns[[i]]$IVlat <- c(eqns[[i]]$IVlat, y1names[y1names$lat == z, "lat"])
+                eqns[[i]]$CD    <- c(eqns[[i]]$CD, eqns[[i]]$IVobs)
+              }
+              
+              else if (z %in% x1names$lat) {
+                eqns[[i]]$IVobs <- c(eqns[[i]]$IVobs, x1names[x1names$lat == z, "obs"])
+                eqns[[i]]$IVlat <- c(eqns[[i]]$IVlat, x1names[x1names$lat == z, "lat"])
+                eqns[[i]]$CD    <- c(eqns[[i]]$CD, eqns[[i]]$IVobs)
+              }
+              
+              else if (z %in% lavNames(fit, type = "ov.x")) {
+                # dont include composite error from ov.x
+                eqns[[i]]$IVobs <- c(eqns[[i]]$IVobs, z)
+                eqns[[i]]$IVlat <- c(eqns[[i]]$IVlat, z)
+              }
+              
+              else {
+                eqns[[i]]$IVobs <- c(eqns[[i]]$IVobs, z)
+                eqns[[i]]$IVlat <- c(eqns[[i]]$IVlat, z)
+                eqns[[i]]$CD    <- c(eqns[[i]]$CD, z)
+              }
+              
+            }
+            
+            eqns[[i]]$IVobs <- unique(eqns[[i]]$IVobs)
+            eqns[[i]]$IVlat <- unique(eqns[[i]]$IVlat)
+            eqns[[i]]$CD    <- unique(eqns[[i]]$CD)
+            eqns[[i]]$IVobs <- eqns[[i]]$IVobs[eqns[[i]]$IVobs != ""]
             eqns[[i]]$IVlat <- eqns[[i]]$IVlat[eqns[[i]]$IVlat != ""]
+            eqns[[i]]$CD    <- eqns[[i]]$CD[eqns[[i]]$CD != ""]
+            #------------------------------------------------------------------#
             
-            for ( m in 1:length(eqns[[i]]$IVlat)){
-              z <- eqns[[i]]$IVlat[m]
-                if (z %in% y1names$lat){
-                  c2 <- y1names[y1names$lat == z, "obs"]
-                }
-                if (z %in% x1names$lat){
-                  c2 <- x1names[x1names$lat == z, "obs"]
-                }
-              eqns[[i]]$IVobs <- c(eqns[[i]]$IVobs, c2)
-              eqns[[i]]$IVobs <- eqns[[i]]$IVobs[eqns[[i]]$IVobs!=""]
-              eqns[[i]]$CD <- c(eqns[[i]]$CD, c2)
-              eqns[[i]]$CD <- eqns[[i]]$CD[eqns[[i]]$CD!=""]
-            }
-            
-            for ( m in 1:length(eqns[[i]]$DVobs)){
-              c2 <- eqns[[i]]$DVobs[m]
-              eqns[[i]]$CD <- c(eqns[[i]]$CD, c2)
-              eqns[[i]]$CD <- eqns[[i]]$CD[eqns[[i]]$CD!=""]
-            }
-            
-            for ( m in 1:length(eqns[[i]]$DVlat)){
-              c2 <- eqns[[i]]$DVlat[m]
-              eqns[[i]]$CD <- c(eqns[[i]]$CD, c2)
-              eqns[[i]]$CD <- eqns[[i]]$CD[eqns[[i]]$CD!=""]
-            }
           } 
     
         if (eqns[[i]]$DVobs %in% y2) {
@@ -321,7 +368,7 @@ miivs <- function(model, miivs.out = FALSE) {
                                          pt$lhs == eqns[[i]]$DVobs  &  
                                          is.na(pt$ustart),  "rhs"])))
             eqns[[i]]$IVlat <- tmp
-            
+
             for ( m in 1:length(eqns[[i]]$IVlat)){ 
               z <- eqns[[i]]$IVlat[m]
               
@@ -353,7 +400,7 @@ miivs <- function(model, miivs.out = FALSE) {
             
         } 
     
-        if (eqns[[i]]$DVobs %in% x2) {
+        if (eqns[[i]]$DVobs %in% x2 & !(eqns[[i]]$DVobs %in% y2)) {
             eqns[[i]]$EQtype <- "x2"
             eqns[[i]]$DVlat = NA
             
@@ -375,7 +422,7 @@ miivs <- function(model, miivs.out = FALSE) {
               eqns[[i]]$CD <- eqns[[i]]$CD[eqns[[i]]$CD!=""]
             }
         } 
-    
+
   }
 
 
@@ -383,7 +430,7 @@ miivs <- function(model, miivs.out = FALSE) {
     
     if (nrow(LY2) < 1) {TE_on_y2 <- NULL}
     
-    if (nrow(LY2) > 1) {
+    if (nrow(LY2) >= 1) { # changed
       
       
       if (is.null(inspect(fit)$beta)) {
@@ -440,12 +487,31 @@ miivs <- function(model, miivs.out = FALSE) {
     } # end x2
   }
   
+  # if there is a variable in y2 and x2 it should only be in one
+  # temporarily duplicate list
+  for (i in 1:length(eqns)){ 
+    dv_obs <- eqns[[i]]$DVobs
+    for (j in 1:length(eqns)){ 
+      if (dv_obs == eqns[[j]]$DVobs &  (i != j) & (eqns[[i]]$NOTE != "DELETE"))
+        {
+        eqns[[j]]$NOTE <- "DELETE"
+        }
+    }
+  }
+  
+  index_delete <- which(unlist(lapply(eqns, "[[", "NOTE") == "DELETE"))
+  if (length(index_delete) > 0) { eqns <- eqns[-index_delete] }
+
   if (higher_order == TRUE)  { add_length <- ncol(ET2)}
   if (higher_order == FALSE & !is.null(inspect(fit)$beta)) {
     add_length <- ncol(GA1)
   }  
   if (is.null(inspect(fit)$beta))   {add_length <- 0}
   if (nrow(LY2) < 1) {add_length <- 0}
+  
+  if (higher_order == FALSE & is.null(inspect(fit)$beta)) {
+    add_length <- length(x1)
+  }  
     
   effects <- list(DVobs = "", TE = "")
   effects <- replicate(add_length, effects, simplify = FALSE)
@@ -467,6 +533,20 @@ miivs <- function(model, miivs.out = FALSE) {
     eqns[[i]]$PIV <- lavNames(fit, type = "ov.x")
     eqns[[i]]$PIV <- eqns[[i]]$PIV[eqns[[i]]$PIV != ""]
   }
+  
+  # add higher order observed to MIIVs
+  # needs to be expanded for multiple higher order MIIVs
+  if (higher_order == TRUE)  { 
+    obs_sof <- n1names$obs
+    for (k in 1:length(obs_sof)){
+      for (i in 1:length(eqns)) { 
+        if (!(obs_sof[k] %in%  eqns[[i]]$IVobs) & !(obs_sof[k] %in%  eqns[[i]]$CD)) {
+          eqns[[i]]$PIV <- c(eqns[[i]]$PIV,  obs_sof[k])
+          eqns[[i]]$PIV <- eqns[[i]]$PIV[eqns[[i]]$PIV != ""]
+        }
+      }
+    }
+  }
 
   for (i in 1:length(eqns)) { 
     C <- unlist(eqns[[i]]$CD)
@@ -479,7 +559,7 @@ miivs <- function(model, miivs.out = FALSE) {
     eqns[[i]]$PIV <- eqns[[i]]$PIV[eqns[[i]]$PIV != ""]
   }
   
-  ## remove and PIVs which are predicted by the DV
+  ## remove any PIVs which are predicted by the DV
   for (i in 1:length(eqns)) { 
     if (eqns[[i]]$DVobs %in% lavNames(fit, type = "eqs.y")){
       tdv <- eqns[[i]]$DVobs
@@ -496,6 +576,7 @@ miivs <- function(model, miivs.out = FALSE) {
        for (j in 1:length(C)) { 
           W <- C[j]
           t2 <- c()
+          t3 <- c()
  
           if (W %in% c(y1, y2)){
             tmp <- TE1[which(rownames(TE1) %in% W),,drop=FALSE]
@@ -568,10 +649,10 @@ miivs <- function(model, miivs.out = FALSE) {
   
     ## identified all descendants of parent and removes
     ## them from IVs
-    for (i in 1:length(eqns)) { # i = 7;
+    for (i in 1:length(eqns)) { # i = 1;
       parent  <- eqns[[i]]$DVobs
       parents <- parent
-      for (j in 1:length(eqns)){ 
+      for (j in 1:length(eqns)){ # j = 1
         if ( length(intersect(parents,eqns[[j]]$IVobs)) > 0 ){ 
           parents <- c(parents, eqns[[j]]$DVobs)
           parents <- parents[parents != ""]
@@ -691,6 +772,7 @@ miivs <- function(model, miivs.out = FALSE) {
         }
       }
     }
+    
     
     for (i in 1:length(eqns)){
       LHS <- paste(eqns[[i]]$DVobs, collapse = ", ")

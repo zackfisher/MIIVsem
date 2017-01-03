@@ -7,24 +7,90 @@
 miivs(model, miivs.out = FALSE)
 }
 \arguments{
-\item{model}{A model specified using lavaan model syntax. See the \code{model} argument within the \code{\link[lavaan]{lavaanify}} function for more information.}
+\item{model}{A model specified using lavaan model syntax. See the \code{model} 
+argument within the \code{\link[lavaan]{lavaanify}} function for more information.
+A model specified using lavaan model syntax. See the \code{model} argument within 
+the \code{\link[lavaan]{lavaanify}} function for more information. See the
+documentation below for a description of how to specifying the scaling 
+indicator in latent variable models and impose equality constraints on the
+parameters.}
 
-\item{miivs.out}{A logical indicating whether or not to print the MIIVs as an object for later use. Default is \code{FALSE}.}
-}
-\value{
-eqns
-
-modeqns
+\item{miivs.out}{A logical indicating whether or not to print the MIIVs as an 
+object for later use. Default is \code{FALSE}.}
 }
 \description{
-A key step in the MIIV-2SLS approach is to transform the SEM by replacing the latent variables with their scaling indicators minus their errors.  Upon substitution the SEM is transformed from a model with latent variables to one containing observed variables with composite errors.  The miivs function automatically makes this transformation.
+A key step in the MIIV-2SLS approach is to transform the SEM by replacing the 
+latent variables with their scaling indicators minus their errors.  Upon 
+substitution the SEM is transformed from a model with latent variables to 
+one containing observed variables with composite errors.  The miivs function 
+automatically makes this transformation.
 }
 \details{
+The \code{miivs} function displays a table containing the following 
+information for each equation in the system:
+
 \itemize{
  \item \code{LHS} The "dependent" variable.
  \item \code{RHS} The right hand side variables of the transformed equation.
  \item \code{Composite Disturbance}  Elements of the composite errors in the transformed equation.
- \item \code{MIIVs} The model implied instrumental variables for each equation.
+ \item \code{MIIVs} The model-implied instrumental variables for each equation.
+}
+}
+\section{Scaling Indicators}{
+
+Following the lavaan model syntax, latent variables are defined using the
+\code{=~} operator.  For first order factors, the scaling indicator chosen
+is the first observed variable on the RHS of an equation. For the model below
+\code{Z1} would be chosen as the scaling indicator for \code{L1} and  
+\code{Z4} would be chosen as the scaling indicator for \code{L2}.
+
+\preformatted{model <- '
+    L1 =~ Z1 + Z2 + Z3
+    L2 =~ Z4 + Z5 + Z6
+'
+}
+
+For higher-order factor models, the scaling indicator for the higher order
+factor is taken from the scaling indicator that would have been 
+assigned to the first lower-order factor on the RHS of the equation. 
+For example, in the model below, the  scaling indicator for the higher-order 
+factor \code{H1} is taken to be \code{Z1}, the scaling indicator 
+that would have been assigned to the first lower-order factor \code{L1}.
+
+
+\preformatted{model <- '
+    H1 =~ L1 + L2 
+    L1 =~ Z1 + Z2 + Z3
+    L2 =~ Z4 + Z5 + Z6
+'
+}
+}
+
+\section{Equality Constraints}{
+
+
+Within- and across-equation equality constraints on the factor loading
+and regression coefficients can be imposed directly in the model syntax. 
+To specify equality constraints between different parameters equivalent
+labels should be prepended to the variable name using the \code{*} operator.
+For example, we could constrain the factor loadings for two non-scaling 
+indicators of latent factor \code{L1} to equality using the following 
+model syntax.  
+
+\preformatted{model <- '
+    L1 =~ Z1 + B1*Z2 + B1*Z3
+    L2 =~ Z4 + Z5 + Z6
+'
+}
+
+The factor loading and regression coefficients can also be constrained
+to specific numberic values in a similar fashion. Below we constrain
+the second factor loading for the \code{L1} factor to a value of \code{2}
+
+\preformatted{model <- '
+    L1 =~ Z1 + 2*Z2 + Z3
+    L2 =~ Z4 + Z5 + Z6
+'
 }
 }
 \examples{
@@ -56,5 +122,8 @@ Bollen,	K. A. and	D. J.	Bauer.	2004.	Automating	the	Selection	of
 	
 	Bauldry, S.	2014.	miivfind: A command for identifying model-implied instrumental 
 	variables for structural equation models in Stata.	\emph{Stata Journal}, 14:4.
+	
+	Bentler, P. M., and Weeks, D. G. (1980). Linear structural equations with 
+	latent variables. Psychometrika, 45(3), 289–308.
 }
 

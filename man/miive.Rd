@@ -4,40 +4,19 @@
 \alias{miive}
 \title{Model-implied instrumental variable (MIIV) estimation}
 \usage{
-miive(model = model, data = NULL, estimator = "2SLS",
-  wininitial = "2SLS", wmatrix = "unadjusted", overid = NULL,
-  print.miivs = FALSE, varcov = NULL, bootstrap.se = NULL,
-  instruments = NULL, cov = NULL, means = NULL, N = NULL,
-  tests = TRUE)
+miive(model = model, data = NULL, instruments = NULL,
+  estimator = "2SLS", control = NULL)
 }
 \arguments{
 \item{model}{A model specified using lavaan model syntax. See the \code{model} argument within the \code{\link[lavaan]{lavaanify}} function for more information.}
 
 \item{data}{A data frame, list or environment or an object coercible by as.data.frame to data frame.}
 
-\item{estimator}{Options \code{"2SLS"} or \code{"GMM"} for estimating the model parameters. Default is \code{"2SLS"}.}
-
-\item{wininitial}{Options \code{"identity"} or \code{"2SLS"} for the first stage weight matrix. Default is \code{"2SLS"}.}
-
-\item{wmatrix}{Options \code{"unadjusted"} or \code{"robust"} for the second stage weight matrix. Default is \code{"unadjusted"}.}
-
-\item{overid}{A user-specified degree of overidentification (\code{overid}). See Example 3 below.}
-
-\item{print.miivs}{A logical indicating whether or not to display MIIVs in output.}
-
-\item{varcov}{Option for estimating conditional variance and coavariance paramaters. Default is \code{NULL}.}
-
-\item{bootstrap.se}{Options \code{"pairs"} or \code{"residual"} for obtaining bootstrap standard errors, t-tests, and bootstrap P values. Default is \code{NULL}.}
-
 \item{instruments}{A user-supplied list of valid MIIVs for each equation. See Example 2 below.}
 
-\item{cov}{A named numeric matrix. Default is \code{NULL}.}
+\item{estimator}{Options \code{"2SLS"} or \code{"GMM"} for estimating the model parameters. Default is \code{"2SLS"}.}
 
-\item{means}{A sample mean vector. Default is \code{NULL}.}
-
-\item{N}{Numeric. The number of observations in the sample. Default is \code{NULL}.}
-
-\item{tests}{A boolean indicating whether parameter and model tests are to be calculated. Default is \code{TRUE}}
+\item{control}{.}
 }
 \value{
 model
@@ -51,11 +30,7 @@ Estimate SEM models using model-implied instrumental variables (MIIVs).
 }
 \details{
 \itemize{
-\item{\code{overid}} {If the user-specified degree of overidentification (\code{overid}) exceeds the number of available MIIVs for a given equation, the maximum number of MIIVs will be used instead.  In this case, the \code{df} column for any equations in which the degrees of freedom for the \code{Sargan} test are less than the \code{overid} value will be appended with an \code{*}. A note will also  be displayed to alert the user to the changes. In the example below, the \code{overid} parameter is set to 2, however the \code{y1} equation has only 1 additional MIIV avaialable.}
 \item{\code{instruments}} {Using the \code{instruments} option you can specify the MIIVs directly for each equation in the model.  To utilize this option you must first define a list of instruments using the syntax displayed below. After the list is defined, set the \code{instruments} argument equal to the name of the list of MIIVs. Note, \code{instruments} are specified for an equation, and not for a specific endogenous variable.}
-\item{\code{varcov}} {Currently, only \code{"ML"} and \code{"ULS"} fitting functions are supported through the \code{\link[lavaan]{lavaan}} package.}
-\item{\code{bootstrap.se}} {Currently, only \code{"pairs"} and \code{"residual"} unrestricted bootstrap are implemented using 999 bootstrap repititions.}
-\item {Equality Constraints} Users can specify equality constraints directly using labels in the model syntax.  See Example 4 below. 
 }
 }
 \examples{
@@ -103,16 +78,11 @@ miive(model = bollen1989a_model, data = bollen1989a,
  
  
 # Example 3
- 
- miive(model = bollen1989a_model, data = bollen1989a, overid = 2)
- 
- 
-# Example 4
  bollen1989a_model_r <- '
 
    Eta1 =~ y1 + l2*y2  + l3*y3  + l4*y4  
    Eta2 =~ y5 + l2*y6  + l3*y7  + l4*y8    
-   Xi1  =~ x1 + x2 + l1*x3 
+   Xi1  =~ x1 + x2 + 0.5*x3 
 
    Eta1 ~ Xi1  
    Eta2 ~ Xi1 
@@ -125,11 +95,6 @@ miive(model = bollen1989a_model, data = bollen1989a,
    y4   ~~ y8
    y6   ~~ y8
    
-   # Equality Constraints
-   l1   == 0.5
-   l2   == l2
-   l3   == l3
-   l4   == l4 
  '
  
  miive(model = bollen1989a_model_r, data = bollen1989a)

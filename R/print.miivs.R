@@ -11,7 +11,7 @@ print.miivs <- function(x,...){
     x <- x$eqns
     cat(paste("instruments <- '", sep=""), "\n")
       for(i in 1:length(x)){
-        cat(paste(x[[i]]$DVobs, " ~ ", paste0(x[[i]]$IV, collapse = " + " ), sep=""), "\n")
+        cat(paste(x[[i]]$DVobs, " ~ ", paste0(x[[i]]$MIIVs, collapse = " + " ), sep=""), "\n")
       }
     cat(paste("'", sep=""), "\n")
   }

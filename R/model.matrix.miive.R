@@ -7,7 +7,7 @@ model.matrix.miive <- function(object, which = "x", ... ){
   
   for(i in 1:length(object$eq)) {
     
-    mm_i <- model.matrix(object$eq[[i]], which = which)
+    mmi <- model.matrix(object$eq[[i]], which = which)
     
     
     result <- rbind(

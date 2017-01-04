@@ -4,9 +4,11 @@
 #'
 #' @param model A model specified using lavaan model syntax or a \code{\link{miivs}} object. See the \code{model} argument within the \code{\link[lavaan]{lavaanify}} function for more information.
 #' @param data A data frame, list or environment or an object coercible by \code{as.data.frame} to data frame.
+#' @param sample.cov Numeric matrix. A sample variance-covariance matrix. The rownames and colnames must contain the observed variable names.
 #' @param instruments A user-supplied list of valid MIIVs for each equation. See Example 2 below. 
 #' @param estimator Options \code{"2SLS"} or \code{"GMM"} for estimating the model parameters. Default is \code{"2SLS"}.
 #' @param control .
+#' @param se If \code{TRUE}, standard errors are returned with estimates. 
 #'
 #' @return model
 #' @return dat
@@ -37,19 +39,23 @@
 #' @example example/bollen1989-miive3.R
 #'  
 #' @export
-miive <- function(model = model, data = NULL, instruments = NULL, 
-                  estimator = "2SLS", control = NULL){
+miive <- function(model = model, data = NULL, sample.cov = NULL, instruments = NULL, 
+                  estimator = "2SLS", control = NULL, se = TRUE){
   
   #-------------------------------------------------------#  
   # Check class of model.
   #-------------------------------------------------------#
+  
+  # Mikko: Would it not be simpler to just refer to model as model through the
+  # code?
+  
   if ( "miivs" == class(model) ){ d <- model} 
   if ( "miivs" != class(model) ){ d <- miivs(model)} 
   
   #-------------------------------------------------------# 
   # generateFormulas
   #-------------------------------------------------------# 
-  #   input:  (1) miivs equation list 'd' (miivs(foo)$eqns)
+  #   input:  (1) miivs equation list 'd'
   #                returned from miivs search function.
   #           (2) instruments argument, null by default,
   #               if no instruments have been supplied.
@@ -214,7 +220,7 @@ miive <- function(model = model, data = NULL, instruments = NULL,
   #-------------------------------------------------------#  
   
   #-------------------------------------------------------#  
-  # Organize results
+  # Organize results and calculate additional results
   #-------------------------------------------------------#
   b_i <- split(b, rep(1:length(numCoef_i), numCoef_i))
   results <- list()

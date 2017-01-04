@@ -14,10 +14,6 @@
 #' indicator in latent variable models and impose equality constraints on the
 #' parameters. 
 #' 
-#' @param miivs.out A logical indicating whether or not to print the MIIVs as an 
-#' object for later use. Default is \code{FALSE}.
-#'
-#' 
 #' @section Scaling Indicators:
 #' Following the lavaan model syntax, latent variables are defined using the
 #' \code{=~} operator.  For first order factors, the scaling indicator chosen
@@ -377,7 +373,7 @@ miivs <- function(model){
     if (i >  1) {modeqns <- rbind(modeqns,modtemp) }
   }
   
-  search <- list(eqns = eqns, df = modeqns, miivs.out = miivs.out)
+  search <- list(eqns = eqns, df = modeqns)
   class(search) <- "miivs"
   search
 }

@@ -94,14 +94,14 @@
 #' 	Bentler, P. M., and Weeks, D. G. (1980). Linear structural equations with 
 #' 	latent variables. Psychometrika, 45(3), 289–308.                 
 #' 	
-#' @example example/bollen1989a.R
+#' @example example/bollen1989-miivs.R
 #'   
 #' @export
 
 miivs <- function(model){
 
   
-  pt <- lavaanify(model, auto = TRUE)
+  pt <- lavaan::lavaanify(model, auto = TRUE)
   
   #------------------------------------------------------------------------#
   # Parse parTable and add any equality or numeric constraints .           

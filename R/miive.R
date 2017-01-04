@@ -43,8 +43,8 @@ miive <- function(model = model, data = NULL, instruments = NULL,
   #-------------------------------------------------------#  
   # Check class of model.
   #-------------------------------------------------------#
-  if ( "miivs" == class(model) ){ mod <- model; d <- mod$eqns; } 
-  if ( "miivs" != class(model) ){ mod <- miivs(model); d <- mod$eqns; } 
+  if ( "miivs" == class(model) ){ d <- model} 
+  if ( "miivs" != class(model) ){ d <- miivs(model)} 
   
   #-------------------------------------------------------# 
   # generateFormulas

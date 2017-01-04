@@ -80,7 +80,7 @@
 #'  \item \code{MIIVs} The model-implied instrumental variables for each equation.
 #' }
 #' 
-#' @return A list of two elements containing a the model equations as a list and a dataframe.
+#' @return A list of model equations.
 #'
 #' @references 
 #' 
@@ -363,19 +363,7 @@ miivs <- function(model){
     eqns[[j]]$Label <- labi[which(lhsi %in% td)][match(ti, rhsi[which(lhsi %in% td)])]
   }
   
+  class(eqns) <- "miivs"
+  eqns
   
-  for (i in 1:length(eqns)){
-    LHS <- paste(eqns[[i]]$DVobs, collapse = ", ")
-    RHS <- paste(eqns[[i]]$IVobs, collapse = ", ")
-    Instruments <- paste(eqns[[i]]$MIIVs, collapse = ", ")
-    Disturbance <- paste("e.",eqns[[i]]$CDist, collapse = ", ", sep="")
-    modtemp <- as.data.frame(cbind(LHS, RHS, Disturbance, Instruments))
-    colnames(modtemp) <- c("LHS", "RHS", "Composite Disturbance", "MIIVs")
-    if (i == 1) {modeqns <- modtemp }
-    if (i >  1) {modeqns <- rbind(modeqns,modtemp) }
-  }
-  
-  search <- list(eqns = eqns, df = modeqns)
-  class(search) <- "miivs"
-  search
 }

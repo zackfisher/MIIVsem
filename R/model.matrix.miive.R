@@ -7,7 +7,7 @@ model.matrix.miive <- function(object, which = "x", ... ){
   
   for(i in 1:length(object$eq)) {
     
-    mmi <- model.matrix(object$eq[[i]], which = which)
+    mmi <- stats::model.matrix(object$eq[[i]], which = which)
     
     
     result <- rbind(
@@ -59,7 +59,7 @@ model.matrix.miive.equation <- function(object, which = "x", ...){
       
       result <- object[[which]]
       
-    } else if(!is.null(model.frame(object))) {
+    } else if(!is.null(stats::model.frame(object))) {
     
       if(which == "Z") {
         

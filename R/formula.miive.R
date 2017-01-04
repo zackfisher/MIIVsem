@@ -5,7 +5,7 @@ formula.miive <- function(x, ...) {
   eqnLabels <- NULL
    
   for(i in 1:length(x$eq)){
-    result    <- c( result, formula(x$eq[[i]]))
+    result    <- c( result, stats::formula(x$eq[[i]]))
     eqnLabels <- c(eqnLabels, x$eq[[i]]$eqnLabel)
   }
    
@@ -14,6 +14,6 @@ formula.miive <- function(x, ...) {
 }
 
 formula.miive.equation <- function( x, ... ) {
-   result <- formula(x$terms)
+   result <- stats::formula(x$terms)
    return(result)
 }

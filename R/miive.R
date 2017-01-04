@@ -110,8 +110,8 @@ miive <- function(model = model, data = NULL, instruments = NULL,
     evalMF       <- eval(mf)
     
     terms_zy_i[[i]] <- attr( evalMF, "terms" )
-    Y_i[[i]]        <- model.extract(evalMF, "response" )
-    Z_i[[i]]        <- model.matrix(terms_zy_i[[i]], evalMF)
+    Y_i[[i]]        <- stats::model.extract(evalMF, "response" )
+    Z_i[[i]]        <- stats::model.matrix(terms_zy_i[[i]], evalMF)
     
     obsNames_i[[i]]  <- rownames(Z_i[[i]])
     

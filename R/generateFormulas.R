@@ -5,9 +5,9 @@ generateFormulas <- function(d, instruments){
   if (is.null(instruments)){
     for (i in 1:length(d)){
       d[[i]]$MIIVsUsed <- d[[i]]$MIIVs
-      d[[i]]$EqFormula <- as.formula(c(paste0(d[[i]]$DVobs, "~"), 
+      d[[i]]$EqFormula <- stats::as.formula(c(paste0(d[[i]]$DVobs, "~"), 
                                         paste0(d[[i]]$IVobs,collapse = "+")))
-      d[[i]]$MIIVsFormula <- as.formula(c(paste0("~"), 
+      d[[i]]$MIIVsFormula <- stats::as.formula(c(paste0("~"), 
                                            paste0(d[[i]]$MIIVs, collapse = "+")))
     }
   } else if (class(instruments) == "character"){
@@ -42,7 +42,7 @@ generateFormulas <- function(d, instruments){
     for (i in 1:length(d)){
       
       d[[i]]$MIIVsUsed  <- d[[i]]$MIIVs
-      d[[i]]$EqFormula  <- as.formula(c(paste0(d[[i]]$DVobs, "~"), 
+      d[[i]]$EqFormula  <- stats::as.formula(c(paste0(d[[i]]$DVobs, "~"), 
                                         paste0(d[[i]]$IVobs,collapse = "+")))
       
       if (d[[i]]$DVobs %in% names(mts)){
@@ -52,7 +52,7 @@ generateFormulas <- function(d, instruments){
         
       }
       
-      d[[i]]$MIIVsFormula  <- as.formula(c(paste0("~"), 
+      d[[i]]$MIIVsFormula  <- stats::as.formula(c(paste0("~"), 
                                            paste0(d[[i]]$MIIVsUsed, collapse = "+")))
       
     }
@@ -76,7 +76,7 @@ generateFormulas <- function(d, instruments){
 # 
 #     # Generate a list of formulas for the estimating equations.
 #     asEqForm <- function(x){
-#       as.formula(c(paste0(x$DVobs, "~"), paste0(x$IVobs, collapse = "+")))
+#       stats::as.formula(c(paste0(x$DVobs, "~"), paste0(x$IVobs, collapse = "+")))
 #     }
 #     
 #     eqFormulas <- lapply(d, asEqForm)
@@ -84,7 +84,7 @@ generateFormulas <- function(d, instruments){
 # 
 #   if (is.null(instruments)) {
 #     
-#     miivFormulas <- lapply(d, function(x) as.formula(c(paste0("~",x$MIIVs))) )
+#     miivFormulas <- lapply(d, function(x) stats::as.formula(c(paste0("~",x$MIIVs))) )
 #     
 #   } else if (class(instruments) == "character"){
 #     
@@ -94,7 +94,7 @@ generateFormulas <- function(d, instruments){
 #     mts <- split(mt[,c("lhs", "rhs")], mt$lhs)
 #     
 #     asMiivForm <- function(x){
-#       as.formula(c(paste0("~"), paste0(x$rhs, collapse = "+")))
+#       stats::as.formula(c(paste0("~"), paste0(x$rhs, collapse = "+")))
 #     }
 #     
 #     miivFormulas <- lapply(mts, asMiivForm)

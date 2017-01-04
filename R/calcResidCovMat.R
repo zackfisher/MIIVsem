@@ -7,7 +7,6 @@ calcResidCovMat <- function(resids_i, numEq, noNA, oneSigma = FALSE,
       resids <- matrix(NA, nrow(noNA), ncol(noNA))
       for (i in 1:numEq) {resids[noNA[,i],i] <- resids_i}
     } else {
-      resids <- do.call("cbind", resids_i)
     }
     
     if(centered) {
@@ -37,12 +36,15 @@ calcResidCovMat <- function(resids_i, numEq, noNA, oneSigma = FALSE,
     }
   }
   
-  if(oneSigma){
-    resids <- do.call("rbind", resids_i)
-    Omega  <- sum( resids^2 ) / length(unlist(Y_i))
-    Omega  <- Omega * diag(length(unlist(Y_i)))
-  }
+#  Mikko: I commented this out because the Y_i is no defined. This leads to a warning
+#  during build and would produce and error if the code is executed.
+#
+#  if(oneSigma){
+#    resids <- do.call("rbind", resids_i)
+#    Omega  <- sum( resids^2 ) / length(unlist(Y_i))
+#    Omega  <- Omega * diag(length(unlist(Y_i)))
+#  }
   
-  Omega <- as(Omega, "dspMatrix")
+  Omega <- methods::as(Omega, "dspMatrix")
   return(Omega)
 }

@@ -7,12 +7,10 @@ Author: Zachary Fisher, Ken Bollen, Kathleen Gates, and Mikko Rönkkö.
 Maintainer: Zachary Fisher <fish.zachary@gmail.com>
 Description: Functions for estimating structural equation models using model-
     implied instrumental variables.
-Depends:
-    R (>= 3.1.2),
+Imports:
     lavaan,
     Matrix,
-    car
-Imports:
+    car,
     methods
 License: GPL-2
 LazyData: true

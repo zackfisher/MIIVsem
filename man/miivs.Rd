@@ -4,7 +4,7 @@
 \alias{miivs}
 \title{Model-implied instrumental variable (MIIV) search}
 \usage{
-miivs(model, miivs.out = FALSE)
+miivs(model)
 }
 \arguments{
 \item{model}{A model specified using lavaan model syntax. See the \code{model} 
@@ -14,9 +14,9 @@ the \code{\link[lavaan]{lavaanify}} function for more information. See the
 documentation below for a description of how to specifying the scaling 
 indicator in latent variable models and impose equality constraints on the
 parameters.}
-
-\item{miivs.out}{A logical indicating whether or not to print the MIIVs as an 
-object for later use. Default is \code{FALSE}.}
+}
+\value{
+A list of two elements containing a the model equations as a list and a dataframe.
 }
 \description{
 A key step in the MIIV-2SLS approach is to transform the SEM by replacing the 
@@ -94,26 +94,25 @@ the second factor loading for the \code{L1} factor to a value of \code{2}
 }
 }
 \examples{
- bollen1989a_model <- '
+bollen1989a_model <- '
 
-   Eta1 =~ y1 + y2  + y3  + y4  
-   Eta2 =~ y5 + y6  + y7  + y8    
-   Xi1  =~ x1 + x2 + x3 
+    Eta1 =~ y1 + y2  + y3  + y4  
+    Eta2 =~ y5 + y6  + y7  + y8    
+    Xi1  =~ x1 + x2 + x3 
 
-   Eta1 ~ Xi1  
-   Eta2 ~ Xi1 
-   Eta2 ~ Eta1 
+    Eta1 ~ Xi1  
+    Eta2 ~ Xi1 
+    Eta2 ~ Eta1 
 
-   y1   ~~ y5
-   y2   ~~ y4
-   y2   ~~ y6
-   y3   ~~ y7
-   y4   ~~ y8
-   y6   ~~ y8 
- '
- 
- miivs(bollen1989a_model)
- 
+    y1   ~~ y5
+    y2   ~~ y4
+    y2   ~~ y6
+    y3   ~~ y7
+    y4   ~~ y8
+    y6   ~~ y8 
+  '
+
+miivs(bollen1989a_model)
 }
 \references{
 Bollen,	K. A. and	D. J.	Bauer.	2004.	Automating	the	Selection	of 

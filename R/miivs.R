@@ -80,6 +80,8 @@
 #'  \item \code{MIIVs} The model-implied instrumental variables for each equation.
 #' }
 #' 
+#' @return A list of two elements containing a the model equations as a list and a dataframe.
+#'
 #' @references 
 #' 
 #'  Bollen,	K. A. and	D. J.	Bauer.	2004.	Automating	the	Selection	of 

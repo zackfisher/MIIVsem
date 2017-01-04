@@ -3,6 +3,7 @@
 # otherwise returns a list containing the 'R' matrix
 # and 'q' vector, as well as a vector 'cons' of 
 # the constrained coefficients.
+
 buildRestrictMat <- function(d){
   
   # vector containing dv_iv coefficient label
@@ -21,7 +22,7 @@ buildRestrictMat <- function(d){
   if(length(labs_i) > 0){
     for(l in unique(labs_i)){ # l <- "l1"
       # if the label is numeric
-      if (is.numeric(type.convert(l, as.is=TRUE))){
+      if (!is.na(as.numeric(x))){
         tmp  <- paste0(coef_j[labs_i == l],"=",labs_i[labs_i == l])
         cons <- c(cons, tmp)
       } else { # the label is not numeric

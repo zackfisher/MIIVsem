@@ -2,8 +2,8 @@
 #'
 #' Estimate SEM models using model-implied instrumental variables (MIIVs).
 #'
-#' @param model A model specified using lavaan model syntax. See the \code{model} argument within the \code{\link[lavaan]{lavaanify}} function for more information.
-#' @param data A data frame, list or environment or an object coercible by as.data.frame to data frame.
+#' @param model A model specified using lavaan model syntax or a \code{\link{miivs}} object. See the \code{model} argument within the \code{\link[lavaan]{lavaanify}} function for more information.
+#' @param data A data frame, list or environment or an object coercible by \code{as.data.frame} to data frame.
 #' @param instruments A user-supplied list of valid MIIVs for each equation. See Example 2 below. 
 #' @param estimator Options \code{"2SLS"} or \code{"GMM"} for estimating the model parameters. Default is \code{"2SLS"}.
 #' @param control .
@@ -14,7 +14,10 @@
 #' 
 #' @details 
 #' \itemize{
-#' \item{\code{instruments}} {Using the \code{instruments} option you can specify the MIIVs directly for each equation in the model.  To utilize this option you must first define a list of instruments using the syntax displayed below. After the list is defined, set the \code{instruments} argument equal to the name of the list of MIIVs. Note, \code{instruments} are specified for an equation, and not for a specific endogenous variable.}
+#' \item{\code{instruments}} {Using the \code{instruments} option you can specify the MIIVs directly for each equation in the model.
+#'   To utilize this option you must first define a list of instruments using the syntax displayed below. After the list is defined, 
+#'   set the \code{instruments} argument equal to the name of the list of MIIVs. Note, \code{instruments} are specified for an equation,
+#'   and not for a specific endogenous variable.}
 #' }
 #' 
 #' @references 

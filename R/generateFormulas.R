@@ -5,6 +5,11 @@ generateFormulas <- function(d, instruments){
   if (is.null(instruments)){
     for (i in 1:length(d)){
       d[[i]]$MIIVsUsed <- d[[i]]$MIIVs
+      
+      # Mikko: creating a formula based on a string is inefficient, and I do not see why we would
+      # need to define the formulas here anyway because they would not be need when working
+      # with covariance matrices.
+      
       d[[i]]$EqFormula <- stats::as.formula(c(paste0(d[[i]]$DVobs, "~"), 
                                         paste0(d[[i]]$IVobs,collapse = "+")))
       d[[i]]$MIIVsFormula <- stats::as.formula(c(paste0("~"), 

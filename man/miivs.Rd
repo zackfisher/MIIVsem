@@ -16,7 +16,7 @@ indicator in latent variable models and impose equality constraints on the
 parameters.}
 }
 \value{
-A list of two elements containing a the model equations as a list and a dataframe.
+A list of model equations.
 }
 \description{
 A key step in the MIIV-2SLS approach is to transform the SEM by replacing the 

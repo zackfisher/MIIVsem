@@ -22,7 +22,10 @@ buildRestrictMat <- function(d){
   if(length(labs_i) > 0){
     for(l in unique(labs_i)){ # l <- "l1"
       # if the label is numeric
-      if (!is.na(as.numeric(x))){
+      
+      # Zack: I changed this back both because the updated method
+      # !is.na(as.numeric(x)) produces warnings. 
+      if (is.numeric(type.convert(l, as.is=TRUE))){
         tmp  <- paste0(coef_j[labs_i == l],"=",labs_i[labs_i == l])
         cons <- c(cons, tmp)
       } else { # the label is not numeric

@@ -53,40 +53,42 @@ miive <- function(model = model, data = NULL, sample.cov = NULL, instruments = N
   if ( "miivs" != class(model) ){ d <- miivs(model)} 
   
   #-------------------------------------------------------# 
-  # generateFormulas
+  # parseInstrumentSyntax
   #-------------------------------------------------------# 
   #   input:  (1) miivs equation list 'd'
   #                returned from miivs search function.
   #           (2) instruments argument, null by default,
   #               if no instruments have been supplied.
   #          
-  #  return:  (1) updated 'd' (miivs(foo)$eqns)
+  #  return:  (1) updated 'd' 
   #
-  #  details: 'd' updated with three new fields:
-  #           (1) EqFormula is two-sided formula for equation i.
-  #           (2) MIIVsFormula is a one-sided formula
-  #           characterizing the instruments for equation i.
-  #           (3) MIIVsUsed is a vector of MIIVs to be used
+  #  details: 'd' updated with one new field:
+  #           (1) MIIVsUsed is a vector of MIIVs to be used
   #           in estimation for equation i.
   #
-  #           User specified instruments can be provided
-  #           using the 'instruments' argument. The 'instruments'
-  #           object should be a character of similar form to the
-  #           model syntax except that only the "~" operator is 
-  #           needed.  For the dependent variables, Z1 and Z2 we
-  #           could specify the instruments M1, M2,and M3 as follows:
-  #
-  #           instruments <- '
-  #             Z1 ~ M1 + M2 + M3
-  #             Z2 ~ M1 + M2 + M3  
-  #           '
-  #           
   #           The function contains checks to determine if (1)
   #           the user-supplied dependent variables exist in the
   #           set of estimating equations and (2) if the instruments
   #           provided by the user are valid MIIVs.
   #-------------------------------------------------------#
-  d     <- generateFormulas(d, instruments)
+  d     <- parseInstrumentSyntax(d, instruments)
+  #-------------------------------------------------------#
+  
+  #-------------------------------------------------------# 
+  # generateFormulas
+  #-------------------------------------------------------# 
+  #   input:  (1) miivs equation list 'd'
+  #                returned from miivs search function.
+  #          
+  #  return:  (1) updated 'd' 
+  #
+  #  details: 'd' updated with two new fields:
+  #           (1) EqFormula is two-sided formula for equation i.
+  #           (2) MIIVsFormula is a one-sided formula
+  #           characterizing the instruments for equation i.
+  #
+  #-------------------------------------------------------#
+  d     <- generateFormulas(d)
   #-------------------------------------------------------#
   
   #-------------------------------------------------------#  

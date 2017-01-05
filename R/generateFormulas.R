@@ -11,8 +11,8 @@ generateFormulas <- function(d, instruments){
       # The point about the utility of formulas for the covariance-based routines is a 
       # good one to keep in mind.  I'll separate the two functions for now. 
       
-      d[[i]]$EqFormula <- stats::reformulate(d[[i]]$IVobs, d[[i]]$IVobs)
-      d[[i]]$MIIVsFormula <- stats::reformulate(d[[i]]$IVobs, d[[i]]$IVobs)
+      d[[i]]$EqFormula <- stats::reformulate(d[[i]]$IVobs, d[[i]]$DVobs)
+      d[[i]]$MIIVsFormula <- stats::reformulate(d[[i]]$IVobs, NULL)
    
   } 
   

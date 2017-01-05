@@ -111,8 +111,12 @@ miive <- function(model = model, data = NULL, sample.cov = NULL, instruments = N
   # following elements:
   #
   # coefficients - a vector of estimated coefficients
-  # vcov - variance covariance matrix of the estimates
-  #        (optional, depending on the se argument)
+  # coefCov - variance covariance matrix of the estimates
+  #           (optional, depending on the se argument)
+  # Z - a matrix projecting instruments to the instrumented
+  #     variables.
+  # A - a matrix of estimated coefficients.
+  #
   # possibly other elements
   # 
   # 
@@ -128,115 +132,163 @@ miive <- function(model = model, data = NULL, sample.cov = NULL, instruments = N
   #-------------------------------------------------------#  
   #
   # Calculate additional statistics that are common for
-  # all estimators
-  #
+  # all estimators. These are calculated for each equation
   #-------------------------------------------------------#
   
-  #-------------------------------------------------------#  
-  # Calculate the residuals.
-  #-------------------------------------------------------# 
-  resids_i <- calcResiduals(b, Y_i, Z_i, numCoef_i)
-  #-------------------------------------------------------#   
+  # Observation level statistics are calculated only if
+  # raw data are available
+  
+  if(! is.null(data)){
     
-  #-------------------------------------------------------#  
-  # Calculate the residual covariance matrix.
-  #-------------------------------------------------------#  
-  Omega <- calcResidCovMat(resids_i,numEq, noNA = noNA) 
-  #-------------------------------------------------------# 
+    # Fitted values are obtained by multiplying the observed
+    # variables with the first stage coefficients and then
+    # the second stage coefficients
+    
+    results$fitted <- data[,rownames(Z)] %*% t(result$Z) %*% t(results$A)
+    results$residuals <- data[,colname(results$fitted)] - results$fitted
+  }
+  
+  # Keep the function call
+  results$call <- match.call()
+  
+  class(results)  <- "miive"
+  
+  results
+}
 
-  #-------------------------------------------------------#  
-  # Calculate coefficient covariance matrix.
-  #-------------------------------------------------------#  
-  coefCov <- calcCoefCovMat(Zhat_i, Omega, R = R, q = q, numEq, noNA, coefNames)
-  #-------------------------------------------------------#  
+#'@method summary miive
+#'@export
+
+summary.miive <- function(x,..){
+  
+  # Mikko: I do not think that any of this is really needed in miive
+  # because all the information is available in the coefficient vector,
+  # model specification and the variance-covariance matrix
+  # of the estimates. If we want estimation results as a list
+  # of equations, that could be a part of a summary method
+  # Note that this code does not currently work.  
   
   #-------------------------------------------------------#  
-  # Fitted.values
-  #-------------------------------------------------------#  
-  fitted.values <- bdiag(Z_i) %*% b  
-  #-------------------------------------------------------#  
+  # Prepare lists for terms and matrices.
+  #-------------------------------------------------------#
+  
+  dvLabels    <- unlist(lapply(d,"[[","DVobs"))
+  numEq       <- length(d)      # number of equations
+  numCoef_i   <- numeric(numEq) # vector of number of coefficients in each eq.
+  coefNames_i <- list() # any names of coefficients of each equation
+  obsNames_i  <- list() # any names of observations of each equation
+  terms_zy_i  <- list() # list of terms for Z and Y objects in each equation
+  terms_v_i   <- list() # list of terms for V objects in each equation
+  Y_i  <- list()        # list of dependent variable vectors in each eq.
+  Z_i  <- list()        # list of explanatory variable matrices in each eq.
+  V_i  <- list()        # list of instrumental variable matrices in each eq.
+  
+  for(i in 1:numEq) { 
+    
+    mf$formula <- NULL; evalMF <- NULL;
+    mf$formula   <- d[[i]]$EqFormula
+    evalMF       <- eval(mf)
+    
+    terms_zy_i[[i]] <- attr( evalMF, "terms" )
+    Y_i[[i]]        <- stats::model.extract(evalMF, "response" )
+    Z_i[[i]]        <- stats::model.matrix(terms_zy_i[[i]], evalMF)
+    
+    obsNames_i[[i]]  <- rownames(Z_i[[i]])
+    
+    numCoef_i[i]     <- ncol(Z_i[[i]])
+    
+    coefNames_i[[i]] <- paste0(d[[i]]$DVobs,"_", colnames(Z_i[[i]]))
+    
+    mf$formula <- NULL; evalMF <- NULL;
+    mf$formula   <- d[[i]]$MIIVsFormula
+    evalMF       <- eval(mf)
+    
+    terms_v_i[[i]] <- attr(evalMF, "terms")
+    V_i[[i]] <- model.matrix(terms_v_i[[i]], evalMF)
+  }
+  
+  numCoef      <- sum(numCoef_i)
+  coefNames    <- unlist(coefNames_i)
   
   #-------------------------------------------------------#  
   # Organize results and calculate additional results
   #-------------------------------------------------------#
   b_i <- split(b, rep(1:length(numCoef_i), numCoef_i))
-  results <- list()
   
   for(i in 1:numEq) {
-    results$eq[[i]]          <- list()
-    results$eq[[i]]$eqnNum   <- i         # equation number
-    results$eq[[i]]$eqnLabel <- NA        # eqnLabels[[i]]
-    results$eq[[i]]$method   <- estimator
+    x$eq[[i]]          <- list()
+    x$eq[[i]]$eqnNum   <- i         # equation number
+    x$eq[[i]]$eqnLabel <- NA        # eqnLabels[[i]]
+    x$eq[[i]]$method   <- estimator
     
     # Residuals
-    results$eq[[i]]$residuals        <- resids_i[[i]]
-    names(results$eq[[i]]$residuals) <- validObsNames_i[[i]]
+    x$eq[[i]]$residuals        <- resids_i[[i]]
+    names(x$eq[[i]]$residuals) <- validObsNames_i[[i]]
     
     # Coefficients
-    results$eq[[i]]$coefficients         <- b_i[[i]]
-    #names(results$eq[[i]]$coefficients)  <- coefNames_i[[i]]
+    x$eq[[i]]$coefficients         <- b_i[[i]]
+    #names(x$eq[[i]]$coefficients)  <- coefNames_i[[i]]
     
     # Coefficient Covariance Matrices
-    results$eq[[i]]$coefCov  <- as.matrix(
+    x$eq[[i]]$coefCov  <- as.matrix(
       coefCov[(1+sum(numCoef_i[1:i])-numCoef_i[i]):(sum(numCoef_i[1:i])),
               (1+sum(numCoef_i[1:i])-numCoef_i[i]):(sum(numCoef_i[1:i]))] 
     )
-    colnames(results$eq[[i]]$coefCov)    <- coefNames_i[[i]]
-    rownames(results$eq[[i]]$coefCov)    <- coefNames_i[[i]]
+    colnames(x$eq[[i]]$coefCov)    <- coefNames_i[[i]]
+    rownames(x$eq[[i]]$coefCov)    <- coefNames_i[[i]]
     
     # Fitted Values
-    results$eq[[i]]$fitted.values <- rep(NA, numObsPerEq)
-    results$eq[[i]]$fitted.values[noNA[,i]] <-
+    x$eq[[i]]$fitted.values <- rep(NA, numObsPerEq)
+    x$eq[[i]]$fitted.values[noNA[,i]] <-
       fitted.values[(1+sum(numObsEq_i[1:i])-numObsEq_i[i]):(sum(numObsEq_i[1:i]))]
     
-    names(results$eq[[i]]$fitted.values) <- obsNames_i[[i]]
+    names(x$eq[[i]]$fitted.values) <- obsNames_i[[i]]
     
     # Terms
-    results$eq[[i]]$terms <- terms_zy_i[[i]]
+    x$eq[[i]]$terms <- terms_zy_i[[i]]
     
     # Rank
-    results$eq[[i]]$rank  <- numCoefRes_i[i]
+    x$eq[[i]]$rank  <- numCoefRes_i[i]
     
     # Total # of coef. in system
-    results$eq[[i]]$nCoef.sys <- numCoef
+    x$eq[[i]]$nCoef.sys <- numCoef
     
     # Total # of rest. coef. in system
-    results$eq[[i]]$rank.sys  <-  numCoefRes    # nCoefLiAll
+    x$eq[[i]]$rank.sys  <-  numCoefRes    # nCoefLiAll
     
     # rank = number of linear independent coefficients of the entire system
-    results$eq[[i]]$df.residual  <- df_i[i]    
-    results$eq[[ i ]]$df.residual.sys  <- sum(numObsEq_i) - numCoefRes
-    results$eq[[i]]$inst      <- d[[i]]$MIIVsUsed
-    results$eq[[i]]$termsInst <- terms_v_i[[i]]
-    class(results$eq[[i]]) <- "miive.equation"
+    x$eq[[i]]$df.residual  <- df_i[i]    
+    x$eq[[ i ]]$df.residual.sys  <- sum(numObsEq_i) - numCoefRes
+    x$eq[[i]]$inst      <- d[[i]]$MIIVsUsed
+    x$eq[[i]]$termsInst <- terms_v_i[[i]]
+    class(x$eq[[i]]) <- "miive.equation"
   }
-
+  
   # System coefficients
-  results$coefficients <- as.numeric(drop(b))
-  names(results$coefficients) <- coefNames
+  x$coefficients <- as.numeric(drop(b))
+  names(x$coefficients) <- coefNames
   
   # Full Coefficient Covariance Matrix
-  results$coefCov <- as.matrix(coefCov)
-  dimnames(results$coefCov) <- list(coefNames, coefNames)
+  x$coefCov <- as.matrix(coefCov)
+  dimnames(x$coefCov) <- list(coefNames, coefNames)
   
   # Residual Covariance Matrix 
-  results$residCovEst <- as.matrix(Omega)
-  dimnames(results$residCovEst) <- list(dvLabels, dvLabels)
-
+  x$residCovEst <- as.matrix(Omega)
+  dimnames(x$residCovEst) <- list(dvLabels, dvLabels)
+  
   # Residual Covarance Matrix
-  results$residCov <- function(resids_i, numEq, noNA, oneSigma = FALSE,
+  x$residCov <- function(resids_i, numEq, noNA, oneSigma = FALSE,
                                centered = FALSE, diagOnly = FALSE)
-  dimnames(results$residCov) <- list(dvLabels, dvLabels)
+    dimnames(x$residCov) <- list(dvLabels, dvLabels)
   
-  results$method  <- estimator
-  results$rank    <- numCoefRes
+  x$method  <- estimator
+  x$rank    <- numCoefRes
   # rank = total number of linear independent coefficients of all equations
-  results$df.residual <- sum(numObsEq_i) - numCoefRes
+  x$df.residual <- sum(numObsEq_i) - numCoefRes
   # degrees of freedom of the whole system
-  results$restrict.matrix <- R
-  results$restrict.rhs    <- q
-  results$control <- control
-  class(results)  <- "miive"
+  x$restrict.matrix <- R
+  x$restrict.rhs    <- q
+  x$control <- control
   
-  results
+  return(x)
 }

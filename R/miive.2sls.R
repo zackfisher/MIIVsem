@@ -102,5 +102,17 @@ miive.2sls <- function(d, mf, sample.cov, se){
   b <- calcStage2Coefs(Y_i, Zhat_i, V_i, R, q, coefNames)
   #-------------------------------------------------------#
   
+  #-------------------------------------------------------#  
+  # Calculate the residual covariance matrix.
+  #-------------------------------------------------------#  
+  Omega <- calcResidCovMat(resids_i,numEq, noNA = noNA) 
+  #-------------------------------------------------------# 
+  
+  #-------------------------------------------------------#  
+  # Calculate coefficient covariance matrix.
+  #-------------------------------------------------------#  
+  coefCov <- calcCoefCovMat(Zhat_i, Omega, R = R, q = q, numEq, noNA, coefNames)
+  #-------------------------------------------------------#  
+  
   return(list(coefficients = b))
 }

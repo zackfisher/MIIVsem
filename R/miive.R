@@ -5,6 +5,9 @@
 #' @param model A model specified using lavaan model syntax or a \code{\link{miivs}} object. See the \code{model} argument within the \code{\link[lavaan]{lavaanify}} function for more information.
 #' @param data A data frame, list or environment or an object coercible by \code{as.data.frame} to data frame.
 #' @param sample.cov Numeric matrix. A sample variance-covariance matrix. The rownames and colnames must contain the observed variable names.
+#' @param sample.mean A sample mean vector.
+#' @param sample.nobs Number of observations if the full data frame is missing and only sample moments are given.
+#' @param sample.cov.rescale If \code{TRUE}, the sample covariance matrix provided by the user is internally rescaled by multiplying it with a factor (N-1)/N.
 #' @param instruments A user-supplied list of valid MIIVs for each equation. See Example 2 below. 
 #' @param estimator Options \code{"2SLS"} or \code{"GMM"} for estimating the model parameters. Default is \code{"2SLS"}.
 #' @param control .
@@ -39,8 +42,9 @@
 #' @example example/bollen1989-miive3.R
 #'  
 #' @export
-miive <- function(model = model, data = NULL, sample.cov = NULL, instruments = NULL, 
-                  estimator = "2SLS", control = NULL, se = TRUE){
+miive <- function(model = model, data = NULL, 
+                  sample.cov = NULL, sample.mean = NULL, sample.nobs = NULL, sample.cov.rescale = TRUE,
+                  instruments = NULL, estimator = "2SLS", control = NULL, se = TRUE){
   
   #-------------------------------------------------------#  
   # Check class of model.
@@ -102,8 +106,16 @@ miive <- function(model = model, data = NULL, sample.cov = NULL, instruments = N
   #         Prepare for covariance matrices
   #-------------------------------------------------------#
   
-  mf <- prepareRawData(data)
+  # Mikko: I do not think that this is really needed
+  # different estimators may treat missing data differently,
+  # so I would defer missing data treatment to actual estimation
+  # see my comments in the 2SLS estimator
   
+  # mf <- prepareRawData(data)
+  
+  if(sample.cov.rescale & ! is.null(sample.cov)){
+    sample.cov <- sample.cov * (sample.nobs-1)/sample.nobs
+  }
   #-------------------------------------------------------#
   #
   # MIIV estimation using estimation functions. An 
@@ -123,8 +135,8 @@ miive <- function(model = model, data = NULL, sample.cov = NULL, instruments = N
   #-------------------------------------------------------#
   
   results <- switch(estimator,
-                    "2SLS" = miive.2sls(d, mf, sample.cov, se),
-                    "GMM" = miive.gmm(d, mf, sample.cov, se), # Not implemented
+                    "2SLS" = miive.2sls(d, data, sample.cov, sample.mean, sample.nobs, se),
+                    "GMM" = miive.gmm(d, data, sample.cov, sample.mean, sample.nobs, se), # Not implemented
                     # In other cases, raise an error
                     stop(paste("Invalid estimator:", estimator,"Valid estimators are: 2SLS, GMM"))
                     )
@@ -143,9 +155,9 @@ miive <- function(model = model, data = NULL, sample.cov = NULL, instruments = N
     # Fitted values are obtained by multiplying the observed
     # variables with the first stage coefficients and then
     # the second stage coefficients
-    
-    results$fitted <- data[,rownames(Z)] %*% t(result$Z) %*% t(results$A)
-    results$residuals <- data[,colname(results$fitted)] - results$fitted
+    # browser()
+    # results$fitted <- data[,rownames(results$Z)] %*% t(results$Z) %*% t(results$A)
+    # results$residuals <- data[,colname(results$fitted)] - results$fitted
   }
   
   # Keep the function call

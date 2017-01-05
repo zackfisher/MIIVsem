@@ -125,9 +125,10 @@ miive <- function(model = model, data = NULL,
   # coefficients - a vector of estimated coefficients
   # coefCov - variance covariance matrix of the estimates
   #           (optional, depending on the se argument)
-  # Z - a matrix projecting instruments to the instrumented
+  # eqn - a list of miiv equations and estimation results, including
+  #   Z - a matrix projecting instruments to the instrumented
   #     variables.
-  # A - a matrix of estimated coefficients.
+  #   
   #
   # possibly other elements
   # 
@@ -152,12 +153,26 @@ miive <- function(model = model, data = NULL,
   
   if(! is.null(data)){
     
-    # Fitted values are obtained by multiplying the observed
-    # variables with the first stage coefficients and then
-    # the second stage coefficients
-    # browser()
-    # results$fitted <- data[,rownames(results$Z)] %*% t(results$Z) %*% t(results$A)
-    # results$residuals <- data[,colname(results$fitted)] - results$fitted
+    designMatrix <- as.matrix(cbind("1"=1, data))
+
+    results$fitted <- do.call(cbind, lapply(results$eqn, function(eq){
+      
+      # Fitted values are obtained by multiplying the observed
+      # variables with the first stage coefficients and then
+      # the second stage coefficients
+
+      fitted <- cbind("1"=1, designMatrix[,colnames(eq$Z)[-1]] %*% 
+              t(eq$Z[-1,-1, drop = FALSE])) %*% eq$coefficients
+      
+      colnames(fitted) <-eq$DVlat
+      
+      fitted
+      
+    }))
+    
+    results$residuals <- data[,sapply(results$eqn,function(eq){eq$DVobs})] - results$fitted
+    colnames(results$residuals) <- colnames(results$fitted)
+    
   }
   
   # Keep the function call

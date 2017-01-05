@@ -48,23 +48,13 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, se){
   coefficients <- unlist(lapply(results, function(x) x$coefficients))
   
   # Estimate variance-covariance matrix. This is block diagonal beacuse 
-  # the covariances are availabel only for coefficients that are from the same
+  # the covariances are available only for coefficients that are from the same
   # equation because 2SLS is not a system estimator
+  
   coefCov <- lavaan::lav_matrix_bdiag(lapply(results, function(x) x$coefCov))
-  
-  # A matrix projecting the instruments to first stage fitted values
-  Z <- miivhelper.bindmatrices(lapply(results, function(x) x$Z), empty = 0)
-  
-  # A matrix of estimated coefficients
-  A <- miivhelper.bindmatrices(lapply(results, function(x) matrix(x$coefficients,nrow = 1,
-                                                                  dimnames = list(x$DVlat,c("1",x$IVlat)))
-                                      ), empty = NA)
-  
   
   return(list(coefficients = coefficients,
               coefCov = coefCov, 
-              Z = Z,
-              A = A,
               eqn = results # return the equation level results for convenience
               )
          )

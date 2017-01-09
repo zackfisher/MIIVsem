@@ -173,8 +173,7 @@ miive <- function(model = model, data = NULL,
     
     results$fitted <- do.call(cbind, lapply(results$eqn, function(eq){
       
-      # Zack: The calculations are rationale below are incorrect.  
-      # Fitted values are obtained by multiplying the observed endogenous 
+      # Zack: Fitted values are obtained by multiplying the observed endogenous 
       # variables by the second stage coefficients.
       fitted <- drop(cbind("1"=1, data[,eq$IVobs]) %*% eq$coefficients)
       
@@ -194,9 +193,11 @@ miive <- function(model = model, data = NULL,
       #fitted
     }))
     
-  #results$residuals <- data[,sapply(results$eqn,function(eq){eq$DVobs})] - results$fitted
-  #colnames(results$residuals) <- colnames(results$fitted)
-    
+  results$resCov <-   Sigma <- lavaan::lav_matrix_bdiag(lapply(d, function(eq){
+    data[,sapply(results$eqn,function(eq){eq$DVobs})]   })) - results$fitted
+  
+  colnames(results$residuals) <- colnames(results$fitted)
+
   }
   
   # Keep the function call

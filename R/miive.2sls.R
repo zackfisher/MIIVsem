@@ -47,7 +47,7 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, se, restri
   
   #coefCov <- lavaan::lav_matrix_bdiag(lapply(results, function(x) x$coefCov))
   
-  return(d)
+  return(results)
   
   # The code below is the old 2SLS estimator code
   
@@ -198,6 +198,9 @@ miive.2sls.system <- function(d, sample.cov, sample.mean, sample.nobs, se, restr
   coefList  <- split(coef, coefIndex); names(coefList) <- rep("coefficients",length(d))
   d         <- lapply(seq_along(d), function(x) append(d[[x]], coefList[x])) 
   
+  results$coefficients <- coef
+  
+  
   if(se){
     
     #         | sigma_{11}                   |
@@ -215,6 +218,8 @@ miive.2sls.system <- function(d, sample.cov, sample.mean, sample.nobs, se, restr
     
     sig <- diag(unlist(lapply(seq_along(d), function(i) rep(Sigma[i,i], length(d[[i]]$coefficients)))))
     
+    results$Sigma <- Sigma
+    
     if (is.null(restrictions)){
       
       coefCov <- solve(XX1 %*% t(solve(sig)))
@@ -226,9 +231,9 @@ miive.2sls.system <- function(d, sample.cov, sample.mean, sample.nobs, se, restr
                              cbind(R, R0)))[1:nrow(XX1), 1:nrow(XX1)]
     }
     
-    d$coefCov <- coefCov
+    results$coefCov <- coefCov
     
-    
+    return(results)
   }
   
 }

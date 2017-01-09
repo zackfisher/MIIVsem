@@ -49,7 +49,7 @@ miive <- function(model = model, data = NULL,
   #-------------------------------------------------------#  
   # Check class of model.
   #-------------------------------------------------------#
-   if ( "miivs" == class(model) ){ d <- model} 
+  if ( "miivs" == class(model) ){ d <- model} 
   if ( "miivs" != class(model) ){ d <- miivs(model)} 
   
   #-------------------------------------------------------# 
@@ -169,27 +169,33 @@ miive <- function(model = model, data = NULL,
   # Observation level statistics are calculated only if
   # raw data are available
   
-  if(! is.null(data)){
+  if(!is.null(data)){
     
-   # designMatrix <- as.matrix(cbind("1"=1, data))
-
-   # results$fitted <- do.call(cbind, lapply(results$eqn, function(eq){
+    results$fitted <- do.call(cbind, lapply(results$eqn, function(eq){
+      
+      # Zack: The calculations are rationale below are incorrect.  
+      # Fitted values are obtained by multiplying the observed endogenous 
+      # variables by the second stage coefficients.
+      fitted <- drop(cbind("1"=1, data[,eq$IVobs]) %*% eq$coefficients)
+      
+      colnames(fitted) <-eq$DVlat
+      
+      return(fitted)
       
       # Fitted values are obtained by multiplying the observed
       # variables with the first stage coefficients and then
       # the second stage coefficients
-
-   #   fitted <- cbind("1"=1, designMatrix[,colnames(eq$Z)[-1]] %*% 
-   #           t(eq$Z[-1,-1, drop = FALSE])) %*% eq$coefficients
       
-   #   colnames(fitted) <-eq$DVlat
+      #fitted <- cbind("1"=1, designMatrix[,colnames(eq$Z)[-1]] %*% 
+      #          t(eq$Z[-1,-1, drop = FALSE])) %*% eq$coefficients
       
-   #   fitted
+      #colnames(fitted) <-eq$DVlat
       
-   # }))
+      #fitted
+    }))
     
-   # results$residuals <- data[,sapply(results$eqn,function(eq){eq$DVobs})] - results$fitted
-  #  colnames(results$residuals) <- colnames(results$fitted)
+  results$residuals <- data[,sapply(results$eqn,function(eq){eq$DVobs})] - results$fitted
+  colnames(results$residuals) <- colnames(results$fitted)
     
   }
   
@@ -203,7 +209,6 @@ miive <- function(model = model, data = NULL,
 
 #'@method summary miive
 #'@export
-
 summary.miive <- function(x,..){
   
   # Mikko: I do not think that any of this is really needed in miive

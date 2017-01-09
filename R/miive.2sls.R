@@ -14,50 +14,40 @@
 #' 
 #'@keywords internal
 
-miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, se){
+miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, se, restrictions){
   
-  # Estimate each equation
+  # Estimate the system
   
-  results <- lapply(d, function(eq){
-    
-    # If we have data, then calculate a sample covariance matrix for this equation
-    
-    if(!is.null(data)){
-      # Which variables are used
-      v <- c(eq$DVobs, eq$IVobs, eq$MIIVsUsed)
+  # If we have data, then calculate a sample covariance matrix for this equation
+  if(!is.null(data)){
+
+      data <- data[complete.cases(data),]
       
-      # Select the variables and use only complete cases
-      s <- data[,v]
-      s <- s[complete.cases(s),]
+      results <- miive.2sls.system(d, cov(data)*(nrow(data)-1)/nrow(data), colMeans(data), nrow(data), se, restrictions)
+  }
+    
+  # Else use the sample covariance matrix given as argument
+  else{
+    
+      results <- miive.2sls.system(d, sample.cov, sample.mean, sample.nobs, se, restrictions)
       
-      miive.2sls.oneEq(eq, cov(s)*(nrow(s)-1)/nrow(s), colMeans(s), nrow(s), se)
-    }
-    
-    # Else use the sample covariance matrix given as argument
-    
-    else{
-      miive.2sls.oneEq(eq, sample.cov, sample.mean, sample.nobs, se)
-    }    
-  })  
+  }    
+
   
   #
   # Create the returned objects
   #
 
   # Estimated coefficient vector
-  coefficients <- unlist(lapply(results, function(x) x$coefficients))
+  #coefficients <- unlist(lapply(results, function(x) x$coefficients))
   
   # Estimate variance-covariance matrix. This is block diagonal beacuse 
   # the covariances are available only for coefficients that are from the same
   # equation because 2SLS is not a system estimator
   
-  coefCov <- lavaan::lav_matrix_bdiag(lapply(results, function(x) x$coefCov))
+  #coefCov <- lavaan::lav_matrix_bdiag(lapply(results, function(x) x$coefCov))
   
-  return(list(coefficients = coefficients,
-              coefCov = coefCov, 
-              eqn = results # return the equation level results for convenience
-              )
-         )
+  return(d)
   
   # The code below is the old 2SLS estimator code
   
@@ -131,18 +121,7 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, se){
   #-------------------------------------------------------#
   Zhat_i <- calcStage1Fitted(Z_i, V_i)
   #-------------------------------------------------------#
-  
-  #-------------------------------------------------------#  
-  # Build Restriction Matrices.
-  # returns NULL if there are no restrictions,
-  # otherwise returns a list containing the 'R' matrix
-  # and 'q' vector, as well as a vector 'cons' of 
-  # the constrained coefficients.
-  #-------------------------------------------------------#  
-  restrictions <- buildRestrictMat(d)
-  if (is.null(restrictions)){ R <- NULL; q <- NULL
-  } else { R <- restrictions$R; q <- restrictions$q }
-  #-------------------------------------------------------#   
+
   
   #-------------------------------------------------------#  
   # Calculate degrees of freedom.
@@ -174,69 +153,82 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, se){
 }
 
 
-#' Two-stage least square estimator for a single equation
+#' Two-stage least square estimator for a system of equations
 #' 
-#' @param eq a MIIV equation
+#' @param d a system of MIIV equation
 #' @param sample.cov sample covariance matrix
-#' @param se should variance covariance matrix of the estimates be calculated
 #' @param sample.nobs number of observations
+#' @param se should variance covariance matrix of the estimates be calculated
+#' @param restrictions any equality constraints to be used in estimation
 
 #'@keywords internal
 
-miive.2sls.oneEq <- function(eq, sample.cov, sample.mean, sample.nobs, se){
+miive.2sls.system <- function(d, sample.cov, sample.mean, sample.nobs, se, restrictions){
   
-  # Stage 1
+  SSP <- buildSSP(sample.cov, sample.nobs, sample.mean)
+  ZV  <- buildBlockDiag(d, SSP, "IVobs", "MIIVs")
+  VV  <- buildBlockDiag(d, SSP, "MIIVs", "MIIVs")
+  VY  <- unlist(lapply(d,function(x) SSP[c("1",x$MIIVs), x$DVobs, drop = FALSE]))
   
-  # Crossproducts needed for OLS. These are not the actual crossproduct,
-  # but are are divided by sample.nobs this does not influence the estimates
-  # because all crossproducts are scaled similarly
+  # DV: Y; EV: Z; MIIVs: V
+  XX1 <- ZV %*% solve(VV) %*% t(ZV)
+  XY1 <- ZV %*% solve(VV) %*% VY
   
-  XX1 <- sample.cov[eq$MIIVs,eq$MIIVs] + sample.mean[eq$MIIVs] %o% sample.mean[eq$MIIVs]
-  XX1 <- rbind(c("1"=1,sample.mean[eq$MIIVs]),cbind("1"=sample.mean[eq$MIIVs],XX1))
-
-  XY1 <- rbind(sample.mean[eq$IVobs],sample.cov[eq$MIIVs,eq$IVobs] + sample.mean[eq$MIIVs]%o%sample.mean[eq$IVobs])
+  if (is.null(restrictions)){
+    
+    # b_2sls =  | [Z'V (V'V)^{-1} V'Z]^{-1} |  %*%  |  ZV (V'V)^{-1} V'y  |
+    coef <- solve(XX1,XY1)
+    
+  } else {
+    
+    R <- restrictions$R
+    q <- restrictions$q
+ 
+    # b_2sls =  | [Z'V (V'V)^{-1} V'Z]^{-1} | R |       |  ZV (V'V)^{-1} V'y  |
+    #           |-------------------------------|  %*%  |---------------------|
+    #           |             R             | 0 |       |          q          |
+    coef <- (solve(rbind(cbind(XX1, t(R)), cbind(R, matrix(0, nrow(R), nrow(R))))) %*%
+               rbind(XY1, q))[1:nrow(ZV),]
+  }
   
-  coef1 <-t(solve(XX1, XY1))
+  names(coef) <- unlist(lapply(d, function(x) paste0(x$DVobs,"~", c("1", x$IVobs))))
   
-  # Create a projection matrix Z projeting the MIIVs as fitted values
-  # The latent DV is just replaced with the marker indicator
-  
-  Z <- rbind(0,cbind(0,coef1))
-  Z[1,1] <- 1          
-  
-  colnames(Z)[1] <- eq$DVobs
-  rownames(Z) <- c(eq$DVlat, eq$IVlat)
-
-  # Stage 2
-  
-  # Calculate new crossproduct matrices for the second stage
-
-  XX2 <- Z[-1,-1, drop = FALSE] %*% XX1 %*% t(Z[-1,-1, drop = FALSE])
-  cp <- as.vector(coef1 %*% c(1,sample.mean[eq$MIIVs]))
-  XX2 <- rbind(c("1"=1,cp),
-               cbind("1"=cp,XX2))
-  XY2 <- c(sample.mean[eq$DVobs],rowSums(Z[-1,-1, drop = FALSE] %*% XY1))
-  
-  coef2 <- solve(XX2,XY2)
-  names(coef2) <- paste(eq$DVlat, c("1",eq$IVlat),sep= "~")
-  
-  # Add the results to the end of the MIIV equations
-  eq$coefficients <- coef2
-  eq$Z <- Z
-  
-  # Variance covariance matrix if requested
+  # Add coefficients to equations list.
+  coefIndex <- unlist(lapply(seq_along(d), function(x) rep(x,(length(d[[x]]$IVobs)+1))))
+  coefList  <- split(coef, coefIndex); names(coefList) <- rep("coefficients",length(d))
+  d         <- lapply(seq_along(d), function(x) append(d[[x]], coefList[x])) 
   
   if(se){
     
-    # Error variance estimate. We eliminate the intercept from the coefficients
-    # and crossproducts when calculating this
-
-    sigma2 <- as.vector(sample.cov[eq$DVobs,eq$DVobs] - coef2[-1] %*% XX2[-1,-1] %*% coef2[-1])
-
-    eq$coefCov <- sigma2 * solve(XX2*sample.nobs)
+    #         | sigma_{11}                   |
+    # Sigma = |            ...               |
+    #         |                  sigma_{neq} | 
+    #
+    # sigma_{11} = S_{YY} + b1' S_{ZZ} b1 - 2 * S_{YZ} b1
+    # b1 does not contain intercepts.
     
-    colnames(eq$coefCov) <- rownames(eq$coefCov) <- names(coef2)
+    Sigma <- lavaan::lav_matrix_bdiag(lapply(d, function(eq){
+      (sample.cov[eq$DVobs, eq$DVobs] +  (t(eq$coefficients[-1]) %*% 
+      sample.cov[c(eq$IVobs), c(eq$IVobs)] %*% eq$coefficients[-1]) -
+         (2 * sample.cov[eq$DVobs, c(eq$IVobs)] %*% eq$coefficients[-1])) 
+    }))
+    
+    sig <- diag(unlist(lapply(seq_along(d), function(i) rep(Sigma[i,i], length(d[[i]]$coefficients)))))
+    
+    if (is.null(restrictions)){
+      
+      coefCov <- solve(XX1 %*% t(solve(sig)))
+      
+    } else {
+      
+      R0 <- matrix(0, ncol=nrow(R), nrow=nrow(R))
+      coefCov <- solve(rbind(cbind((XX1 %*% t(solve(sig))), t(R)), 
+                             cbind(R, R0)))[1:nrow(XX1), 1:nrow(XX1)]
+    }
+    
+    d$coefCov <- coefCov
+    
+    
   }
   
-  eq
 }

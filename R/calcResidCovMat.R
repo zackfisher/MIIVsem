@@ -33,7 +33,7 @@ calcResidCovMat <- function(resids_i, numEq, noNA, oneSigma = FALSE,
           Omega[i,j] <-sum(resids[noNARow, i] * resids[noNARow, j]) / sumRows 
         }
       }
-      Omega <- kronecker(Omega, diag())
+      #Omega <- kronecker(Omega, diag())
     }
   }
   

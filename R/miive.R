@@ -49,11 +49,7 @@ miive <- function(model = model, data = NULL,
   #-------------------------------------------------------#  
   # Check class of model.
   #-------------------------------------------------------#
-  
-  # Mikko: Would it not be simpler to just refer to model as model through the
-  # code?
-  
-  if ( "miivs" == class(model) ){ d <- model} 
+   if ( "miivs" == class(model) ){ d <- model} 
   if ( "miivs" != class(model) ){ d <- miivs(model)} 
   
   #-------------------------------------------------------# 
@@ -75,8 +71,7 @@ miive <- function(model = model, data = NULL,
   #           set of estimating equations and (2) if the instruments
   #           provided by the user are valid MIIVs.
   #-------------------------------------------------------#
-  
-  d     <- parseInstrumentSyntax(d, instruments)
+  d  <- parseInstrumentSyntax(d, instruments)
   
   #-------------------------------------------------------#
   
@@ -94,8 +89,7 @@ miive <- function(model = model, data = NULL,
   #           characterizing the instruments for equation i.
   #
   #-------------------------------------------------------#
-  
-  d     <- generateFormulas(d)
+  d <- generateFormulas(d)
   
   #-------------------------------------------------------#
   
@@ -116,6 +110,30 @@ miive <- function(model = model, data = NULL,
   if(sample.cov.rescale & ! is.null(sample.cov)){
     sample.cov <- sample.cov * (sample.nobs-1)/sample.nobs
   }
+  
+  
+  #-------------------------------------------------------#  
+  # Build Restriction Matrices.
+  # returns NULL if there are no restrictions,
+  # otherwise returns a list containing the 'R' matrix
+  # and 'q' vector, as well as a vector 'cons' of 
+  # the constrained coefficients.
+  #-------------------------------------------------------#  
+  restrictions <- buildRestrictMat(d)
+  
+  if (is.null(restrictions)){ 
+    
+    R <- NULL; q <- NULL
+    
+  } else { 
+    
+    R <- restrictions$R; q <- restrictions$q 
+    
+  }
+  #-------------------------------------------------------#  
+  
+  
+  
   #-------------------------------------------------------#
   #
   # MIIV estimation using estimation functions. An 
@@ -136,8 +154,8 @@ miive <- function(model = model, data = NULL,
   #-------------------------------------------------------#
   
   results <- switch(estimator,
-                    "2SLS" = miive.2sls(d, data, sample.cov, sample.mean, sample.nobs, se),
-                    "GMM" = miive.gmm(d, data, sample.cov, sample.mean, sample.nobs, se), # Not implemented
+                    "2SLS" = miive.2sls(d, data, sample.cov, sample.mean, sample.nobs, se, restrictions),
+                    "GMM" = miive.gmm(d, data, sample.cov, sample.mean, sample.nobs, se, restrictions), # Not implemented
                     # In other cases, raise an error
                     stop(paste("Invalid estimator:", estimator,"Valid estimators are: 2SLS, GMM"))
                     )
@@ -153,25 +171,25 @@ miive <- function(model = model, data = NULL,
   
   if(! is.null(data)){
     
-    designMatrix <- as.matrix(cbind("1"=1, data))
+   # designMatrix <- as.matrix(cbind("1"=1, data))
 
-    results$fitted <- do.call(cbind, lapply(results$eqn, function(eq){
+   # results$fitted <- do.call(cbind, lapply(results$eqn, function(eq){
       
       # Fitted values are obtained by multiplying the observed
       # variables with the first stage coefficients and then
       # the second stage coefficients
 
-      fitted <- cbind("1"=1, designMatrix[,colnames(eq$Z)[-1]] %*% 
-              t(eq$Z[-1,-1, drop = FALSE])) %*% eq$coefficients
+   #   fitted <- cbind("1"=1, designMatrix[,colnames(eq$Z)[-1]] %*% 
+   #           t(eq$Z[-1,-1, drop = FALSE])) %*% eq$coefficients
       
-      colnames(fitted) <-eq$DVlat
+   #   colnames(fitted) <-eq$DVlat
       
-      fitted
+   #   fitted
       
-    }))
+   # }))
     
-    results$residuals <- data[,sapply(results$eqn,function(eq){eq$DVobs})] - results$fitted
-    colnames(results$residuals) <- colnames(results$fitted)
+   # results$residuals <- data[,sapply(results$eqn,function(eq){eq$DVobs})] - results$fitted
+  #  colnames(results$residuals) <- colnames(results$fitted)
     
   }
   

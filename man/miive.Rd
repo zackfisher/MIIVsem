@@ -4,8 +4,9 @@
 \alias{miive}
 \title{Model-implied instrumental variable (MIIV) estimation}
 \usage{
-miive(model = model, data = NULL, sample.cov = NULL, sample.nobs = NULL,
-  instruments = NULL, estimator = "2SLS", control = NULL, se = TRUE)
+miive(model = model, data = NULL, sample.cov = NULL, sample.mean = NULL,
+  sample.nobs = NULL, sample.cov.rescale = TRUE, instruments = NULL,
+  estimator = "2SLS", control = NULL, se = TRUE)
 }
 \arguments{
 \item{model}{A model specified using lavaan model syntax or a \code{\link{miivs}} object. See the \code{model} argument within the \code{\link[lavaan]{lavaanify}} function for more information.}
@@ -14,7 +15,11 @@ miive(model = model, data = NULL, sample.cov = NULL, sample.nobs = NULL,
 
 \item{sample.cov}{Numeric matrix. A sample variance-covariance matrix. The rownames and colnames must contain the observed variable names.}
 
+\item{sample.mean}{A sample mean vector.}
+
 \item{sample.nobs}{Number of observations if the full data frame is missing and only sample moments are given.}
+
+\item{sample.cov.rescale}{If \code{TRUE}, the sample covariance matrix provided by the user is internally rescaled by multiplying it with a factor (N-1)/N.}
 
 \item{instruments}{A user-supplied list of valid MIIVs for each equation. See Example 2 below.}
 

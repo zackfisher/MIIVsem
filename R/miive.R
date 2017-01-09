@@ -194,8 +194,8 @@ miive <- function(model = model, data = NULL,
       #fitted
     }))
     
-  results$residuals <- data[,sapply(results$eqn,function(eq){eq$DVobs})] - results$fitted
-  colnames(results$residuals) <- colnames(results$fitted)
+  #results$residuals <- data[,sapply(results$eqn,function(eq){eq$DVobs})] - results$fitted
+  #colnames(results$residuals) <- colnames(results$fitted)
     
   }
   

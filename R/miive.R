@@ -161,7 +161,6 @@ miive <- function(model = model, data = NULL,
                     )
 
   #-------------------------------------------------------#  
-  #
   # Calculate additional statistics that are common for
   # all estimators. These are calculated for each equation
   #-------------------------------------------------------#
@@ -169,17 +168,17 @@ miive <- function(model = model, data = NULL,
   # Observation level statistics are calculated only if
   # raw data are available
   
-  if(!is.null(data)){
+  #if(!is.null(data)){
     
-    results$fitted <- do.call(cbind, lapply(results$eqn, function(eq){
+    #results$fitted <- do.call(cbind, lapply(results$eqn, function(eq){
       
       # Zack: Fitted values are obtained by multiplying the observed endogenous 
       # variables by the second stage coefficients.
-      fitted <- drop(cbind("1"=1, data[,eq$IVobs]) %*% eq$coefficients)
+      #fitted <- drop(cbind("1"=1, data[,eq$IVobs]) %*% eq$coefficients)
       
-      colnames(fitted) <-eq$DVlat
+      #colnames(fitted) <-eq$DVlat
       
-      return(fitted)
+      #return(fitted)
       
       # Fitted values are obtained by multiplying the observed
       # variables with the first stage coefficients and then
@@ -191,14 +190,16 @@ miive <- function(model = model, data = NULL,
       #colnames(fitted) <-eq$DVlat
       
       #fitted
-    }))
+    #}))
     
-  results$resCov <-   Sigma <- lavaan::lav_matrix_bdiag(lapply(d, function(eq){
-    data[,sapply(results$eqn,function(eq){eq$DVobs})]   })) - results$fitted
-  
-  colnames(results$residuals) <- colnames(results$fitted)
+  #results$ressiduals <- cbind(lapply(d, function(eq){
+  #    data[,sapply(results$eqn,function(eq){eq$DVobs})]})) - results$fitted
+  #  
+  #results$resCov <- cbind(lapply(d, function(eq){
+  #  data[,sapply(results$eqn,function(eq){eq$DVobs})]   })) - results$fitted
+  #colnames(results$residuals) <- colnames(results$fitted)
 
-  }
+  #}
   
   # Keep the function call
   results$call <- match.call()

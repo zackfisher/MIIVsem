@@ -119,11 +119,17 @@ miivs <- function(model){
   # the label column we take care of any labels entered using the "*" op.
   pt$mlabel <- pt$label
   
-  # Numeric contraints eneterd using '*' op. in the model syntax are 
+  # Numeric contraints eneterd using '*' op. in the model syntax should
   # also be added to the mlabel column.
   condNum <- !(pt$op == "=~" & !duplicated(pt$lhs)) & !is.na(pt$ustart)
   if (length(pt$ustart[condNum]) > 0){
     pt[condNum,]$mlabel <- pt[condNum,]$ustart
+  }
+  
+  # Remove any scaling indicators
+  tmpMarkers <- pt[pt$op == "=~",]$rhs[which(!duplicated(pt[pt$op == "=~",]$lhs))]
+  if (length(tmpMarkers) > 0){
+    pt[pt$op == "=~" & pt$rhs %in% tmpMarkers,]$mlabel <- NA
   }
   
   pt$mlabel[pt$mlabel == ""] <- NA
@@ -284,6 +290,7 @@ miivs <- function(model){
     
     markers  <- NULL
     
+    # For each variable on the RHS including error terms
     for(var in vars){
       
       if(var %in% latVars){

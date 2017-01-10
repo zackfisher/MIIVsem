@@ -77,7 +77,7 @@ miive.2sls.system <- function(d, sample.cov, sample.mean, sample.nobs, se, restr
                rbind(XY1, q))[1:nrow(ZV),]
   }
   
-  names(coef) <- unlist(lapply(d, function(x) paste0(x$DVobs,"~", c("1", x$IVobs))))
+  names(coef) <- unlist(lapply(d, function(x) paste0(x$DVlat,"~", c("1", x$IVlat))))
   
   # Add coefficients to equations list.
   coefIndex <- unlist(lapply(seq_along(d), function(x) rep(x,(length(d[[x]]$IVobs)+1))))
@@ -118,6 +118,8 @@ miive.2sls.system <- function(d, sample.cov, sample.mean, sample.nobs, se, restr
     }
     
     res$coefCov <- coefCov
+    
+    res$eqn <- d
     
     return(res)
   }

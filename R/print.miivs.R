@@ -8,7 +8,7 @@ print.miivs <- function(x,...){
     LHS <- paste(x[[i]]$DVobs, collapse = ", ")
     RHS <- paste(x[[i]]$IVobs, collapse = ", ")
     Instruments <- paste(x[[i]]$MIIVs, collapse = ", ")
-    Disturbance <- paste("e.",x[[i]]$CDist, collapse = ", ", sep="")
+    Disturbance <- paste(x[[i]]$CDist, collapse = ", ", sep="")
     modtemp <- as.data.frame(cbind(LHS, RHS, Disturbance, Instruments))
     colnames(modtemp) <- c("LHS", "RHS", "Composite Disturbance", "MIIVs")
     if (i == 1) {modeqns <- modtemp }

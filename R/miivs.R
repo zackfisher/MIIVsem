@@ -10,9 +10,9 @@
 #' argument within the \code{\link[lavaan]{lavaanify}} function for more information.
 #' A model specified using lavaan model syntax. See the \code{model} argument within 
 #' the \code{\link[lavaan]{lavaanify}} function for more information. See the
-#' documentation below for a description of how to specifying the scaling 
+#' documentation below for a description of how to specify the scaling 
 #' indicator in latent variable models and impose equality constraints on the
-#' parameters. 
+#' parameter estimates. 
 #' 
 #' @section Scaling Indicators:
 #' Following the lavaan model syntax, latent variables are defined using the
@@ -147,7 +147,7 @@ miivs <- function(model){
   
   errVars <- paste("e.",endVars,sep="")
   
-  # All variables, excluding exogenous and error terms of endogenous variables
+  # Exogenous and error terms of endogenous variables
   exoVars <- c(setdiff(unique(c(pt$rhs[pt$op!="=="], pt$lhs[pt$op!="=="])), endVars), errVars)
   
   allVars <- c(endVars,exoVars)

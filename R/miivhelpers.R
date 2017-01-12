@@ -34,3 +34,6 @@ buildSSP <- function(sample.cov, sample.nobs, sample.means){
                         c("1", names(sample.means)) )
   return(res)
 }
+
+
+

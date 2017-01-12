@@ -118,10 +118,22 @@ miive.2sls.system <- function(d, sample.cov, sample.mean, sample.nobs, se, restr
     }
     
     res$coefCov <- coefCov
+
+    # Calculate the residual covariance matrix for the full system of
+    # equations based on covariance matrix input.
     
+    dvs <- unlist(lapply(d, "[[", "DVobs"))
+    B   <- diag(length(dvs), dimnames = list(dvs,dvs))
+    idx <- do.call("rbind",lapply(d, function(eq) cbind(eq$DVobs, eq$IVobs, eq$coefficients[-1])))
+    idx <- idx[idx[,2] %in% dvs, ,drop = FALSE]
+    B[idx[,2:1, drop = FALSE]] <- -1*as.numeric(idx[,3])
+    diag(B) <- 1
+    
+    res$ResidCov <- t(B) %*% sample.cov[dvs,dvs] %*% B
+
     res$eqn <- d
     
     return(res)
   }
-  
+   
 }

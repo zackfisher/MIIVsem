@@ -175,23 +175,16 @@ miive <- function(model = model, data = NULL,
      lapply(d, function(eq){as.matrix(cbind(1,data[,eq$IVobs, drop = FALSE]))})
     )
 
-    fitted    <- as.matrix(designMat) %*% results$coefficients
-    residuals <- unlist(lapply(d,function(x)data[,x$DVobs])) - fitted
+    results$fitted    <- as.matrix(designMat) %*% results$coefficients
+    results$residuals <- unlist(lapply(d,function(x)data[,x$DVobs])) - results$fitted
+
+  # If covariance input only calculate the residual covariance matrix. 
+  } else {
     
-    results$fitted <- fitted
-    results$residuals <- residuals
+    # We already have the residual covariance matrix. 
+    
   }
 
-    
-  #results$ressiduals <- cbind(lapply(d, function(eq){
-  #    data[,sapply(results$eqn,function(eq){eq$DVobs})]})) - results$fitted
-  #  
-  #results$resCov <- cbind(lapply(d, function(eq){
-  #  data[,sapply(results$eqn,function(eq){eq$DVobs})]   })) - results$fitted
-  #colnames(results$residuals) <- colnames(results$fitted)
-
-  #}
-  
   # Keep the function call
   results$call <- match.call()
   

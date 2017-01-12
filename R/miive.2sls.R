@@ -40,7 +40,7 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, se, restri
 
 #' Two-stage least square estimator for a system of equations
 #' 
-#' @param d a system of MIIV equation
+#' @param d a list containing the system of MIIV estimating equations
 #' @param sample.cov sample covariance matrix
 #' @param sample.nobs number of observations
 #' @param se should variance covariance matrix of the estimates be calculated

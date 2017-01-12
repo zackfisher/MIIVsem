@@ -168,29 +168,20 @@ miive <- function(model = model, data = NULL,
   # Observation level statistics are calculated only if
   # raw data are available
   
-  #if(!is.null(data)){
+  # Calculate the fitted values and raw residuals
+  if(!is.null(data)){
     
-    #results$fitted <- do.call(cbind, lapply(results$eqn, function(eq){
-      
-      # Zack: Fitted values are obtained by multiplying the observed endogenous 
-      # variables by the second stage coefficients.
-      #fitted <- drop(cbind("1"=1, data[,eq$IVobs]) %*% eq$coefficients)
-      
-      #colnames(fitted) <-eq$DVlat
-      
-      #return(fitted)
-      
-      # Fitted values are obtained by multiplying the observed
-      # variables with the first stage coefficients and then
-      # the second stage coefficients
-      
-      #fitted <- cbind("1"=1, designMatrix[,colnames(eq$Z)[-1]] %*% 
-      #          t(eq$Z[-1,-1, drop = FALSE])) %*% eq$coefficients
-      
-      #colnames(fitted) <-eq$DVlat
-      
-      #fitted
-    #}))
+    designMat <- lavaan::lav_matrix_bdiag(
+     lapply(d, function(eq){as.matrix(cbind(1,data[,eq$IVobs, drop = FALSE]))})
+    )
+
+    fitted    <- as.matrix(designMat) %*% results$coefficients
+    residuals <- unlist(lapply(d,function(x)data[,x$DVobs])) - fitted
+    
+    results$fitted <- fitted
+    results$residuals <- residuals
+  }
+
     
   #results$ressiduals <- cbind(lapply(d, function(eq){
   #    data[,sapply(results$eqn,function(eq){eq$DVobs})]})) - results$fitted

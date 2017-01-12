@@ -134,7 +134,8 @@ miive.2sls.system <- function(d, sample.cov, sample.mean, sample.nobs, se, restr
 
     res$eqn <- d
     
-    return(res)
   }
-   
+
+  return(res)
+  
 }

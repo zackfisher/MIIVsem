@@ -178,12 +178,7 @@ miive <- function(model = model, data = NULL,
     results$fitted    <- as.matrix(designMat) %*% results$coefficients
     results$residuals <- unlist(lapply(d,function(x)data[,x$DVobs])) - results$fitted
 
-  # If covariance input only calculate the residual covariance matrix. 
-  } else {
-    
-    # We already have the residual covariance matrix. 
-    
-  }
+  } 
 
   # Keep the function call
   results$call <- match.call()

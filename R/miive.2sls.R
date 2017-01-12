@@ -51,11 +51,13 @@ miive.2sls.system <- function(d, sample.cov, sample.mean, sample.nobs, se, restr
   
   res <- list()
   
+  # TODO: Explain what SSP, ZV, VV, and VY are
+  
   SSP <- buildSSP(sample.cov, sample.nobs, sample.mean)
   ZV  <- buildBlockDiag(d, SSP, "IVobs", "MIIVs")
   VV  <- buildBlockDiag(d, SSP, "MIIVs", "MIIVs")
   VY  <- unlist(lapply(d,function(x) SSP[c("1",x$MIIVs), x$DVobs, drop = FALSE]))
-  
+
   # DV: Y; EV: Z; MIIVs: V
   XX1 <- ZV %*% solve(VV) %*% t(ZV)
   XY1 <- ZV %*% solve(VV) %*% VY

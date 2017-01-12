@@ -123,7 +123,8 @@ miive.2sls.system <- function(d, sample.cov, sample.mean, sample.nobs, se, restr
     # equations based on covariance matrix input.
     
     dvs <- unlist(lapply(d, "[[", "DVobs"))
-    B   <- diag(length(dvs), dimnames = list(dvs,dvs))
+    B   <- diag(length(dvs))
+    colnames(B) <- rownames(B) <- dvs
     idx <- do.call("rbind",lapply(d, function(eq) cbind(eq$DVobs, eq$IVobs, eq$coefficients[-1])))
     idx <- idx[idx[,2] %in% dvs, ,drop = FALSE]
     B[idx[,2:1, drop = FALSE]] <- -1*as.numeric(idx[,3])

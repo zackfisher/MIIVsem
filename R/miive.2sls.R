@@ -49,8 +49,6 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, se, restri
 #'@keywords internal
 miive.2sls.system <- function(d, sample.cov, sample.mean, sample.nobs, se, restrictions){
   
-  res <- list()
-  
   # TODO: Explain what SSP, ZV, VV, and VY are
   
   SSP <- buildSSP(sample.cov, sample.nobs, sample.mean)
@@ -89,8 +87,9 @@ miive.2sls.system <- function(d, sample.cov, sample.mean, sample.nobs, se, restr
   coefList  <- split(coef, coefIndex); names(coefList) <- rep("coefficients",length(d))
   d         <- lapply(seq_along(d), function(x) append(d[[x]], coefList[x])) 
   
-  res$coefficients <- coef
+  # Start building the return object
   
+  res <- list(coefficients = coef)
   
   if(se){
     

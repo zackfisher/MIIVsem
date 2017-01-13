@@ -26,7 +26,7 @@ buildBlockDiag <- function(d, mat, row, col){
     }))
 }
 
-buildSSP <- function(sample.cov, sample.nobs, sample.means){
+buildSSCP <- function(sample.cov, sample.nobs, sample.means){
   res <- rbind(c(sample.nobs, sample.means*sample.nobs), 
                cbind(sample.means*sample.nobs, sample.cov *  (sample.nobs) + 
                        (sample.nobs * sample.means %*% t(sample.means))))

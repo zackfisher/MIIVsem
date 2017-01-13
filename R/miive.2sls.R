@@ -19,12 +19,12 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, se, restri
   }
   
   
-  # TODO: Explain what SSP, ZV, VV, and VY are
+  # TODO: Explain what SSCP, ZV, VV, and VY are
   
-  SSP <- buildSSP(sample.cov, sample.nobs, sample.mean)
-  ZV  <- buildBlockDiag(d, SSP, "IVobs", "MIIVs")
-  VV  <- buildBlockDiag(d, SSP, "MIIVs", "MIIVs")
-  VY  <- unlist(lapply(d,function(x) SSP[c("1",x$MIIVs), x$DVobs, drop = FALSE]))
+  SSCP <- buildSSCP(sample.cov, sample.nobs, sample.mean)
+  ZV   <- buildBlockDiag(d, SSCP, "IVobs", "MIIVs")
+  VV   <- buildBlockDiag(d, SSCP, "MIIVs", "MIIVs")
+  VY   <- unlist(lapply(d,function(x) SSCP[c("1",x$MIIVs), x$DVobs, drop = FALSE]))
 
   # DV: Y; EV: Z; MIIVs: V
   

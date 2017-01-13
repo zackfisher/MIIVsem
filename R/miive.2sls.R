@@ -78,7 +78,9 @@ miive.2sls.system <- function(d, sample.cov, sample.mean, sample.nobs, se, restr
   }
   
   # TODO: Should the names use Lavaan convetion where regressions of observed 
-  # variables on latent variables use =~ instead of x and have the LHS and RHS reversed? 
+  # variables on latent variables use =~ instead of x and have the LHS and RHS reversed?
+  # 
+  # NOTE: A great question. "as measured by" 
   
   rownames(coef) <- unlist(lapply(d, function(x) paste0(x$DVlat,"~", c("1", x$IVlat))))
   

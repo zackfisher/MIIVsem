@@ -1,43 +1,3 @@
-#' Two-stage least square estimator
-#'
-#' The estimator handles missing data by equationwise deletion, which 
-#' means that all equations are estimated using cases that have all data
-#' for that equation. It is possible that different equations 
-#' are estimated with different subsamples. If other kind of 
-#' missing data prcessing is needed (e.g.) listwise deletion,
-#' that must be done prior to calling this function
-#' 
-#' @param d list of MIIV equations
-#' @param data optional data.frame
-#' @param sample.cov optional sample covariance matrix
-#' @param se should variance covariance matrix of the estimates be calculated
-#' 
-#'@keywords internal
-
-miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, se, restrictions){
-  
-  # Estimate the system of equation and store results in results
-  
-  # If we have data, then calculate a sample covariance matrix for this equation
-  if(!is.null(data)){
-
-      data <- data[complete.cases(data),]
-      
-      results <- miive.2sls.system(d, cov(data)*(nrow(data)-1)/nrow(data), colMeans(data), nrow(data), se, restrictions)
-  }
-    
-  # Else use the sample covariance matrix given as argument
-  else{
-    
-      results <- miive.2sls.system(d, sample.cov, sample.mean, sample.nobs, se, restrictions)
-      
-  }    
-  
-  return(results)
-  
-}
-
-
 #' Two-stage least square estimator for a system of equations
 #' 
 #' @param d a list containing the system of MIIV estimating equations
@@ -47,7 +7,17 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, se, restri
 #' @param restrictions any equality constraints to be used in estimation
 
 #'@keywords internal
-miive.2sls.system <- function(d, sample.cov, sample.mean, sample.nobs, se, restrictions){
+miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, se, restrictions){
+
+  # The estimation is done from covariance matrix and mean vector, so these are calculated first
+  
+  if(!is.null(data)){
+    data <- data[complete.cases(data),]
+    sample.cov <- cov(data)*(nrow(data)-1)/nrow(data)
+    sample.nobs <- nrow(data)
+    sample.mean <- colMeans(data)
+  }
+  
   
   # TODO: Explain what SSP, ZV, VV, and VY are
   
@@ -77,7 +47,7 @@ miive.2sls.system <- function(d, sample.cov, sample.mean, sample.nobs, se, restr
                rbind(XY1, q))[1:nrow(ZV),]
   }
   
-  # TODO: Should the names use Lavaan convetion where regressions of observed 
+  # TODO: Should the names use Lavaan convention where regressions of observed 
   # variables on latent variables use =~ instead of x and have the LHS and RHS reversed? 
   
   rownames(coef) <- unlist(lapply(d, function(x) paste0(x$DVlat,"~", c("1", x$IVlat))))

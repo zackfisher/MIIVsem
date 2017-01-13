@@ -47,9 +47,11 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, se, restri
                rbind(XY1, q))[1:nrow(ZV),]
   }
   
-  # TODO: Should the names use Lavaan convention where regressions of observed 
-  # variables on latent variables use =~ instead of x and have the LHS and RHS reversed? 
-  
+  # TODO: Should the names use Lavaan convetion where regressions of observed 
+  # variables on latent variables use =~ instead of x and have the LHS and RHS reversed?
+  # 
+  # NOTE: A great question. "as measured by" 
+
   rownames(coef) <- unlist(lapply(d, function(x) paste0(x$DVlat,"~", c("1", x$IVlat))))
   
   # Add coefficients to equations list.
@@ -102,7 +104,6 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, se, restri
     idx <- do.call("rbind",lapply(d, function(eq) cbind(eq$DVobs, eq$IVobs, eq$coefficients[-1])))
     idx <- idx[idx[,2] %in% dvs, ,drop = FALSE]
     B[idx[,2:1, drop = FALSE]] <- -1*as.numeric(idx[,3])
-    diag(B) <- 1
     
     res$ResidCov <- t(B) %*% sample.cov[dvs,dvs] %*% B
 

@@ -27,8 +27,11 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, se, restri
   VY  <- unlist(lapply(d,function(x) SSP[c("1",x$MIIVs), x$DVobs, drop = FALSE]))
 
   # DV: Y; EV: Z; MIIVs: V
-  XX1 <- ZV %*% solve(VV) %*% t(ZV)
-  XY1 <- ZV %*% solve(VV) %*% VY
+  
+  # First calculate the part that is used in both equations.
+  ZVsVV <- ZV %*% solve(VV)
+  XX1 <- ZVsVV %*% t(ZV)
+  XY1 <- ZVsVV %*% VY
   
   if (is.null(restrictions)){
     

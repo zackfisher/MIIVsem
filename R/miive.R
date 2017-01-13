@@ -89,7 +89,7 @@ miive <- function(model = model, data = NULL,
   #           characterizing the instruments for equation i.
   #
   #-------------------------------------------------------#
-  d <- generateFormulas(d)
+  # d <- generateFormulas(d)
   
   #-------------------------------------------------------#
   

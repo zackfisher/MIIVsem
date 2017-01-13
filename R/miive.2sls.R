@@ -32,15 +32,14 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, se, restri
   # position and n\bar{x} elsewhere.
   SSCP <- buildSSCP(sample.cov, sample.nobs, sample.mean)
   ZV   <- buildBlockDiag(d, SSCP, "IVobs", "MIIVs")
-  VV   <- buildBlockDiag(d, SSCP, "MIIVs", "MIIVs")
+  VV   <- buildBlockDiag(d, SSCP, "MIIVs", "MIIVs", inv = FALSE)
   VY   <- unlist(lapply(d,function(x) SSCP[c("1",x$MIIVs), x$DVobs, drop = FALSE]))
 
   # DV: Y; EV: Z; MIIVs: V
-  
   # First calculate the part that is used in both equations.
   ZVsVV <- ZV %*% solve(VV)
-  XX1 <- ZVsVV %*% t(ZV)
-  XY1 <- ZVsVV %*% VY
+  XX1   <- ZVsVV %*% t(ZV)
+  XY1   <- ZVsVV %*% VY
   
   if (is.null(restrictions)){
     

@@ -2,26 +2,23 @@
 % Please edit documentation in R/miive.2sls.R
 \name{miive.2sls}
 \alias{miive.2sls}
-\title{Two-stage least square estimator}
+\title{Two-stage least square estimator for a system of equations}
 \usage{
 miive.2sls(d, data, sample.cov, sample.mean, sample.nobs, se, restrictions)
 }
 \arguments{
-\item{d}{list of MIIV equations}
+\item{d}{a list containing the system of MIIV estimating equations}
 
-\item{data}{optional data.frame}
+\item{sample.cov}{sample covariance matrix}
 
-\item{sample.cov}{optional sample covariance matrix}
+\item{sample.nobs}{number of observations}
 
 \item{se}{should variance covariance matrix of the estimates be calculated}
+
+\item{restrictions}{any equality constraints to be used in estimation}
 }
 \description{
-The estimator handles missing data by equationwise deletion, which 
-means that all equations are estimated using cases that have all data
-for that equation. It is possible that different equations 
-are estimated with different subsamples. If other kind of 
-missing data prcessing is needed (e.g.) listwise deletion,
-that must be done prior to calling this function
+Two-stage least square estimator for a system of equations
 }
 \keyword{internal}
 

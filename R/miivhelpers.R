@@ -19,11 +19,18 @@ miivhelper.bindmatrices <- function(x, empty){
 }
 
 
-buildBlockDiag <- function(d, mat, row, col){
+buildBlockDiag <- function(d, mat, row, col, inv = FALSE){
+ 
   res <- lavaan::lav_matrix_bdiag(
-    lapply(d, function(eq){
-      mat[c("1",eq[[row]]), c("1",eq[[col]]), drop = FALSE] 
-    }))
+    if (inv){
+      lapply(d, function(eq){
+        solve(mat[c("1",eq[[row]]), c("1",eq[[col]]), drop = FALSE]) 
+      })
+    } else {
+      lapply(d, function(eq){
+        mat[c("1",eq[[row]]), c("1",eq[[col]]), drop = FALSE] 
+      })
+    })
 }
 
 buildSSCP <- function(sample.cov, sample.nobs, sample.means){

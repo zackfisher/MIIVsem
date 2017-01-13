@@ -54,16 +54,17 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, se, restri
 
   rownames(coef) <- unlist(lapply(d, function(x) paste0(x$DVlat,"~", c("1", x$IVlat))))
   
-  # Add coefficients to equations list.
-  coefIndex <- unlist(lapply(seq_along(d), function(x) rep(x,(length(d[[x]]$IVobs)+1))))
-  coefList  <- split(coef, coefIndex); names(coefList) <- rep("coefficients",length(d))
-  d         <- lapply(seq_along(d), function(x) append(d[[x]], coefList[x])) 
-  
   # Start building the return object
   
   res <- list(coefficients = coef)
   
   if(se){
+    
+    # Add coefficients to equations list.
+    coefIndex <- unlist(lapply(seq_along(d), function(x) rep(x,(length(d[[x]]$IVobs)+1))))
+    coefList  <- split(coef, coefIndex); names(coefList) <- rep("coefficients",length(d))
+    d         <- lapply(seq_along(d), function(x) append(d[[x]], coefList[x])) 
+    
     
     #         | sigma_{11}                   |
     # Sigma = |            ...               |

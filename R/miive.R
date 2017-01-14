@@ -87,15 +87,12 @@ miive <- function(model = model, data = NULL,
   #-------------------------------------------------------#  
   restrictions <- buildRestrictMat(d)
   
-  if (is.null(restrictions)){ 
-    
-    R <- NULL; q <- NULL
-    
-  } else { 
-    
-    R <- restrictions$R; q <- restrictions$q 
-    
-  }
+  # Commented out because R and q are never used in this function.
+  #if (is.null(restrictions)){ 
+  #  R <- NULL; q <- NULL
+  #} else { 
+  #  R <- restrictions$R; q <- restrictions$q 
+  #}
   #-------------------------------------------------------#  
   
   

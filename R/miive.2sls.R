@@ -31,13 +31,23 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, se, restri
 
   SSCP <- buildSSCP(sample.cov, sample.nobs, sample.mean)
   
-  # TODO: Document what ZV, VV, and VY are.
+  # Construct the following matrices:
+  # XY1: A vector of crossproducts of fitted values from the first stage
+  #      regression and the dependent variables. The crossproducts
+  #      for all regressions are stacked into one vector
+  # XX1: A block diagnonal matrix of of crossproducts of fitted values
+  #      from the first stage regressions for all equations.
+  # ZV:  A block diagonal matrix of crossproducts between the instuments
+  #      and independent variables for all equations
+  # 
+  # TODO: Chech that the documentation above is accurate.
   
   ZV   <- buildBlockDiag(d, SSCP, "IVobs", "MIIVs")
   VV   <- buildBlockDiag(d, SSCP, "MIIVs", "MIIVs", inv = FALSE)
   VY   <- unlist(lapply(d,function(x) SSCP[c("1",x$MIIVs), x$DVobs, drop = FALSE]))
 
-  # TODO: Document what XX1 an XY1 are.
+  # TODO: Would it not be more efficient to always calculate the first stage regressions
+  # separately than inverting a large VV?
   
   # DV: Y; EV: Z; MIIVs: V
   # First calculate the part that is used in both equations.
@@ -46,22 +56,25 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, se, restri
   XY1   <- ZVsVV %*% VY
   
   #########################################################
+  #
+  # Mikko: None of this is used, so commenting out.
+  #
   # More efficient construction of block diagonal matrices?
-  bigSSCP <- kronecker(diag(length(d)),SSCP)
+  # bigSSCP <- kronecker(diag(length(d)),SSCP)
   
   # Get MIIV indices in large matrix
-  vars  <- colnames(SSCP)
+  #vars  <- colnames(SSCP)
   
-  Vindex <- unlist(lapply(seq_along(d),function(i) {
-    length(vars)*(i-1) + c(1, which(vars %in% d[[i]]$MIIVs))
-  }))
+  #Vindex <- unlist(lapply(seq_along(d),function(i) {
+  #  length(vars)*(i-1) + c(1, which(vars %in% d[[i]]$MIIVs))
+  #}))
   
-  Zindex <- unlist(lapply(seq_along(d),function(i) {
-    length(vars)*(i-1) + c(1, which(vars %in% d[[i]]$IVobs))
-  }))
+  #Zindex <- unlist(lapply(seq_along(d),function(i) {
+  #  length(vars)*(i-1) + c(1, which(vars %in% d[[i]]$IVobs))
+  #}))
   
-  VV0 <- bigSSCP[Vindex, Vindex]
-  ZV0 <- bigSSCP[Zindex, Vindex]
+  #VV0 <- bigSSCP[Vindex, Vindex]
+  #ZV0 <- bigSSCP[Zindex, Vindex]
   ########################################################
   
   if (is.null(restrictions)){

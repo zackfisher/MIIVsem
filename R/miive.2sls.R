@@ -37,6 +37,8 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, se, restri
   VV   <- buildBlockDiag(d, SSCP, "MIIVs", "MIIVs", inv = FALSE)
   VY   <- unlist(lapply(d,function(x) SSCP[c("1",x$MIIVs), x$DVobs, drop = FALSE]))
 
+  # TODO: Document what XX1 an XY1 are.
+  
   # DV: Y; EV: Z; MIIVs: V
   # First calculate the part that is used in both equations.
   ZVsVV <- ZV %*% solve(VV)

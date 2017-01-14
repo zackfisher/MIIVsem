@@ -73,40 +73,6 @@ miive <- function(model = model, data = NULL,
   #-------------------------------------------------------#
   d  <- parseInstrumentSyntax(d, instruments)
   
-  #-------------------------------------------------------#
-  
-  #-------------------------------------------------------# 
-  # generateFormulas
-  #-------------------------------------------------------# 
-  #   input:  (1) miivs equation list 'd'
-  #                returned from miivs search function.
-  #          
-  #  return:  (1) updated 'd' 
-  #
-  #  details: 'd' updated with two new fields:
-  #           (1) EqFormula is two-sided formula for equation i.
-  #           (2) MIIVsFormula is a one-sided formula
-  #           characterizing the instruments for equation i.
-  #
-  #-------------------------------------------------------#
-  # d <- generateFormulas(d)
-  
-  #-------------------------------------------------------#
-  
-  #-------------------------------------------------------#  
-  # Prepare data.  (REVISIT)
-  #   
-  #  To-do: Prepare for missing data.
-  #         Prepare for covariance matrices
-  #-------------------------------------------------------#
-  
-  # Mikko: I do not think that this is really needed
-  # different estimators may treat missing data differently,
-  # so I would defer missing data treatment to actual estimation
-  # see my comments in the 2SLS estimator
-  
-  # mf <- prepareRawData(data)
-  
   if(sample.cov.rescale & ! is.null(sample.cov)){
     sample.cov <- sample.cov * (sample.nobs-1)/sample.nobs
   }
@@ -143,10 +109,7 @@ miive <- function(model = model, data = NULL,
   # coefficients - a vector of estimated coefficients
   # coefCov - variance covariance matrix of the estimates
   #           (optional, depending on the se argument)
-  # eqn - a list of miiv equations and estimation results, including
-  #   Z - a matrix projecting instruments to the instrumented
-  #     variables.
-  #   
+  # eqn - a list of miiv equations and estimation results
   #
   # possibly other elements
   # 

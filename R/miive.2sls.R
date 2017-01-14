@@ -41,6 +41,25 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, se, restri
   XX1   <- ZVsVV %*% t(ZV)
   XY1   <- ZVsVV %*% VY
   
+  #########################################################
+  # More efficient construction of block diagonal matrices?
+  bigSSCP <- kronecker(diag(length(d)),SSCP)
+  
+  # Get MIIV indices in large matrix
+  vars  <- colnames(SSCP)
+  
+  Vindex <- unlist(lapply(seq_along(d),function(i) {
+    length(vars)*(i-1) + c(1, which(vars %in% d[[i]]$MIIVs))
+  }))
+  
+  Zindex <- unlist(lapply(seq_along(d),function(i) {
+    length(vars)*(i-1) + c(1, which(vars %in% d[[i]]$IVobs))
+  }))
+  
+  VV0 <- bigSSCP[Vindex, Vindex]
+  ZV0 <- bigSSCP[Zindex, Vindex]
+  ########################################################
+  
   if (is.null(restrictions)){
     
     # b_2sls =  | [Z'V (V'V)^{-1} V'Z]^{-1} |  %*%  |  ZV (V'V)^{-1} V'y  |

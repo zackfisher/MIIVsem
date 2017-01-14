@@ -43,4 +43,3 @@ buildSSCP <- function(sample.cov, sample.nobs, sample.means){
 }
 
 
-

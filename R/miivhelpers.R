@@ -39,14 +39,10 @@ buildSSCP <- function(sample.cov, sample.nobs, sample.means){
                 dimnames = list(c("1", names(sample.means)),
                                    c("1", names(sample.means))))
   
-  res[1,] <- res[,1]<- c(sample.nobs, sample.means*sample.nobs)
+  res[1,1] <- sample.nobs
+  res[-1,1] <- res[1,-1] <- sample.means*sample.nobs
   res[-1,-1] <- (sample.cov + sample.means %*% t(sample.means))* sample.nobs
 
-  #  res <- rbind(c(sample.nobs, sample.means*sample.nobs), 
-  #             cbind(sample.means*sample.nobs, sample.cov *  (sample.nobs) + 
-  #                     (sample.nobs * sample.means %*% t(sample.means))))
-  # dimnames(res) <- list(c("1", names(sample.means)),
-  #                      c("1", names(sample.means)))
   return(res)
 }
 

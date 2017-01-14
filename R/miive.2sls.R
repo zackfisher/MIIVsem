@@ -20,8 +20,6 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, se, restri
   }
   
   
-  # TODO: Explain what SSCP, ZV, VV, and VY are
-  
   # Build sum of squares and crossproducts matrix (SSCP).
   # From the means, covariances, and n's you can recover the
   # raw sum-of-squares and products matrix for all the variables. 
@@ -30,7 +28,11 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, se, restri
   # matrix is X'X = (n - 1)S + n\bar{x}\bar{x}'. You then need to 
   # add the row/column for the constant, which is just n in the 1, 1 
   # position and n\bar{x} elsewhere.
+
   SSCP <- buildSSCP(sample.cov, sample.nobs, sample.mean)
+  
+  # TODO: Document what ZV, VV, and VY are.
+  
   ZV   <- buildBlockDiag(d, SSCP, "IVobs", "MIIVs")
   VV   <- buildBlockDiag(d, SSCP, "MIIVs", "MIIVs", inv = FALSE)
   VY   <- unlist(lapply(d,function(x) SSCP[c("1",x$MIIVs), x$DVobs, drop = FALSE]))

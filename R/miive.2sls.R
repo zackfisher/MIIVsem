@@ -73,7 +73,7 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, 
   
   # TODO: Should the names use Lavaan convetion where regressions of observed 
   # variables on latent variables use =~ instead of x and have the LHS and RHS reversed?
-  
+   
   names(coef) <- unlist(lapply(d, function(x) paste0(x$DVlat,"~", c("1", x$IVlat))))
   
   # Start building the return object
@@ -99,7 +99,7 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, 
     # calculation of equation level statistics easier. 
     
     # TODO: How should equation-level sigma^2 be handled when cross-
-    #       equation restrictions are present.
+    #       equation restrictions are present?
     
     d <- lapply(d, function(eq) { 
       eq$sigma <-  (sample.cov[eq$DVobs, eq$DVobs] +  (t(eq$coefficients[-1]) %*% 

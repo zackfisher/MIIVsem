@@ -117,7 +117,7 @@ miive <- function(model = model, data = NULL,
   #-------------------------------------------------------#
   
 
-  # Sargan's test from covariances (Hayashi, p.)
+  # Sargan's test from covariances (Hayashi, p. 228)
   # TODO: check for within-equation restrictions 
   #       and alter the df accordingly
   d <- lapply(d, function(eq) { 

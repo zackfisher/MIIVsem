@@ -4,7 +4,8 @@
 \alias{miive.2sls}
 \title{Two-stage least square estimator for a system of equations}
 \usage{
-miive.2sls(d, data, sample.cov, sample.mean, sample.nobs, se, restrictions)
+miive.2sls(d, data, sample.cov, sample.mean, sample.nobs, est.only,
+  restrictions)
 }
 \arguments{
 \item{d}{a list containing the system of MIIV estimating equations}
@@ -13,7 +14,7 @@ miive.2sls(d, data, sample.cov, sample.mean, sample.nobs, se, restrictions)
 
 \item{sample.nobs}{number of observations}
 
-\item{se}{should variance covariance matrix of the estimates be calculated}
+\item{est.only}{should we only calculate coefficient estimates}
 
 \item{restrictions}{any equality constraints to be used in estimation}
 }

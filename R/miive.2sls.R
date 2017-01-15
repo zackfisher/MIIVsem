@@ -14,7 +14,7 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, 
   
   if(!is.null(data)){
     data <- data[complete.cases(data),]
-    sample.cov  <- cov(data) #*(nrow(data)-1)/nrow(data)
+    sample.cov  <- cov(data)*(nrow(data)-1)/nrow(data)
     sample.nobs <- nrow(data)
     sample.mean <- colMeans(data)
   }

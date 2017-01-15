@@ -6,7 +6,7 @@
 \usage{
 miive(model = model, data = NULL, sample.cov = NULL, sample.mean = NULL,
   sample.nobs = NULL, sample.cov.rescale = TRUE, instruments = NULL,
-  estimator = "2SLS", control = NULL, se = TRUE)
+  estimator = "2SLS", control = NULL, est.only = FALSE)
 }
 \arguments{
 \item{model}{A model specified using lavaan model syntax or a \code{\link{miivs}} object. See the \code{model} argument within the \code{\link[lavaan]{lavaanify}} function for more information.}
@@ -27,7 +27,7 @@ miive(model = model, data = NULL, sample.cov = NULL, sample.mean = NULL,
 
 \item{control}{.}
 
-\item{se}{If \code{TRUE}, standard errors are returned with estimates.}
+\item{est.only}{If \code{TRUE}, only the coefficients are returned.}
 }
 \value{
 model

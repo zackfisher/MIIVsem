@@ -80,7 +80,7 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, 
   
   res <- list(coefficients = coef)
   
-  if(est.only){
+  if(!est.only){
     
     # Add coefficients to equations list.
     coefIndex <- unlist(lapply(seq_along(d), function(x) rep(x,(length(d[[x]]$IVobs)+1))))

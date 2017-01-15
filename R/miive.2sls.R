@@ -3,11 +3,11 @@
 #' @param d a list containing the system of MIIV estimating equations
 #' @param sample.cov sample covariance matrix
 #' @param sample.nobs number of observations
-#' @param se should variance covariance matrix of the estimates be calculated
+#' @param est.only should we only calculate coefficient estimates
 #' @param restrictions any equality constraints to be used in estimation
 
 #'@keywords internal
-miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, se, restrictions){
+miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, restrictions){
 
   # The estimation is done from covariance matrix and mean vector, 
   # so these are calculated first
@@ -80,7 +80,7 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, se, restri
   
   res <- list(coefficients = coef)
   
-  if(se){
+  if(est.only){
     
     # Add coefficients to equations list.
     coefIndex <- unlist(lapply(seq_along(d), function(x) rep(x,(length(d[[x]]$IVobs)+1))))

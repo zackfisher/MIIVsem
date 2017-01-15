@@ -11,7 +11,7 @@
 #' @param instruments A user-supplied list of valid MIIVs for each equation. See Example 2 below. 
 #' @param estimator Options \code{"2SLS"} or \code{"GMM"} for estimating the model parameters. Default is \code{"2SLS"}.
 #' @param control .
-#' @param se If \code{TRUE}, standard errors are returned with estimates. 
+#' @param est.only If \code{TRUE}, only the coefficients are returned. 
 #'
 #' @return model
 #' @return dat
@@ -44,7 +44,7 @@
 #' @export
 miive <- function(model = model, data = NULL, 
                   sample.cov = NULL, sample.mean = NULL, sample.nobs = NULL, sample.cov.rescale = TRUE,
-                  instruments = NULL, estimator = "2SLS", control = NULL, se = TRUE){
+                  instruments = NULL, estimator = "2SLS", control = NULL, est.only = FALSE){
   
   #-------------------------------------------------------#  
   # Check class of model.
@@ -105,8 +105,8 @@ miive <- function(model = model, data = NULL,
   #-------------------------------------------------------#
   
   results <- switch(estimator,
-                    "2SLS" = miive.2sls(d, data, sample.cov, sample.mean, sample.nobs, se, restrictions),
-                    "GMM" = miive.gmm(d, data, sample.cov, sample.mean, sample.nobs, se, restrictions), # Not implemented
+                    "2SLS" = miive.2sls(d, data, sample.cov, sample.mean, sample.nobs, est.only, restrictions),
+                    "GMM" = miive.gmm(d, data, sample.cov, sample.mean, sample.nobs, est.only, restrictions), # Not implemented
                     # In other cases, raise an error
                     stop(paste("Invalid estimator:", estimator,"Valid estimators are: 2SLS, GMM"))
                     )

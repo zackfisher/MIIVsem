@@ -14,11 +14,10 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, se, restri
   
   if(!is.null(data)){
     data <- data[complete.cases(data),]
-    sample.cov <- cov(data)*(nrow(data)-1)/nrow(data)
+    sample.cov  <- cov(data) #*(nrow(data)-1)/nrow(data)
     sample.nobs <- nrow(data)
     sample.mean <- colMeans(data)
   }
-  
   
   # Build sum of squares and crossproducts matrix (SSCP).
   # From the means, covariances, and n's you can recover the
@@ -39,47 +38,24 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, se, restri
   #      from the first stage regressions for all equations.
   # ZV:  A block diagonal matrix of crossproducts between the instuments
   #      and independent variables for all equations
-  # 
-  # TODO: Chech that the documentation above is accurate.
   
   ZV   <- buildBlockDiag(d, SSCP, "IVobs", "MIIVs")
   VV   <- buildBlockDiag(d, SSCP, "MIIVs", "MIIVs", inv = FALSE)
   VY   <- unlist(lapply(d,function(x) SSCP[c("1",x$MIIVs), x$DVobs, drop = FALSE]))
 
-  # TODO: Would it not be more efficient to always calculate the first stage regressions
-  # separately than inverting a large VV?
-  
   # DV: Y; EV: Z; MIIVs: V
   # First calculate the part that is used in both equations.
   ZVsVV <- ZV %*% solve(VV)
   XX1   <- ZVsVV %*% t(ZV)
   XY1   <- ZVsVV %*% VY
   
-  #########################################################
-  #
-  # Mikko: None of this is used, so commenting out.
-  #
-  # More efficient construction of block diagonal matrices?
-  # bigSSCP <- kronecker(diag(length(d)),SSCP)
-  
-  # Get MIIV indices in large matrix
-  #vars  <- colnames(SSCP)
-  
-  #Vindex <- unlist(lapply(seq_along(d),function(i) {
-  #  length(vars)*(i-1) + c(1, which(vars %in% d[[i]]$MIIVs))
-  #}))
-  
-  #Zindex <- unlist(lapply(seq_along(d),function(i) {
-  #  length(vars)*(i-1) + c(1, which(vars %in% d[[i]]$IVobs))
-  #}))
-  
-  #VV0 <- bigSSCP[Vindex, Vindex]
-  #ZV0 <- bigSSCP[Zindex, Vindex]
-  ########################################################
+  # TODO: Would it not be more efficient to always calculate the first stage regressions
+  # separately than inverting a large VV?
   
   if (is.null(restrictions)){
     
     # b_2sls =  | [Z'V (V'V)^{-1} V'Z]^{-1} |  %*%  |  ZV (V'V)^{-1} V'y  |
+    
     coef <- solve(XX1,XY1)
     
   } else {
@@ -90,16 +66,15 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, se, restri
     # b_2sls =  | [Z'V (V'V)^{-1} V'Z]^{-1} | R |       |  ZV (V'V)^{-1} V'y  |
     #           |-------------------------------|  %*%  |---------------------|
     #           |             R             | 0 |       |          q          |
+    
     coef <- (solve(rbind(cbind(XX1, t(R)), cbind(R, matrix(0, nrow(R), nrow(R))))) %*%
                rbind(XY1, q))[1:nrow(ZV),]
   }
   
   # TODO: Should the names use Lavaan convetion where regressions of observed 
   # variables on latent variables use =~ instead of x and have the LHS and RHS reversed?
-  # 
-  # NOTE: A great question. "as measured by" 
-
-  rownames(coef) <- unlist(lapply(d, function(x) paste0(x$DVlat,"~", c("1", x$IVlat))))
+  
+  names(coef) <- unlist(lapply(d, function(x) paste0(x$DVlat,"~", c("1", x$IVlat))))
   
   # Start building the return object
   
@@ -112,7 +87,6 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, se, restri
     coefList  <- split(coef, coefIndex); names(coefList) <- rep("coefficients",length(d))
     d         <- lapply(seq_along(d), function(x) append(d[[x]], coefList[x])) 
     
-    
     #         | sigma_{11}                   |
     # Sigma = |            ...               |
     #         |                  sigma_{neq} | 
@@ -120,15 +94,18 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, se, restri
     # sigma_{11} = S_{YY} + b1' S_{ZZ} b1 - 2 * S_{YZ} b1
     # b1 does not contain intercepts.
     
-    Sigma <- lavaan::lav_matrix_bdiag(lapply(d, function(eq){
-      (sample.cov[eq$DVobs, eq$DVobs] +  (t(eq$coefficients[-1]) %*% 
-      sample.cov[c(eq$IVobs), c(eq$IVobs)] %*% eq$coefficients[-1]) -
-         (2 * sample.cov[eq$DVobs, c(eq$IVobs)] %*% eq$coefficients[-1])) 
-    }))
+    # Add equation-level sigma^2 to eqns list instead of block diagonal 
+    # big Sigma to results which we obtain in full later. This makes 
+    # calculation of equation level statistics easier. 
     
-    sig <- diag(unlist(lapply(seq_along(d), function(i) rep(Sigma[i,i], length(d[[i]]$coefficients)))))
+    d <- lapply(d, function(eq) { 
+      eq$sigma <-  (sample.cov[eq$DVobs, eq$DVobs] +  (t(eq$coefficients[-1]) %*% 
+                   sample.cov[c(eq$IVobs), c(eq$IVobs)] %*% eq$coefficients[-1]) -
+                   (2 * sample.cov[eq$DVobs, c(eq$IVobs)] %*% eq$coefficients[-1])) 
+      eq
+    })
     
-    res$Sigma <- Sigma
+    sig <- diag(unlist(lapply(d, function(eq) rep(eq$sigma, length(eq$coefficients)))))
     
     if (is.null(restrictions)){
       

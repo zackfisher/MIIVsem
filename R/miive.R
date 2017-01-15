@@ -117,9 +117,10 @@ miive <- function(model = model, data = NULL,
   #-------------------------------------------------------#
   
 
-  # Sargan's test from covariances (Hayashi, p. 228)
-  # TODO: check for within-equation restrictions 
-  #       and alter the df accordingly
+  # Sargan's test from sample covariances (Hayashi, p. 228)
+  # TODO: Check for within-equation restrictions 
+  #       and alter the df accordingly. What about cross-
+  #       equation restrictions, how should this be handled?
   d <- lapply(d, function(eq) { 
     eq$sarg <-  (
       t(sample.cov[eq$MIIVs,eq$DVobs, drop = FALSE] - 

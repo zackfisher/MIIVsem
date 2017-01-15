@@ -98,6 +98,9 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, se, restri
     # big Sigma to results which we obtain in full later. This makes 
     # calculation of equation level statistics easier. 
     
+    # TODO: How should equation-level sigma^2 be handled when cross-
+    #       equation restrictions are present.
+    
     d <- lapply(d, function(eq) { 
       eq$sigma <-  (sample.cov[eq$DVobs, eq$DVobs] +  (t(eq$coefficients[-1]) %*% 
                    sample.cov[c(eq$IVobs), c(eq$IVobs)] %*% eq$coefficients[-1]) -

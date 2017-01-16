@@ -133,7 +133,7 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, 
     idx <- idx[idx[,2] %in% dvs, ,drop = FALSE]
     B[idx[,2:1, drop = FALSE]] <- -1*as.numeric(idx[,3])
     
-    res$ResidCov <- t(B) %*% sample.cov[dvs,dvs] %*% B
+    res$residCov <- t(B) %*% sample.cov[dvs,dvs] %*% B
     
     # Sargan's test from sample covariances (Hayashi, p. 228)
     # TODO: Check for within-equation restrictions 
@@ -143,7 +143,7 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, 
     # TODO: If we want to move this out of miive.2sls we need to
     #       compute the sample.covariance matrix within miive.
     d <- lapply(d, function(eq) { 
-      eq$sarg <-  (
+      eq$sargan <-  (
         t(sample.cov[eq$MIIVs,eq$DVobs, drop = FALSE] - 
             sample.cov[eq$MIIVs,eq$IVobs, drop = FALSE] %*% 
             eq$coefficients[-1]) %*% 
@@ -151,7 +151,7 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, 
           (sample.cov[eq$MIIVs,eq$DVobs, drop = FALSE] - 
              sample.cov[eq$MIIVs,eq$IVobs, drop = FALSE] %*% 
              eq$coefficients[-1]) /  eq$sigma)*sample.nobs
-      eq$sargdf <- length(eq$MIIVs) - length(eq$IVobs)
+      eq$sargan.df <- length(eq$MIIVs) - length(eq$IVobs)
       eq
     })
     

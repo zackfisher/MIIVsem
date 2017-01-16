@@ -70,10 +70,15 @@ miive <- function(model = model, data = NULL, sample.cov = NULL,
   #-------------------------------------------------------#
   d  <- parseInstrumentSyntax(d, instruments)
   
-  if(sample.cov.rescale & ! is.null(sample.cov)){
-    sample.cov <- sample.cov * (sample.nobs-1)/sample.nobs
-  }
   
+  #-------------------------------------------------------#  
+  # Rescale user-provided covariance matrix.
+  #-------------------------------------------------------#
+  if(sample.cov.rescale & ! is.null(sample.cov)){
+    
+    sample.cov <- sample.cov * (sample.nobs-1)/sample.nobs
+    
+  }
   
   #-------------------------------------------------------#  
   # Build Restriction Matrices.
@@ -92,13 +97,17 @@ miive <- function(model = model, data = NULL, sample.cov = NULL,
   # following elements:
   #
   # coefficients - a vector of estimated coefficients
-  # coefCov - variance covariance matrix of the estimates
-  #           (optional, depending on the se argument)
-  # eqn - a list of miiv equations and estimation results
-  #
-  # possibly other elements
-  # 
-  # 
+  # coefCov      - variance covariance matrix of the estimates
+  #                (optional, depending on the est.only argument)
+  # residCov     - variance covariance matrix of the equation
+  #                disturbances (optional, depending on the 
+  #                est.only argument).
+  # eqn -          a list of miiv equations and equation level
+  #                estimation results. fields added include:
+  #                  coefficients: coefficients
+  #                  sigma       : equation sigma^2
+  #                  sargan      : Sargan's test statistic
+  #                  sargan.df   : df freedom for Sargan's
   #-------------------------------------------------------#
   
   results <- switch(estimator,

@@ -152,6 +152,7 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, 
              sample.cov[eq$MIIVs,eq$IVobs, drop = FALSE] %*% 
              eq$coefficients[-1]) /  eq$sigma)*sample.nobs
       eq$sargan.df <- length(eq$MIIVs) - length(eq$IVobs)
+      eg$sargan.p <- pchisq(eq$sargan, eq$sargan.df, lower.tail = FALSE)
       eq
     })
     

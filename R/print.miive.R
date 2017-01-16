@@ -1,14 +1,26 @@
 #' @method print miive 
 #' @export
 print.miive <- function(x,  digits = max(3, getOption("digits") - 1),...){
-  #options(scipen=10, digits=digits)
-  cat("\n")
-  cat("MIIVsem results \n")
-  cat("\n")
   
-  cat("Coefficients:\n")
-  print(x$coefficients, digits = digits)
-  invisible(x)
+  if (x$est.only){
+    
+    cat("\n")
+    cat(paste0("MIIVsem (", packageVersion("MIIVsem"),") results"), "\n")
+    cat("\n")
+    
+    cat("Coefficients:\n")
+    print(c(x$coefficients), digits = digits)
+    invisible(x)
+    
+  } else {
+    
+    cat("\n")
+    cat(paste0("MIIVsem (", packageVersion("MIIVsem"),") results"), "\n")
+    cat("\n")
+    
+  }
+  
+
   
   # vcov     <- x$vcov
   # ctrlopts <- x$ctrlopts

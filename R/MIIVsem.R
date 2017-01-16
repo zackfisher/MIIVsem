@@ -13,7 +13,7 @@
 #'
 #' @name MIIVsem
 #' @docType package
-#' @import lavaan Matrix car
+#' @import lavaan car
 #' 
 #' @seealso See \code{vignette("MIIVsem", package = "MIIVsem")} for an overview
 #'   of the package, \code{vignette("miivs", package = "MIIVsem")} for model-

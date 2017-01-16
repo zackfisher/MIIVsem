@@ -91,7 +91,8 @@ miive <- function(model = model, data = NULL, sample.cov = NULL,
   #-------------------------------------------------------#  
   
   #-------------------------------------------------------#
-  #
+  # estimator: miive.2sls()
+  #-------------------------------------------------------#
   # MIIV estimation using estimation functions. An 
   # estimation function retuns a list containing the
   # following elements:
@@ -116,7 +117,6 @@ miive <- function(model = model, data = NULL, sample.cov = NULL,
                     # In other cases, raise an error
                     stop(paste("Invalid estimator:", estimator,"Valid estimators are: 2SLS, GMM"))
                     )
-
 
   # Keep the function call
   results$call <- match.call()

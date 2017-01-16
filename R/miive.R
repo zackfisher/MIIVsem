@@ -124,6 +124,8 @@ miive <- function(model = model, data = NULL, sample.cov = NULL,
   # Keep the function call
   results$call <- match.call()
   
+  results$est.only <- est.only
+  
   class(results)  <- "miive"
   
   results

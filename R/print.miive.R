@@ -1,6 +1,6 @@
 #' @method print miive 
 #' @export
-print.miive <- function(x,  digits = max(3, getOption("digits") - 1),...){
+print.miive <- function(x,  digits = max(3, getOption("digits") - 2),...){
   
   if (x$est.only){
     
@@ -18,6 +18,34 @@ print.miive <- function(x,  digits = max(3, getOption("digits") - 1),...){
     cat(paste0("MIIVsem (", packageVersion("MIIVsem"),") results"), "\n")
     cat("\n")
     cat("  ", "Number of observations:", x$sample.nobs)
+    cat("\n")
+    
+    # This is only temporary for debugging.
+    # Create table to print results if est.only = FALSE.
+    # 
+    # TODO: switch to lavaan-style encoding, e.g. 
+    #       RHS =~ LHS for latent variable and similar
+    #       output when summary command is called.
+    
+    coef.mat <- cbind(
+      x$coefficients,
+      sqrt(diag(x$coefCov)),
+      x$coefficients/sqrt(diag(x$coefCov)),
+      2*(pnorm(abs(x$coefficients/sqrt(diag(x$coefCov))), lower.tail=FALSE)),
+      do.call("rbind",
+         lapply(x$eqn, function(eq){
+           cbind(c(eq$sargan, rep(NA, length(eq$coefficients)-1)),
+                 c(eq$sargan.df, rep(NA, length(eq$coefficients)-1)),
+                 c(eq$sargan.p, rep(NA, length(eq$coefficients)-1))
+           )
+         })
+      )
+    )
+    
+    rownames(coef.mat) <- names(x$coefficients)
+    colnames(coef.mat) <- c("Estimate", "Std.Err", "z-value",
+                            "P(>|z|)", "Sargan", "df", "P(Chi)")
+    print(coef.mat, digits = digits, na.print = "", quote = FALSE, justify = "none")
   }
   
 

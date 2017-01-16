@@ -1,12 +1,7 @@
 #' @keywords internal
 parseInstrumentSyntax <- function(d, instruments){
   
-  
-  if (is.null(instruments)){
-    for (i in 1:length(d)){
-      d[[i]]$MIIVsUsed <- d[[i]]$MIIVs
-    }
-  } else if (class(instruments) == "character"){
+  if (!is.null(instruments)){
     
     mt   <- lavParTable(instruments)
     mt   <- mt[mt$op == "~",]

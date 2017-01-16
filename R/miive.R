@@ -63,10 +63,6 @@ miive <- function(model = model, data = NULL, sample.cov = NULL,
   #          
   #  return:  (1) updated 'd' 
   #
-  #  details: 'd' updated with one new field:
-  #           (1) MIIVsUsed is a vector of MIIVs to be used
-  #           in estimation for equation i.
-  #
   #           The function contains checks to determine if (1)
   #           the user-supplied dependent variables exist in the
   #           set of estimating equations and (2) if the instruments

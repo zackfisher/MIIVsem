@@ -134,7 +134,27 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, 
     B[idx[,2:1, drop = FALSE]] <- -1*as.numeric(idx[,3])
     
     res$ResidCov <- t(B) %*% sample.cov[dvs,dvs] %*% B
-
+    
+    # Sargan's test from sample covariances (Hayashi, p. 228)
+    # TODO: Check for within-equation restrictions 
+    #       and alter the df accordingly. What about cross-
+    #       equation restrictions, how should this be handled?
+    
+    # TODO: If we want to move this out of miive.2sls we need to
+    #       compute the sample.covariance matrix within miive.
+    d <- lapply(d, function(eq) { 
+      eq$sarg <-  (
+        t(sample.cov[eq$MIIVs,eq$DVobs, drop = FALSE] - 
+            sample.cov[eq$MIIVs,eq$IVobs, drop = FALSE] %*% 
+            eq$coefficients[-1]) %*% 
+          solve(sample.cov[eq$MIIVs,eq$MIIVs]) %*% 
+          (sample.cov[eq$MIIVs,eq$DVobs, drop = FALSE] - 
+             sample.cov[eq$MIIVs,eq$IVobs, drop = FALSE] %*% 
+             eq$coefficients[-1]) /  eq$sigma)*sample.nobs
+      eq$sargdf <- length(eq$MIIVs) - length(eq$IVobs)
+      eq
+    })
+    
     res$eqn <- d
     
   }

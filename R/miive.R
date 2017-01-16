@@ -42,9 +42,10 @@
 #' @example example/bollen1989-miive3.R
 #'  
 #' @export
-miive <- function(model = model, data = NULL, 
-                  sample.cov = NULL, sample.mean = NULL, sample.nobs = NULL, sample.cov.rescale = TRUE,
-                  instruments = NULL, estimator = "2SLS", control = NULL, est.only = FALSE){
+miive <- function(model = model, data = NULL, sample.cov = NULL, 
+                  sample.mean = NULL, sample.nobs = NULL, 
+                  sample.cov.rescale = TRUE, instruments = NULL, 
+                  estimator = "2SLS", control = NULL, est.only = FALSE){
   
   #-------------------------------------------------------#  
   # Check class of model.
@@ -111,32 +112,6 @@ miive <- function(model = model, data = NULL,
                     stop(paste("Invalid estimator:", estimator,"Valid estimators are: 2SLS, GMM"))
                     )
 
-  #-------------------------------------------------------#  
-  # Calculate additional statistics that are common for
-  # all estimators. These are calculated for each equation
-  #-------------------------------------------------------#
-  
-
-  # Sargan's test from sample covariances (Hayashi, p. 228)
-  # TODO: Check for within-equation restrictions 
-  #       and alter the df accordingly. What about cross-
-  #       equation restrictions, how should this be handled?
-  d <- lapply(d, function(eq) { 
-    eq$sarg <-  (
-      t(sample.cov[eq$MIIVs,eq$DVobs, drop = FALSE] - 
-          sample.cov[eq$MIIVs,eq$IVobs, drop = FALSE] %*% 
-          eq$coefficients[-1]) %*% 
-        solve(sample.cov[eq$MIIVs,eq$MIIVs]) %*% 
-        (sample.cov[eq$MIIVs,eq$DVobs, drop = FALSE] - 
-           sample.cov[eq$MIIVs,eq$IVobs, drop = FALSE] %*% 
-           eq$coefficients[-1]) /  eq$sigma)*sample.nobs
-    eq$sargdf <- length(eq$MIIVs) - length(eq$IVobs)
-    eq
-  })
-  
-  
-
-  
 
   # Keep the function call
   results$call <- match.call()

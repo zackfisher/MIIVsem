@@ -17,7 +17,7 @@ print.miive <- function(x,  digits = max(3, getOption("digits") - 1),...){
     cat("\n")
     cat(paste0("MIIVsem (", packageVersion("MIIVsem"),") results"), "\n")
     cat("\n")
-    
+    cat("  ", "Number of observations:", x$sample.nobs)
   }
   
 

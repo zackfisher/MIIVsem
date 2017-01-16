@@ -98,6 +98,9 @@ miive <- function(model = model, data = NULL, sample.cov = NULL,
   # following elements:
   #
   # coefficients - a vector of estimated coefficients
+  # sample.cov   - the rescaled sample covariance matrix
+  # sample.mean  - vector of observed variable means
+  # sample.nobs  - number of complete cases
   # coefCov      - variance covariance matrix of the estimates
   #                (optional, depending on the est.only argument)
   # residCov     - variance covariance matrix of the equation

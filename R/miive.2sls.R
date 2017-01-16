@@ -78,7 +78,10 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, 
   
   # Start building the return object
   
-  res <- list(coefficients = coef)
+  res <- list(coefficients = coef,
+              sample.cov = sample.cov,
+              sample.mean = sample.mean,
+              sample.nobs = sample.nobs)
   
   if(!est.only){
     
@@ -140,8 +143,9 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, 
     #       and alter the df accordingly. What about cross-
     #       equation restrictions, how should this be handled?
     
-    # TODO: If we want to move this out of miive.2sls we need to
-    #       compute the sample.covariance matrix within miive.
+    # TODO: I passed sample.cov, sample.mean and sample.obs
+    #       in the results object. We could move this out 
+    #       but then it would be calculated for est.only.
     d <- lapply(d, function(eq) { 
       eq$sargan <-  (
         t(sample.cov[eq$MIIVs,eq$DVobs, drop = FALSE] - 

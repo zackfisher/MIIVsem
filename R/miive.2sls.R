@@ -45,12 +45,17 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, 
 
   # DV: Y; EV: Z; MIIVs: V
   # First calculate the part that is used in both equations.
-  ZVsVV <- ZV %*% solve(VV)
+  #ZVsVV <- ZV %*% solve(VV)
+  ZVsVV <- ZV %*% chol2inv(chol(VV))
   XX1   <- ZVsVV %*% t(ZV)
   XY1   <- ZVsVV %*% VY
   
   # TODO: Would it not be more efficient to always calculate the first stage regressions
   # separately than inverting a large VV?
+  # NOTE: In the small bit of profiling I did with splitting this up by
+  # equation it didn't make a big difference with the political democracy
+  # example.  It might though when there are more observed variables in the model,
+  # leading to more instruments per equation. 
   
   if (is.null(restrictions)){
     

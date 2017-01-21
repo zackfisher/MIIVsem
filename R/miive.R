@@ -11,19 +11,27 @@
 #' @param instruments A user-supplied list of valid MIIVs for each equation. See Example 2 below. 
 #' @param estimator Options \code{"2SLS"} or \code{"GMM"} for estimating the model parameters. Default is \code{"2SLS"}.
 #' @param control .
-#' @param est.only If \code{TRUE}, only the coefficients are returned. 
+#' @param est.only If \code{TRUE}, only the coefficients are returned.
 #'
-#' @return model
-#' @return dat
-#' @return modeeqns
-#' 
 #' @details 
+#' 
 #' \itemize{
-#' \item{\code{instruments}} {Using the \code{instruments} option you can specify the MIIVs directly for each equation in the model.
+#' \item{\code{coefficients}} {Using the \code{instruments} option you can specify the MIIVs directly for each equation in the model.
 #'   To utilize this option you must first define a list of instruments using the syntax displayed below. After the list is defined, 
 #'   set the \code{instruments} argument equal to the name of the list of MIIVs. Note, \code{instruments} are specified for an equation,
 #'   and not for a specific endogenous variable.}
 #' }
+
+#'
+#' @return A list of class \code{miive} containing the following elements:
+#'
+#' \tabular{ll}{
+#' \code{coefficients}\tab A named vector of parameter estimats\cr
+#' \code{coefCov}\tab A variance-covariance matrix of the parameter estimates\cr
+#' \code{residCov}\tab A residual variance-covariance matrix\cr
+#' \code{eqn}\tab Equation level estimation resutls and statistics\cr
+#' \code{call}\tab The matched call\cr
+#'}
 #' 
 #' @references 
 #' 
@@ -40,7 +48,9 @@
 #' @example example/bollen1989-miive1.R
 #' @example example/bollen1989-miive2.R
 #' @example example/bollen1989-miive3.R
-#'  
+#' 
+#' @seealso miivs
+#' 
 #' @export
 miive <- function(model = model, data = NULL, sample.cov = NULL, 
                   sample.mean = NULL, sample.nobs = NULL, 
@@ -98,9 +108,6 @@ miive <- function(model = model, data = NULL, sample.cov = NULL,
   # following elements:
   #
   # coefficients - a vector of estimated coefficients
-  # sample.cov   - the rescaled sample covariance matrix
-  # sample.mean  - vector of observed variable means
-  # sample.nobs  - number of complete cases
   # coefCov      - variance covariance matrix of the estimates
   #                (optional, depending on the est.only argument)
   # residCov     - variance covariance matrix of the equation
@@ -123,8 +130,6 @@ miive <- function(model = model, data = NULL, sample.cov = NULL,
 
   # Keep the function call
   results$call <- match.call()
-  
-  results$est.only <- est.only
   
   class(results)  <- "miive"
   

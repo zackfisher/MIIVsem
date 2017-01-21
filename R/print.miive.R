@@ -10,7 +10,6 @@ print.miive <- function(x,  digits = max(3, getOption("digits") - 2),...){
   cat("\n")
   
   # This is only temporary for debugging.
-  # Create table to print results if est.only = FALSE.
   # 
   # TODO: switch to lavaan-style encoding, e.g. 
   #       RHS =~ LHS for latent variable and similar

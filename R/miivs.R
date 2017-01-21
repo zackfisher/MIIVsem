@@ -95,7 +95,9 @@
 #' 	latent variables. Psychometrika, 45(3), 289–308.                 
 #' 	
 #' @example example/bollen1989-miivs.R
-#'   
+#'
+#' @seealso \link{\code{miive}}
+#' 
 #' @export
 
 miivs <- function(model){

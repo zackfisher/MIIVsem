@@ -49,7 +49,7 @@
 #' @example example/bollen1989-miive2.R
 #' @example example/bollen1989-miive3.R
 #' 
-#' @seealso \link{code{miivs}}
+#' @seealso \link{\code{miivs}}
 #'  
 #' @export
 miive <- function(model = model, data = NULL, sample.cov = NULL, 

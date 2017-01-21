@@ -60,8 +60,8 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, 
   if (is.null(restrictions)){
     
     # b_2sls =  | [Z'V (V'V)^{-1} V'Z]^{-1} |  %*%  |  ZV (V'V)^{-1} V'y  |
-    
-    coef <- solve(XX1,XY1)
+    # as.numeric makes coef a vector instead of a matrix
+    coef <- as.numeric(solve(XX1,XY1))
     
   } else {
     
@@ -71,9 +71,9 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, 
     # b_2sls =  | [Z'V (V'V)^{-1} V'Z]^{-1} | R |       |  ZV (V'V)^{-1} V'y  |
     #           |-------------------------------|  %*%  |---------------------|
     #           |             R             | 0 |       |          q          |
-    
-    coef <- (solve(rbind(cbind(XX1, t(R)), cbind(R, matrix(0, nrow(R), nrow(R))))) %*%
-               rbind(XY1, q))[1:nrow(ZV),]
+    # as.numeric makes coef a vector instead of a matrix
+    coef <- as.numeric((solve(rbind(cbind(XX1, t(R)), cbind(R, matrix(0, nrow(R), nrow(R))))) %*%
+               rbind(XY1, q))[1:nrow(ZV),])
   }
   
   # TODO: Should the names use Lavaan convetion where regressions of observed 
@@ -87,13 +87,14 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, 
               sample.cov = sample.cov,
               sample.mean = sample.mean,
               sample.nobs = sample.nobs)
+
+  # Add coefficients to equations list.
+  coefIndex <- unlist(lapply(seq_along(d), function(x) rep(x,(length(d[[x]]$IVobs)+1))))
+  coefList  <- split(coef, coefIndex); names(coefList) <- rep("coefficients",length(d))
+  d         <- lapply(seq_along(d), function(x) append(d[[x]], coefList[x])) 
   
   if(!est.only){
     
-    # Add coefficients to equations list.
-    coefIndex <- unlist(lapply(seq_along(d), function(x) rep(x,(length(d[[x]]$IVobs)+1))))
-    coefList  <- split(coef, coefIndex); names(coefList) <- rep("coefficients",length(d))
-    d         <- lapply(seq_along(d), function(x) append(d[[x]], coefList[x])) 
     
     #         | sigma_{11}                   |
     # Sigma = |            ...               |
@@ -164,11 +165,10 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, 
       eq$sargan.p <- pchisq(eq$sargan, eq$sargan.df, lower.tail = FALSE)
       eq
     })
-    
-    res$eqn <- d
-    
   }
 
+  res$eqn <- d
+  
   return(res)
   
 }

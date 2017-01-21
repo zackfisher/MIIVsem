@@ -2,55 +2,47 @@
 #' @export
 print.miive <- function(x,  digits = max(3, getOption("digits") - 2),...){
   
-  if (x$est.only){
+  cat("\n")
+  cat(paste0("MIIVsem (", packageVersion("MIIVsem"),") results"), "\n")
+  cat("\n")
+  cat("Number of observations:", x$sample.nobs, "\n")
+  cat("Number of equations:", length(x$eqn), "\n")
+  cat("\n")
+  
+  # This is only temporary for debugging.
+  # Create table to print results if est.only = FALSE.
+  # 
+  # TODO: switch to lavaan-style encoding, e.g. 
+  #       RHS =~ LHS for latent variable and similar
+  #       output when summary command is called.
+  
+  coef.mat <- matrix(x$coefficients, ncol = 1, 
+                     dimnames = list(names(x$coefficients),"Estimate"))
+  
+  if(! is.null(x$coefCov)){
     
-    cat("\n")
-    cat(paste0("MIIVsem (", packageVersion("MIIVsem"),") results"), "\n")
-    cat("\n")
-    
-    cat("Coefficients:\n")
-    print(c(x$coefficients), digits = digits)
-    invisible(x)
-    
-  } else {
-    
-    cat("\n")
-    cat(paste0("MIIVsem (", packageVersion("MIIVsem"),") results"), "\n")
-    cat("\n")
-    cat("Number of observations:", x$sample.nobs, "\n")
-    cat("Number of equations:", length(x$eqn), "\n")
-    cat("\n")
-    
-    # This is only temporary for debugging.
-    # Create table to print results if est.only = FALSE.
-    # 
-    # TODO: switch to lavaan-style encoding, e.g. 
-    #       RHS =~ LHS for latent variable and similar
-    #       output when summary command is called.
-    
-    coef.mat <- cbind(
-      x$coefficients,
-      sqrt(diag(x$coefCov)),
-      x$coefficients/sqrt(diag(x$coefCov)),
-      2*(pnorm(abs(x$coefficients/sqrt(diag(x$coefCov))), lower.tail=FALSE)),
-      do.call("rbind",
-         lapply(x$eqn, function(eq){
-           cbind(c(eq$sargan, rep(NA, length(eq$coefficients)-1)),
-                 c(eq$sargan.df, rep(NA, length(eq$coefficients)-1)),
-                 c(eq$sargan.p, rep(NA, length(eq$coefficients)-1))
-           )
-         })
-      )
-    )
-    
-    rownames(coef.mat) <- names(x$coefficients)
-    colnames(coef.mat) <- c("Estimate", "Std.Err", "z-value",
-                            "P(>|z|)", "Sargan", "df", "P(Chi)")
-    print(coef.mat, digits = digits, na.print = "", quote = FALSE, justify = "none")
+    coef.mat <- cbind(coef.mat,
+                      Std.Err = sqrt(diag(x$coefCov)),
+                      "z-value" = x$coefficients/sqrt(diag(x$coefCov)),
+                      "P(>|z|)" = 2*(pnorm(abs(x$coefficients/sqrt(diag(x$coefCov))), lower.tail=FALSE)))
   }
   
-
+  if(! is.null(x$eqn[[1]]$sargan)){
+    sarganTests <- do.call(rbind,
+                           lapply(x$eqn, function(eq){
+                             cbind(c(eq$sargan, rep(NA, length(eq$coefficients)-1)),
+                                   c(eq$sargan.df, rep(NA, length(eq$coefficients)-1)),
+                                   c(eq$sargan.p, rep(NA, length(eq$coefficients)-1))
+                             )
+                           }))
+    
+    colnames(sarganTests) <- c("Sargan", "df", "P(Chi)")
+    coef.mat <- cbind(coef.mat, sarganTests)
+  }
   
+  print(coef.mat, digits = digits, na.print = "", quote = FALSE, justify = "none")
+  
+
   # vcov     <- x$vcov
   # ctrlopts <- x$ctrlopts
   # dat   <- x$dat

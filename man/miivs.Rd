@@ -125,4 +125,7 @@ Bollen,	K. A. and	D. J.	Bauer.	2004.	Automating	the	Selection	of
 	Bentler, P. M., and Weeks, D. G. (1980). Linear structural equations with 
 	latent variables. Psychometrika, 45(3), 289–308.
 }
+\seealso{
+\link{\code{miive}}
+}
 

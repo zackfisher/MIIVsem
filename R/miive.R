@@ -16,7 +16,7 @@
 #' @details 
 #' 
 #' \itemize{
-#' \item{\code{coefficients}} {Using the \code{instruments} option you can specify the MIIVs directly for each equation in the model.
+#' \item{\code{instruments}} {Using the \code{instruments} option you can specify the MIIVs directly for each equation in the model.
 #'   To utilize this option you must first define a list of instruments using the syntax displayed below. After the list is defined, 
 #'   set the \code{instruments} argument equal to the name of the list of MIIVs. Note, \code{instruments} are specified for an equation,
 #'   and not for a specific endogenous variable.}
@@ -26,7 +26,7 @@
 #' @return A list of class \code{miive} containing the following elements:
 #'
 #' \tabular{ll}{
-#' \code{coefficients}\tab A named vector of parameter estimats\cr
+#' \code{coefficients}\tab A named vector of parameter estimates\cr
 #' \code{coefCov}\tab A variance-covariance matrix of the parameter estimates\cr
 #' \code{residCov}\tab A residual variance-covariance matrix\cr
 #' \code{eqn}\tab Equation level estimation resutls and statistics\cr

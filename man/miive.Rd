@@ -30,11 +30,15 @@ miive(model = model, data = NULL, sample.cov = NULL, sample.mean = NULL,
 \item{est.only}{If \code{TRUE}, only the coefficients are returned.}
 }
 \value{
-model
+A list of class \code{miive} containing the following elements:
 
-dat
-
-modeeqns
+\tabular{ll}{
+\code{coefficients}\tab A named vector of parameter estimates\cr
+\code{coefCov}\tab A variance-covariance matrix of the parameter estimates\cr
+\code{residCov}\tab A residual variance-covariance matrix\cr
+\code{eqn}\tab Equation level estimation resutls and statistics\cr
+\code{call}\tab The matched call\cr
+}
 }
 \description{
 Estimate SEM models using model-implied instrumental variables (MIIVs).
@@ -136,5 +140,8 @@ Simultaneous	Estimation	and	Robustness	to	Misspecifications.
 In	R.	Cudeck,	S.	Du	Toit,	and	D.	Sorbom	(Eds.),	Structural	
 Equation	Modeling:	Present	and	Future,	A	Festschrift	in	Honor	of	Karl	
 Joreskog	(pp. 119-138).	Lincoln,	IL: Scientific	Software.
+}
+\seealso{
+\link{\code{miivs}}
 }
 

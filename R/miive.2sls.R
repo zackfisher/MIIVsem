@@ -54,7 +54,8 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, 
   # NOTE: In the small bit of profiling I did with splitting this up by
   # equation it didn't make a big difference with the political democracy
   # example.  It might though when there are more observed variables in the model,
-  # leading to more instruments per equation. 
+  # leading to more instruments per equation. Maybe toggling between the two
+  # depending on the number of questions. 
   
   if (is.null(restrictions)){
     

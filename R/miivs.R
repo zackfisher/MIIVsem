@@ -96,7 +96,7 @@
 #' 	
 #' @example example/bollen1989-miivs.R
 #'
-#' @seealso \link{\code{miive}}
+#' @seealso \code{\link{miive}}
 #' 
 #' @export
 

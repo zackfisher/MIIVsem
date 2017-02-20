@@ -12,7 +12,8 @@
 #' @param estimator Options \code{"2SLS"} or \code{"GMM"} for estimating the model parameters. Default is \code{"2SLS"}.
 #' @param control .
 #' @param est.only If \code{TRUE}, only the coefficients are returned.
-#'
+#' @param se If "standard", conventional closed form standard errors are computed. If "boot" or "bootstrap", bootstrap standard errors are computed using standard bootstrapping.
+#' @param bootstrap Number of bootstrap draws, if bootstrapping is used.
 #' @details 
 #' 
 #' \itemize{
@@ -124,13 +125,36 @@ miive <- function(model = model, data = NULL, sample.cov = NULL,
   #                  sargan.df   : df freedom for Sargan's
   #-------------------------------------------------------#
   
+  
   results <- switch(estimator,
                     "2SLS" = miive.2sls(d, data, sample.cov, sample.mean, sample.nobs, est.only, restrictions),
                     "GMM" = miive.gmm(d, data, sample.cov, sample.mean, sample.nobs, est.only, restrictions), # Not implemented
                     # In other cases, raise an error
                     stop(paste("Invalid estimator:", estimator,"Valid estimators are: 2SLS, GMM"))
-                    )
-
+  )
+  
+  # Boostrap and substitute closed form SEs with boostrap SEs
+  
+  if(se == "boot" | se == "bootstrap"){
+    boot.results <- boot::boot(data,function(origData,indices){
+      
+      bsample <- origData[indices,]
+      brep <- switch(estimator,
+             "2SLS" = miive.2sls(d, bsample, sample.cov = NULL, sample.mean = NULL, sample.nobs = NULL, est.only = TRUE, restrictions),
+             "GMM" = miive.2sls(d, bsample, sample.cov = NULL, sample.mean = NULL, sample.nobs = NULL, est.only = TRUE, restrictions)) # Not implemented
+             # No need to raise an error here becaues we would have raised it earlier in any case
+      brep$coefficients
+    }, bootstrap)
+    
+    # Replace the estimated variances of estimates with the boostrap estimates
+    results$coefCov <- cov(boot.results$t)
+    
+    # Store the boot object as a part of the result object. This is useful for calculating CIs or
+    # other bootstrap postestimation.
+    
+    results$boot <- boot.results
+  }
+  
   # Keep the function call
   results$call <- match.call()
   

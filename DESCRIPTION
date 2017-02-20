@@ -11,7 +11,8 @@ Imports:
     lavaan,
     Matrix,
     car,
-    methods
+    methods,
+    boot
 License: GPL-2
 LazyData: true
 ByteCompile: true

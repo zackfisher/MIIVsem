@@ -100,6 +100,9 @@ miive <- function(model = model, data = NULL, sample.cov = NULL,
   restrictions <- buildRestrictMat(d)
   #-------------------------------------------------------#  
   
+  # TODO: Check that all specified variables exists in the data and
+  # throw an error if not.
+  
   #-------------------------------------------------------#
   # estimator: miive.2sls()
   #-------------------------------------------------------#

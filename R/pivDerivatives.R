@@ -46,13 +46,27 @@ derPvy <- function(Pvv, Pvz, Pvy){
 
 
 buildKmatrix <- function(d, pcr){
-  
-  # replace variable names with their position in the dataframe 
-  eq <- d[[1]]
-  reg.varID <- apply(eq$regDerivatives$names, 2, function(x){
-    match(x, colnames(pcr))
+  krows <- lapply(d, function(eq){
+    
+    reg.varID <- apply(eq$regDerivatives$names, 2, function(x){
+      match(x, colnames(pcr))
+    })
+    
+    reg.varID <- transform(reg.varID, 
+                           min = pmin(Var1, Var2), 
+                           max = pmax(Var1, Var2))[,-c(1:2)]
+    
+    acmPos <- apply(t(combn(colnames(pcr), 2)), 2, function(x){
+      match(x, colnames(pcr))
+    })
+    
+    acmPos <- cbind(acmPos, c(1:nrow(acmPos)))  
+    posInfo <- merge(reg.varID, acmPos, by=c(1,2))
+    rowK <- rep(0, 1/2 * nrow(pcr)* (nrow(pcr)-1))
+    rowK[posInfo[,3]] <- eq$regDerivatives$deriv[,1]
+    rowK
   })
-  
+  return(do.call("rbind", krows))
 }
 
 vecp <- function( x ){return( t( t( x[lower.tri(x)] ) ) )}

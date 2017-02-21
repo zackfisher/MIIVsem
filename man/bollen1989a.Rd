@@ -32,4 +32,3 @@ and 1965. The variables are as follows:
 Bollen, K. A. (1989). Structural equation models. New York: Wiley-Interscience.
 }
 \keyword{datasets}
-

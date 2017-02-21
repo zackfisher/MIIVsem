@@ -22,4 +22,3 @@ miive.2sls(d, data, sample.cov, sample.mean, sample.nobs, est.only,
 Two-stage least square estimator for a system of equations
 }
 \keyword{internal}
-

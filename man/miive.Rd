@@ -144,4 +144,3 @@ Joreskog	(pp. 119-138).	Lincoln,	IL: Scientific	Software.
 \seealso{
 \link{\code{miivs}}
 }
-

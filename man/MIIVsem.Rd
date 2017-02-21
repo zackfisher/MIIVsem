@@ -9,6 +9,12 @@
 MIIVsem is a package for estimating structural equation models 
 using model-implied instrumental variables (MIIVs).
 }
+\seealso{
+See \code{vignette("MIIVsem", package = "MIIVsem")} for an overview
+  of the package, \code{vignette("miivs", package = "MIIVsem")} for model-
+  implied instrumental variable search, and \code{vignette("miive", package = "MIIVsem")} 
+  for estimating models.
+}
 \author{
 Zachary Fisher, \cr
 Ken Bollen, \cr
@@ -16,12 +22,6 @@ Kathleen Gates, \cr
 Mikko Rönkkö \cr
 
 Maintainer: Zachary Fisher
-}
-\seealso{
-See \code{vignette("MIIVsem", package = "MIIVsem")} for an overview
-  of the package, \code{vignette("miivs", package = "MIIVsem")} for model-
-  implied instrumental variable search, and \code{vignette("miive", package = "MIIVsem")} 
-  for estimating models.
 }
 \keyword{2SLS,}
 \keyword{MIIV,}
@@ -31,4 +31,3 @@ See \code{vignette("MIIVsem", package = "MIIVsem")} for an overview
 \keyword{squares,}
 \keyword{stage}
 \keyword{two}
-

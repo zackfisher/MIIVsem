@@ -93,6 +93,7 @@ the second factor loading for the \code{L1} factor to a value of \code{2}
 '
 }
 }
+
 \examples{
 bollen1989a_model <- '
 
@@ -128,4 +129,3 @@ Bollen,	K. A. and	D. J.	Bauer.	2004.	Automating	the	Selection	of
 \seealso{
 \link{\code{miive}}
 }
-

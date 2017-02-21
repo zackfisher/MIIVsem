@@ -7,9 +7,10 @@ derRegPIV <- function(Pvv, Pvz, Pvy){
   dPvz   <- derPvz(Pvv, Pvz, Pvy)
   dPvy   <- derPvy(Pvv, Pvz, Pvy)
   
-  return(deriv = rbind(dPvv$deriv, dPvz$deriv, dPvy$deriv),
-         names = rbind(dPvv$names, dPvz$names, dPvy$names))
-  
+  return(list(
+    deriv = rbind(dPvv$deriv, dPvz$deriv, dPvy$deriv),
+    names = rbind(dPvv$names, dPvz$names, dPvy$names))
+  )
 }
 
 # Partial derivative of theta with respect to Pvv
@@ -41,6 +42,17 @@ derPvy <- function(Pvv, Pvz, Pvy){
   deriv <- t(solve(t(Pvz) %*% solve(Pvv) %*% Pvz) %*% t(Pvz) %*% solve(Pvv))
   names <- as.matrix(expand.grid(rownames(Pvy),colnames(Pvy)))
   return(list(deriv = deriv, names = names))
+}
+
+
+buildKmatrix <- function(d, pcr){
+  
+  # replace variable names with their position in the dataframe 
+  eq <- d[[1]]
+  reg.varID <- apply(eq$regDerivatives$names, 2, function(x){
+    match(x, colnames(pcr))
+  })
+  
 }
 
 vecp <- function( x ){return( t( t( x[lower.tri(x)] ) ) )}

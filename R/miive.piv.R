@@ -131,18 +131,38 @@ miive.piv <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, r
     # TODO: How should equation-level sigma^2 be handled when cross-
     #       equation restrictions are present?
     
-    d <- lapply(d, function(eq) { 
-      eq$sigma <-  (sample.cov[eq$DVobs, eq$DVobs] +  (t(eq$coefficients[-1]) %*% 
-                   sample.cov[c(eq$IVobs), c(eq$IVobs)] %*% eq$coefficients[-1]) -
-                   (2 * sample.cov[eq$DVobs, c(eq$IVobs)] %*% eq$coefficients[-1])) 
-      eq
-    })
+    # d <- lapply(d, function(eq) { 
+    #   eq$sigma <-  (sample.cov[eq$DVobs, eq$DVobs] +  (t(eq$coefficients[-1]) %*% 
+    #                sample.cov[c(eq$IVobs), c(eq$IVobs)] %*% eq$coefficients[-1]) -
+    #                (2 * sample.cov[eq$DVobs, c(eq$IVobs)] %*% eq$coefficients[-1])) 
+    #   eq
+    # })
     
-    sig <- diag(unlist(lapply(d, function(eq) rep(eq$sigma, length(eq$coefficients)))))
+    #sig <- diag(unlist(lapply(d, function(eq) rep(eq$sigma, length(eq$coefficients)))))
     
     if (is.null(restrictions)){
+      # Standard Errors for the PIV Regression Coefficients
+      # For each equation in d:
+      #   Obtain partial derivatives of \theta with respect to the polychoric
+      #   correlations among the instrumental variables, the polychoric 
+      #   correlations between the instruments and explanatory variables,
+      #   and between the instruments and the dependent variable. 
+      d <- lapply(d, function(eq){
+        eq$RegDerivatives <- derRegPIV(pcr[eq$MIIVs, eq$MIIVs, drop = FALSE], 
+                                       pcr[eq$MIIVs, eq$IVobs, drop = FALSE], 
+                                       pcr[eq$MIIVs, eq$DVobs, drop = FALSE])
+        eq
+      })
       
-      coefCov <- solve(XX1 %*% t(solve(sig)))
+
+      # With those derivatives in hand we must assemble the K matrix to 
+      # correspond in structure to the asymptotic covariance matrix of 
+      # the polychoric correlations. 
+      
+      
+      
+      
+      #coefCov <- solve(XX1 %*% t(solve(sig)))
       
     } else {
       

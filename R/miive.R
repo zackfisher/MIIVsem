@@ -104,6 +104,9 @@ miive <- function(model = model, data = NULL, sample.cov = NULL,
   # TODO: Check that all specified variables exists in the data and
   # throw an error if not.
   
+  # TODO: Check if any variables are factors.  If so, 
+  # set 'estimator' to "PIV". 
+  
   #-------------------------------------------------------#
   # estimator: miive.2sls()
   #-------------------------------------------------------#

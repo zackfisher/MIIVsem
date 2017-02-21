@@ -105,12 +105,12 @@ miive.piv <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, r
   # Start building the return object
   
   res <- list(coefficients = coef,
-              sample.cov = pcr,
-              sample.mean = sample.mean,
-              sample.nobs = sample.nobs)
+              sample.cov   = pcr,
+              sample.mean  = sample.mean,
+              sample.nobs  = sample.nobs)
 
   # Add coefficients to equations list.
-  coefIndex <- unlist(lapply(seq_along(d), function(x) rep(x,(length(d[[x]]$IVobs)+1))))
+  coefIndex <- unlist(lapply(seq_along(d), function(x) rep(x,(length(d[[x]]$IVobs)))))
   coefList  <- split(coef, coefIndex); names(coefList) <- rep("coefficients",length(d))
   d         <- lapply(seq_along(d), function(x) append(d[[x]], coefList[x])) 
   

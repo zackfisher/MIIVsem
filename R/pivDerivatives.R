@@ -15,55 +15,70 @@ derRegPIV <- function(Pvv, Pvz, Pvy){
 
 # Partial derivative of theta with respect to Pvv
 derPvv <- function(Pvv, Pvz, Pvy){
-  U1    <- solve(t(Pvz) %*% solve(Pvv) %*% Pvz)
-  U2    <- t(Pvz) %*% solve(Pvv) %*% Pvy
-  TERM1 <- kronecker(t(solve(Pvv)%*%Pvz%*%U1 %*%U2),U1 %*% t(Pvz)%*%solve(Pvv))
-  TERM2 <- kronecker(t(solve(Pvv)%*%Pvy),U1 %*% t(Pvz)%*%solve(Pvv)) 
-  
-  deriv <- t((TERM1 - TERM2) %*% buildDuplicator(nrow(Pvv)))
+  numDerPvv     <- function(vechPvv, Pvz, Pvy){
+    matdim <- ceiling(sqrt(2*length(vechPvv)))
+    Pvv    <- matrix(0, nrow = matdim, ncol = matdim)
+    Pvv[col(Pvv) < row(Pvv)] <- vechPvv
+    Pvv <- Pvv + t(Pvv)
+    diag(Pvv) <- 1
+    solve(t(Pvz)%*%solve(Pvv)%*%Pvz) %*% t(Pvz)%*%solve(Pvv) %*% Pvy
+  }
+  deriv <- t(numDeriv::jacobian(numDerPvv, Pvv[lower.tri(Pvv)], Pvz = Pvz, Pvy = Pvy))
   names <- t(combn(colnames(Pvv), 2))
-  
   return(list(deriv = deriv, names = names))
 }
 
 # Partial derivative of theta with respect to Pvz
 derPvz <- function(Pvv, Pvz, Pvy){
-  U     <- solve(t(Pvz) %*% solve(Pvv) %*% Pvz)
-  TH    <- U %*% t(Pvz) %*% solve(Pvv) %*% Pvy
-  ER    <- (Pvy) - (Pvz %*% TH) 
-  deriv <- t(kronecker(U, t(solve(Pvv) %*% ER)) - 
-               kronecker(t(TH), U %*% t(Pvz) %*% solve(Pvv)))
+  numDerPvz     <- function(Pvz, Pvv, Pvy){
+    U  <- solve(t(Pvz) %*% solve(Pvv) %*% Pvz)
+    U %*% (t(Pvz)%*% solve(Pvv) %*% Pvy)
+  }
+  deriv <- t(numDeriv::jacobian(numDerPvz, Pvz, Pvv = Pvv, Pvy = Pvy))
   names <- as.matrix(expand.grid(rownames(Pvz),colnames(Pvz)))
   return(list(deriv = deriv, names = names))
 }
 
 # Partial derivative of theta with respect to Pvy
 derPvy <- function(Pvv, Pvz, Pvy){
-  deriv <- t(solve(t(Pvz) %*% solve(Pvv) %*% Pvz) %*% t(Pvz) %*% solve(Pvv))
+  numDerPvy     <- function(Pvy, Pvz, Pvv){
+    solve(t(Pvz)%*%solve(Pvv)%*%Pvz) %*% t(Pvz)%*%solve(Pvv) %*% Pvy
+  }
+  deriv <- t(numDeriv::jacobian(numDerPvy, Pvy, Pvz = Pvz, Pvv = Pvv))
   names <- as.matrix(expand.grid(rownames(Pvy),colnames(Pvy)))
   return(list(deriv = deriv, names = names))
 }
 
 
 buildKmatrix <- function(d, pcr){
+  eq <- d[[1]]
+  # acmPos is a matrix containing the rho_{i,j} indices where i 
+  # (column 1) and j (column 2) refer to the position of the 
+  # variable (column 3) in the symmetric polychoric  
+  # correlation matrix. 
+  acmPos <- apply(t(combn(colnames(pcr), 2)), 2, function(x){
+    match(x, colnames(pcr))
+  })
+  acmPos <- cbind(acmPos, c(1:nrow(acmPos)))  
+  # View(cbind(acmPos, colnames(acov)))
   krows <- lapply(d, function(eq){
     
     reg.varID <- apply(eq$regDerivatives$names, 2, function(x){
       match(x, colnames(pcr))
     })
     
+    # In reg.varID we need to order the rows so that col1 < col2
     reg.varID <- transform(reg.varID, 
                            min = pmin(Var1, Var2), 
                            max = pmax(Var1, Var2))[,-c(1:2)]
     
-    acmPos <- apply(t(combn(colnames(pcr), 2)), 2, function(x){
-      match(x, colnames(pcr))
-    })
-    
-    acmPos <- cbind(acmPos, c(1:nrow(acmPos)))  
+    # merge changes the order so this needs to be corrected.
+    reg.varID$order <- seq(1:nrow(reg.varID))
     posInfo <- merge(reg.varID, acmPos, by=c(1,2))
+    posInfo <- posInfo[order(posInfo$order), ]
+    
     rowK <- rep(0, 1/2 * nrow(pcr)* (nrow(pcr)-1))
-    rowK[posInfo[,3]] <- eq$regDerivatives$deriv[,1]
+    rowK[posInfo[,4]] <- eq$regDerivatives$deriv[,1]
     rowK
   })
   return(do.call("rbind", krows))

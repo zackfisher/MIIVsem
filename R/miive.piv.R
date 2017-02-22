@@ -34,15 +34,16 @@ miive.piv <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, r
     # prior to analysis?
     
     pcr  <- unclass(lavaan::lavCor(
-      data, output= "cor", missing = "FIML"
+      data, output= "cor", ordered = colnames(data), missing = "FIML"
     ))
     
     # Generate the asymptotic covariance matrix of polychoric 
     # correlations.
     
     acov <- unclass(lavaan::vcov(lavaan::lavCor(
-      data, output = "fit", se = "standard", estimator = "two.step"
-    )))
+      data, output = "fit", se = "standard" , 
+      estimator = "two.step",ordered = colnames(data)
+    ))) 
     
     # Remove thresholds from acov.pcr
     acov <- acov[1:(1/2*nrow(pcr)*(nrow(pcr)-1)),1:(1/2*nrow(pcr)*(nrow(pcr)-1))]
@@ -86,15 +87,15 @@ miive.piv <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, r
     
   } else {
     
-    R <- restrictions$R
-    q <- restrictions$q
+    #R <- restrictions$R
+    #q <- restrictions$q
  
     # b_2sls =  | [Z'V (V'V)^{-1} V'Z]^{-1} | R |       |  ZV (V'V)^{-1} V'y  |
     #           |-------------------------------|  %*%  |---------------------|
     #           |             R             | 0 |       |          q          |
     # as.numeric makes coef a vector instead of a matrix
-    coef <- as.numeric((solve(rbind(cbind(XX1, t(R)), cbind(R, matrix(0, nrow(R), nrow(R))))) %*%
-               rbind(XY1, q))[1:nrow(ZV),])
+    #coef <- as.numeric((solve(rbind(cbind(XX1, t(R)), cbind(R, matrix(0, nrow(R), nrow(R))))) %*%
+    #           rbind(XY1, q))[1:nrow(ZV),])
   }
   
   # TODO: Should the names use Lavaan convetion where regressions of observed 
@@ -148,7 +149,7 @@ miive.piv <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, r
       #   correlations between the instruments and explanatory variables,
       #   and between the instruments and the dependent variable. 
       d <- lapply(d, function(eq){
-        eq$RegDerivatives <- derRegPIV(pcr[eq$MIIVs, eq$MIIVs, drop = FALSE], 
+        eq$regDerivatives <- derRegPIV(pcr[eq$MIIVs, eq$MIIVs, drop = FALSE], 
                                        pcr[eq$MIIVs, eq$IVobs, drop = FALSE], 
                                        pcr[eq$MIIVs, eq$DVobs, drop = FALSE])
         eq
@@ -158,11 +159,17 @@ miive.piv <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, r
       # With those derivatives in hand we must assemble the K matrix to 
       # correspond in structure to the asymptotic covariance matrix of 
       # the polychoric correlations. 
+      # Eq. 25, page 315. Bollen, K. A., & Maydeu-Olivares, A. (2007). 
+      # A Polychoric Instrumental Variable (PIV) Estimator for Structural 
+      # Equation Models with Categorical Variables. Psychometrika, 
+      # 72(3), 309–326. 
+
+      #
       
+      K       <- buildKmatrix(d, pcr)
+      coefCov <- K %*% acov %*% t(K) 
+      sqrt(diag(coefCov))
       
-      
-      
-      #coefCov <- solve(XX1 %*% t(solve(sig)))
       
     } else {
       

@@ -12,7 +12,8 @@ Imports:
     Matrix,
     car,
     methods,
-    boot
+    boot,
+    numDeriv
 License: GPL-2
 LazyData: true
 ByteCompile: true

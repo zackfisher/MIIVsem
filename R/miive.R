@@ -56,7 +56,9 @@
 miive <- function(model = model, data = NULL, sample.cov = NULL, 
                   sample.mean = NULL, sample.nobs = NULL, 
                   sample.cov.rescale = TRUE, instruments = NULL, 
-                  estimator = "2SLS", control = NULL, est.only = FALSE){
+                  estimator = "2SLS", control = NULL, 
+                  se = "standard", bootstrap = 1000L,
+                  est.only = FALSE){
   
   #-------------------------------------------------------#  
   # Check class of model.

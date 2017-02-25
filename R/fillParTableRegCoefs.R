@@ -1,5 +1,5 @@
 #'@keywords internal
-function <- estVarCovar(eqns, pt){
+fillParTableRegCoefs <- function(eqns, pt){
   # Fill parTable with fixed regression coefficients.
   r <- do.call(c,sapply(d,"[[", c("coefficients")))
   z <- cbind(do.call(rbind, strsplit(names(r), "~")), r)

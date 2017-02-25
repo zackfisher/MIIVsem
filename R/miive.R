@@ -146,7 +146,21 @@ miive <- function(model = model, data = NULL, sample.cov = NULL,
                     stop(paste("Invalid estimator:", estimator,"Valid estimators are: 2SLS, GMM"))
   )
   
+  #-------------------------------------------------------#
+  # Estimate variance and covariance point estimates.
+  #-------------------------------------------------------#
+  
+  # First fill the lavaan parTable with all regression style
+  # coefficients.
+  pt <- fillParTableRegCoefs(results$eqn, pt)
+  
+  # Obtain the variance and covariance point estimates.
+  varCoefs <- lavaan::parameterEstimates(lavaan::sem(pt, data))
+  varCoefs <- varCoefs[varCoefs$op == "~~",c("lhs", "rhs", "est")]
+  
+  #-------------------------------------------------------#
   # Boostrap and substitute closed form SEs with boostrap SEs
+  #-------------------------------------------------------#
   
   if(se == "boot" | se == "bootstrap"){
     boot.results <- boot::boot(data,function(origData,indices){

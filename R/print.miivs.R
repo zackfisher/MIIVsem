@@ -3,6 +3,7 @@
 
 print.miivs <- function(x,...){
   
+  x <- x$eqns
   
   for (i in 1:length(x)){
     LHS <- paste(x[[i]]$DVobs, collapse = ", ")

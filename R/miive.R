@@ -63,8 +63,16 @@ miive <- function(model = model, data = NULL, sample.cov = NULL,
   #-------------------------------------------------------#  
   # Check class of model.
   #-------------------------------------------------------#
-  if ( "miivs" == class(model) ){ d <- model} 
-  if ( "miivs" != class(model) ){ d <- miivs(model)} 
+  if ( "miivs" == class(model) ){ 
+    d  <- model$eqns 
+    pt <- model$pt
+  } 
+  
+  if ( "miivs" != class(model) ){ 
+    res <- miivs(model)
+    d   <- res$eqns
+    pt  <- res$pt
+  } 
   
   #-------------------------------------------------------# 
   # parseInstrumentSyntax

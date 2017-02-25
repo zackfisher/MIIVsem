@@ -369,7 +369,8 @@ miivs <- function(model){
     eqns[[j]]$Label <- labi[which(lhsi %in% td)][match(ti, rhsi[which(lhsi %in% td)])]
   }
   
-  class(eqns) <- "miivs"
-  eqns
+  res <- list(eqns = eqns, pt = pt)
+  class(res) <- "miivs"
+  res
   
 }

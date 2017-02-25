@@ -6,7 +6,8 @@
 \usage{
 miive(model = model, data = NULL, sample.cov = NULL, sample.mean = NULL,
   sample.nobs = NULL, sample.cov.rescale = TRUE, instruments = NULL,
-  estimator = "2SLS", control = NULL, est.only = FALSE)
+  estimator = "2SLS", control = NULL, se = "standard",
+  bootstrap = 1000L, est.only = FALSE)
 }
 \arguments{
 \item{model}{A model specified using lavaan model syntax or a \code{\link{miivs}} object. See the \code{model} argument within the \code{\link[lavaan]{lavaanify}} function for more information.}
@@ -27,11 +28,11 @@ miive(model = model, data = NULL, sample.cov = NULL, sample.mean = NULL,
 
 \item{control}{.}
 
-\item{est.only}{If \code{TRUE}, only the coefficients are returned.}
-
 \item{se}{If "standard", conventional closed form standard errors are computed. If "boot" or "bootstrap", bootstrap standard errors are computed using standard bootstrapping.}
 
 \item{bootstrap}{Number of bootstrap draws, if bootstrapping is used.}
+
+\item{est.only}{If \code{TRUE}, only the coefficients are returned.}
 }
 \value{
 A list of class \code{miive} containing the following elements:

@@ -163,6 +163,7 @@ miive <- function(model = model, data = NULL, sample.cov = NULL,
   # Obtain the variance and covariance point estimates.
   varCoefs <- lavaan::parameterEstimates(lavaan::sem(pt, data, estimator = "ULS"))
   varCoefs <- varCoefs[varCoefs$op == "~~",c("lhs", "rhs", "est")]
+  rownames(varCoefs) <- paste0(varCoefs$lhs, "~~",varCoefs$rhs)
   
   results$varCoefs <- varCoefs
   

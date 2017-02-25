@@ -46,8 +46,9 @@ print.miive <- function(x,  digits = max(3, getOption("digits") - 2),...){
     cat("\n")
     cat(paste0("Variance and Covariance Parameter Estimates"), "\n")
     cat("\n")
-    
-    print(x$varCoefs, digits = digits, na.print = "", quote = FALSE, justify = "none")
+    # Temporary for debugging
+    colnames(x$varCoefs) <- c("lhs","rhs","Estimate")
+    print(x$varCoefs[,3,drop=FALSE], digits = digits, na.print = "", quote = FALSE, justify = "none")
   }
   # vcov     <- x$vcov
   # ctrlopts <- x$ctrlopts

@@ -158,17 +158,14 @@ miive.piv <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, r
 
       # With those derivatives in hand we must assemble the K matrix to 
       # correspond in structure to the asymptotic covariance matrix of 
-      # the polychoric correlations. 
-      # Eq. 25, page 315. Bollen, K. A., & Maydeu-Olivares, A. (2007). 
-      # A Polychoric Instrumental Variable (PIV) Estimator for Structural 
-      # Equation Models with Categorical Variables. Psychometrika, 
-      # 72(3), 309–326. 
+      # the polychoric correlations. Eq. 25, page 315. Bollen, K. A., 
+      # & Maydeu-Olivares, A. (2007). A Polychoric Instrumental Variable 
+      # (PIV) Estimator for Structural Equation Models with Categorical 
+      # Variables. Psychometrika, 72(3), 309–326. 
 
-      #
-      
       K       <- buildKmatrix(d, pcr)
       coefCov <- K %*% acov %*% t(K) 
-      sqrt(diag(coefCov))
+      # sqrt(diag(coefCov))
       
       
     } else {
@@ -200,19 +197,22 @@ miive.piv <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, r
     # TODO: I passed sample.cov, sample.mean and sample.obs
     #       in the results object. We could move this out 
     #       but then it would be calculated for est.only.
-    d <- lapply(d, function(eq) { 
-      eq$sargan <-  (
-        t(sample.cov[eq$MIIVs,eq$DVobs, drop = FALSE] - 
-            sample.cov[eq$MIIVs,eq$IVobs, drop = FALSE] %*% 
-            eq$coefficients[-1]) %*% 
-          solve(sample.cov[eq$MIIVs,eq$MIIVs]) %*% 
-          (sample.cov[eq$MIIVs,eq$DVobs, drop = FALSE] - 
-             sample.cov[eq$MIIVs,eq$IVobs, drop = FALSE] %*% 
-             eq$coefficients[-1]) /  eq$sigma)*sample.nobs
-      eq$sargan.df <- length(eq$MIIVs) - length(eq$IVobs)
-      eq$sargan.p <- pchisq(eq$sargan, eq$sargan.df, lower.tail = FALSE)
-      eq
-    })
+    
+    # TODO: Is this valid when using the polychoric correlations?
+    #
+    # d <- lapply(d, function(eq) { 
+    #   eq$sargan <-  (
+    #     t(sample.cov[eq$MIIVs,eq$DVobs, drop = FALSE] - 
+    #         sample.cov[eq$MIIVs,eq$IVobs, drop = FALSE] %*% 
+    #         eq$coefficients[-1]) %*% 
+    #       solve(sample.cov[eq$MIIVs,eq$MIIVs]) %*% 
+    #       (sample.cov[eq$MIIVs,eq$DVobs, drop = FALSE] - 
+    #          sample.cov[eq$MIIVs,eq$IVobs, drop = FALSE] %*% 
+    #          eq$coefficients[-1]) /  eq$sigma)*sample.nobs
+    #   eq$sargan.df <- length(eq$MIIVs) - length(eq$IVobs)
+    #   eq$sargan.p <- pchisq(eq$sargan, eq$sargan.df, lower.tail = FALSE)
+    #   eq
+    # })
   }
 
   res$eqn <- d

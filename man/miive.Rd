@@ -28,6 +28,10 @@ miive(model = model, data = NULL, sample.cov = NULL, sample.mean = NULL,
 \item{control}{.}
 
 \item{est.only}{If \code{TRUE}, only the coefficients are returned.}
+
+\item{se}{If "standard", conventional closed form standard errors are computed. If "boot" or "bootstrap", bootstrap standard errors are computed using standard bootstrapping.}
+
+\item{bootstrap}{Number of bootstrap draws, if bootstrapping is used.}
 }
 \value{
 A list of class \code{miive} containing the following elements:

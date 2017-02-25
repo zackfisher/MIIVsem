@@ -88,9 +88,6 @@
 #' 	Model-Implied	Instrumental	Variables.	\emph{Sociological	Methods	and	
 #' 	Research}, 32, 425-52.
 #' 	
-#' 	Bauldry, S.	2014.	miivfind: A command for identifying model-implied instrumental 
-#' 	variables for structural equation models in Stata.	\emph{Stata Journal}, 14:4.
-#' 	
 #' 	Bentler, P. M., and Weeks, D. G. (1980). Linear structural equations with 
 #' 	latent variables. Psychometrika, 45(3), 289–308.                 
 #' 	

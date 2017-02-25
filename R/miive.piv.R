@@ -87,15 +87,15 @@ miive.piv <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, r
     
   } else {
     
-    #R <- restrictions$R
-    #q <- restrictions$q
+    R <- restrictions$R
+    q <- restrictions$q
  
-    # b_2sls =  | [Z'V (V'V)^{-1} V'Z]^{-1} | R |       |  ZV (V'V)^{-1} V'y  |
-    #           |-------------------------------|  %*%  |---------------------|
-    #           |             R             | 0 |       |          q          |
+    #b_2sls =  | [Z'V (V'V)^{-1} V'Z]^{-1} | R |       |  ZV (V'V)^{-1} V'y  |
+    #          |-------------------------------|  %*%  |---------------------|
+    #          |             R             | 0 |       |          q          |
     # as.numeric makes coef a vector instead of a matrix
-    #coef <- as.numeric((solve(rbind(cbind(XX1, t(R)), cbind(R, matrix(0, nrow(R), nrow(R))))) %*%
-    #           rbind(XY1, q))[1:nrow(ZV),])
+    coef <- as.numeric((solve(rbind(cbind(XX1, t(R)), cbind(R, matrix(0, nrow(R), nrow(R))))) %*%
+              rbind(XY1, q))[1:nrow(ZV),])
   }
   
   # TODO: Should the names use Lavaan convetion where regressions of observed 
@@ -148,14 +148,7 @@ miive.piv <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, r
       #   correlations among the instrumental variables, the polychoric 
       #   correlations between the instruments and explanatory variables,
       #   and between the instruments and the dependent variable. 
-      d <- lapply(d, function(eq){
-        eq$regDerivatives <- derRegPIV(pcr[eq$MIIVs, eq$MIIVs, drop = FALSE], 
-                                       pcr[eq$MIIVs, eq$IVobs, drop = FALSE], 
-                                       pcr[eq$MIIVs, eq$DVobs, drop = FALSE])
-        eq
-      })
-      
-
+      #
       # With those derivatives in hand we must assemble the K matrix to 
       # correspond in structure to the asymptotic covariance matrix of 
       # the polychoric correlations. Eq. 25, page 315. Bollen, K. A., 
@@ -165,14 +158,18 @@ miive.piv <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, r
 
       K       <- buildKmatrix(d, pcr)
       coefCov <- K %*% acov %*% t(K) 
-      # sqrt(diag(coefCov))
+      
       
       
     } else {
       
-      R0 <- matrix(0, ncol=nrow(R), nrow=nrow(R))
-      coefCov <- solve(rbind(cbind((XX1 %*% t(solve(sig))), t(R)), 
-                             cbind(R, R0)))[1:nrow(XX1), 1:nrow(XX1)]
+      # TODO: It is likely restruction need to be handled in the
+      #       calculation of the partial derivatives. 
+      
+      
+      #R0 <- matrix(0, ncol=nrow(R), nrow=nrow(R))
+      #coefCov <- solve(rbind(cbind((XX1 %*% t(solve(sig))), t(R)), 
+      #                       cbind(R, R0)))[1:nrow(XX1), 1:nrow(XX1)]
     }
     
     res$coefCov <- coefCov
@@ -183,11 +180,11 @@ miive.piv <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, r
     dvs <- unlist(lapply(d, "[[", "DVobs"))
     B   <- diag(length(dvs))
     colnames(B) <- rownames(B) <- dvs
-    idx <- do.call("rbind",lapply(d, function(eq) cbind(eq$DVobs, eq$IVobs, eq$coefficients[-1])))
+    idx <- do.call("rbind",lapply(d, function(eq) cbind(eq$DVobs, eq$IVobs, eq$coefficients)))
     idx <- idx[idx[,2] %in% dvs, ,drop = FALSE]
     B[idx[,2:1, drop = FALSE]] <- -1*as.numeric(idx[,3])
     
-    res$residCov <- t(B) %*% sample.cov[dvs,dvs] %*% B
+    res$residCov <- t(B) %*% pcr[dvs,dvs] %*% B
     
     # Sargan's test from sample covariances (Hayashi, p. 228)
     # TODO: Check for within-equation restrictions 

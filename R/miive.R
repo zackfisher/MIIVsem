@@ -9,7 +9,7 @@
 #' @param sample.nobs Number of observations if the full data frame is missing and only sample moments are given.
 #' @param sample.cov.rescale If \code{TRUE}, the sample covariance matrix provided by the user is internally rescaled by multiplying it with a factor (N-1)/N.
 #' @param instruments A user-supplied list of valid MIIVs for each equation. See Example 2 below. 
-#' @param estimator Options \code{"2SLS"} or \code{"GMM"} for estimating the model parameters. Default is \code{"2SLS"}.
+#' @param estimator Options \code{"2SLS"}, \code{"GMM"} or \code{"PIV"} for estimating the model parameters. Default is \code{"2SLS"}.
 #' @param control .
 #' @param est.only If \code{TRUE}, only the coefficients are returned.
 #' @param se If "standard", conventional closed form standard errors are computed. If "boot" or "bootstrap", bootstrap standard errors are computed using standard bootstrapping.
@@ -117,6 +117,11 @@ miive <- function(model = model, data = NULL, sample.cov = NULL,
   # TODO: Check if any variables are factors.  If so, 
   # set 'estimator' to "PIV". 
   
+  #estimator <- ifelse(any(
+  #   sapply(data[,unlist(unique(lapply(d,"[",c("DVobs","IVobs"))))], is.factor)
+  #  ), "PIV", estimator)
+    
+  
   #-------------------------------------------------------#
   # estimator: miive.2sls()
   #-------------------------------------------------------#
@@ -140,6 +145,7 @@ miive <- function(model = model, data = NULL, sample.cov = NULL,
   
   
   results <- switch(estimator,
+                    "PIV" = miive.piv(d, data, sample.cov, sample.mean, sample.nobs, est.only, restrictions),
                     "2SLS" = miive.2sls(d, data, sample.cov, sample.mean, sample.nobs, est.only, restrictions),
                     "GMM" = miive.gmm(d, data, sample.cov, sample.mean, sample.nobs, est.only, restrictions), # Not implemented
                     # In other cases, raise an error
@@ -147,7 +153,7 @@ miive <- function(model = model, data = NULL, sample.cov = NULL,
   )
   
   #-------------------------------------------------------#
-  # Estimate variance and covariance point estimates.
+  # Estimate variance and covariance point
   #-------------------------------------------------------#
   
   # First fill the lavaan parTable with all regression style
@@ -155,8 +161,10 @@ miive <- function(model = model, data = NULL, sample.cov = NULL,
   pt <- fillParTableRegCoefs(results$eqn, pt)
   
   # Obtain the variance and covariance point estimates.
-  varCoefs <- lavaan::parameterEstimates(lavaan::sem(pt, data))
+  varCoefs <- lavaan::parameterEstimates(lavaan::sem(pt, data, estimator = "ULS"))
   varCoefs <- varCoefs[varCoefs$op == "~~",c("lhs", "rhs", "est")]
+  
+  results$varCoefs <- varCoefs
   
   #-------------------------------------------------------#
   # Boostrap and substitute closed form SEs with boostrap SEs

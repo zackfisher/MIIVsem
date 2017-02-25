@@ -1,7 +1,7 @@
 #'@keywords internal
 fillParTableRegCoefs <- function(eqns, pt){
   # Fill parTable with fixed regression coefficients.
-  r <- do.call(c,sapply(d,"[[", c("coefficients")))
+  r <- sapply(eqns,"[[", c("coefficients"))
   z <- cbind(do.call(rbind, strsplit(names(r), "~")), r)
   z <- z[which(z[,2]!="1"),] # cuts down on nrow
 

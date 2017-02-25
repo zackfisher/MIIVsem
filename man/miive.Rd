@@ -24,7 +24,7 @@ miive(model = model, data = NULL, sample.cov = NULL, sample.mean = NULL,
 
 \item{instruments}{A user-supplied list of valid MIIVs for each equation. See Example 2 below.}
 
-\item{estimator}{Options \code{"2SLS"} or \code{"GMM"} for estimating the model parameters. Default is \code{"2SLS"}.}
+\item{estimator}{Options \code{"2SLS"}, \code{"GMM"} or \code{"PIV"} for estimating the model parameters. Default is \code{"2SLS"}.}
 
 \item{control}{.}
 

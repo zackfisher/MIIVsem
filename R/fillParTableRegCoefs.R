@@ -7,8 +7,8 @@ function <- estVarCovar(eqns, pt){
 
   for(i in 1:nrow(z)){
     eq <- z[i,]
-    pt$ustart[pt$op == "=~" & pt$lhs %in% eq[2] & pt$rhs %in% eq[1]] <- as.numeric(eq[3])
-    pt$ustart[pt$op == "~" & pt$lhs %in% eq[1] & pt$rhs %in% eq[2]] <- as.numeric(eq[3])
+    pt[pt$op == "=~" & pt$lhs %in% eq[2] & pt$rhs %in% eq[1], c("free", "ustart")] <- c(0, as.numeric(eq[3]))
+    pt[pt$op == "~" & pt$lhs %in% eq[1] & pt$rhs %in% eq[2], c("free", "ustart")] <- c(0, as.numeric(eq[3]))
   }
   
   return(pt)

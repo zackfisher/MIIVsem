@@ -113,7 +113,7 @@ bollen1989a_miivs <-
     )
   )
 
-bollen1989a_miivs_test <- lapply(miivs(bollen1989a_model), "[", c("DVobs", "IVobs", "MIIVs"))
+bollen1989a_miivs_test <- lapply(miivs(bollen1989a_model)$eqns, "[", c("DVobs", "IVobs", "MIIVs"))
 
 # Sort both lists
 
@@ -140,7 +140,7 @@ CI =~ 1*x7 + x8 + x9
 # Spatial Abilities
 SA =~ 1*x10 + x11 + x12
 '
-colom_miivs_test <- lapply(miivs(colom_model), "[", c("DVobs", "IVobs", "MIIVs"))
+colom_miivs_test <- lapply(miivs(colom_model)$eqns, "[", c("DVobs", "IVobs", "MIIVs"))
 
 colom_miivs <-
   list(
@@ -254,7 +254,7 @@ black + asian + hispanic + othrace
 prestg80 ~ educ
 '
 
-simul_reg_1_miivs_test <- lapply(miivs(simul_reg_1), "[", c("DVobs", "IVobs", "MIIVs"))
+simul_reg_1_miivs_test <- lapply(miivs(simul_reg_1)$eqns, "[", c("DVobs", "IVobs", "MIIVs"))
 
 simul_reg_1_miivs <- 
   list(structure(
@@ -347,7 +347,7 @@ prestg80 ~ educ + napapr80 + papr80M + namapr80 + mapr80M +
 age + female + black +  asian  + hispanic + othrace
 '
 
-simul_reg_2_miivs_test <- lapply(miivs(simul_reg_2), "[", c("DVobs", "IVobs", "MIIVs"))
+simul_reg_2_miivs_test <- lapply(miivs(simul_reg_2)$eqns, "[", c("DVobs", "IVobs", "MIIVs"))
 
 simul_reg_2_miivs <- 
   list(structure(
@@ -452,7 +452,7 @@ prestg80 ~ educ
 prestg80 ~~ educ
 '
 
-simul_reg_3_miivs_test <- lapply(miivs(simul_reg_3), "[", c("DVobs", "IVobs", "MIIVs"))
+simul_reg_3_miivs_test <- lapply(miivs(simul_reg_3)$eqns, "[", c("DVobs", "IVobs", "MIIVs"))
 
 simul_reg_3_miivs <-
   list(structure(
@@ -545,7 +545,7 @@ age + female + black +  asian  + hispanic + othrace
 prestg80 ~~ educ
 '
 
-simul_reg_4_miivs_test <- lapply(miivs(simul_reg_4), "[", c("DVobs", "IVobs", "MIIVs"))
+simul_reg_4_miivs_test <- lapply(miivs(simul_reg_4)$eqns, "[", c("DVobs", "IVobs", "MIIVs"))
 
 simul_reg_4_miivs <- 
   list(structure(
@@ -646,7 +646,7 @@ Diastolic =~ Z5 + 1*Z4 + 1*Z6
 Systolic  ~~ Diastolic
 '
 
-two_cfa_1_miivs_test <- lapply(miivs(two_cfa_1), "[", c("DVobs", "IVobs", "MIIVs"))
+two_cfa_1_miivs_test <- lapply(miivs(two_cfa_1)$eqns, "[", c("DVobs", "IVobs", "MIIVs"))
 
 two_cfa_1_miivs <-
   list(
@@ -704,7 +704,7 @@ F2 ~ F1
 F3 ~ F2 
 '
 
-kirby_model_1_miivs_test <- lapply(miivs(kirby_model_1), "[", c("DVobs", "IVobs", "MIIVs"))
+kirby_model_1_miivs_test <- lapply(miivs(kirby_model_1)$eqns, "[", c("DVobs", "IVobs", "MIIVs"))
 
 
 kirby_model_1_miivs <-
@@ -804,7 +804,7 @@ F3 ~ F2 + V10 + V12
 #V12 ~~ V13
 '
 
-kirby_model_3_miivs_test <- lapply(miivs(kirby_model_3), "[", c("DVobs", "IVobs", "MIIVs"))
+kirby_model_3_miivs_test <- lapply(miivs(kirby_model_3)$eqns, "[", c("DVobs", "IVobs", "MIIVs"))
 
 
 kirby_model_3_miivs <-
@@ -915,7 +915,7 @@ trust_model_1 <-'
 F1 =~ V1 + V2 + V3 + V4 + V5 + V6 + V7 + V8
 '
 
-trust_model_1_miivs_test <- lapply(miivs(trust_model_1), "[", c("DVobs", "IVobs", "MIIVs"))
+trust_model_1_miivs_test <- lapply(miivs(trust_model_1)$eqns, "[", c("DVobs", "IVobs", "MIIVs"))
 
 
 trust_model_1_miivs <-
@@ -1007,7 +1007,7 @@ F1 =~ y1 + y2
 F1 ~  x1 + x2 + x3 + x4 + x5 + x6
 '
 
-trust_model_2_miivs_test <- lapply(miivs(trust_model_2), "[", c("DVobs", "IVobs", "MIIVs"))
+trust_model_2_miivs_test <- lapply(miivs(trust_model_2)$eqns, "[", c("DVobs", "IVobs", "MIIVs"))
 
 trust_model_2_miivs <-
   list(structure(list(DVobs = "y1", 

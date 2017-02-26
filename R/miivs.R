@@ -230,19 +230,30 @@ miivs <- function(model){
   # a custom matrix operator. Normally, anything multiplied by NA 
   # (free parameters in our case) is NA. However we need 0*NA = 0. 
   
+  # NOTE: This operation is computationally inefficient when the number
+  #       of variables in the model is large. 
+  
+  # `%naproduct%` <- function(x, y) {
+  #   r <- matrix(0,nrow(x),ncol(y))
+  #   for(i in 1:nrow(r)){
+  #     for(j in 1:ncol(r)){
+  #       e <- x[i,]*y[,j]
+  #       e[which(x[i,]==0)] <- 0
+  #       e[which(y[,j]==0)] <- 0
+  #       r[i,j] <- sum(e)
+  #     }
+  #   }
+  #   rownames(r) <- rownames(x)
+  #   colnames(r) <- colnames(y)
+  #   return(r)
+  # }
+  
+  # Calculate the model implied covariance matrix. We need to define 
+  # a custom matrix operator. Normally, anything multiplied by NA 
+  # (free parameters in our case) is NA. However we need 0*NA = 0. 
+  #
   `%naproduct%` <- function(x, y) {
-    r <- matrix(0,nrow(x),ncol(y))
-    for(i in 1:nrow(r)){
-      for(j in 1:ncol(r)){
-        e <- x[i,]*y[,j]
-        e[which(x[i,]==0)] <- 0
-        e[which(y[,j]==0)] <- 0
-        r[i,j] <- sum(e)
-      }
-    }
-    rownames(r) <- rownames(x)
-    colnames(r) <- colnames(y)
-    return(r)
+    as.matrix(Matrix::Matrix(x, sparse = T) %*% Matrix::Matrix(y, sparse = T))
   }
   
   # Sigma depends on solve(I-Beta), which gives total effects between 

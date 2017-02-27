@@ -4,6 +4,7 @@ parameterTable <- function(x){
     coef.mat <- matrix(x$coefficients, ncol = 1, 
                      dimnames = list(names(x$coefficients),"Estimate"))
   
+    
   if(! is.null(x$coefCov)){
     
     coef.mat <- cbind(coef.mat,
@@ -32,10 +33,10 @@ parameterTable <- function(x){
     # Temporary for debugging
     colnames(x$varCoefs) <- c("lhs","rhs","Estimate")
     
-    tmp.mat <- matrix(NA, nrow = nrow(varCoefs), ncol = ncol(coef.mat))
+    tmp.mat <- matrix(NA, nrow = nrow(x$varCoefs), ncol = ncol(coef.mat))
     colnames(tmp.mat) <- colnames(coef.mat)
     tmp.mat[,"Estimate"] <- x$varCoefs[,"Estimate"]
-    rownames(tmp.at) <- rownames(x$varCoefs)
+    rownames(tmp.mat) <- rownames(x$varCoefs)
     coef.mat <- rbind(coef.mat, tmp.mat)
   }
   return(coef.mat)

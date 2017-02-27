@@ -4,7 +4,8 @@
 \alias{miive.piv}
 \title{Polychoric instrumental variable (PIV) estimator for a system of equations}
 \usage{
-miive.piv(d, data, sample.cov, sample.mean, sample.nobs, est.only, restrictions)
+miive.piv(d, data, sample.cov, sample.mean, sample.nobs, est.only, restrictions,
+  piv.opts = piv.opts)
 }
 \arguments{
 \item{d}{a list containing the system of MIIV estimating equations}
@@ -16,6 +17,8 @@ miive.piv(d, data, sample.cov, sample.mean, sample.nobs, est.only, restrictions)
 \item{est.only}{should we only calculate coefficient estimates}
 
 \item{restrictions}{any equality constraints to be used in estimation}
+
+\item{piv.opts}{Options to pass to lavaan's \code{\link[lavCor]{lavCor}} function.}
 }
 \description{
 Polychoric instrumental variable (PIV) estimator for a system of equations

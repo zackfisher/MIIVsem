@@ -4,15 +4,18 @@
 \alias{miive}
 \title{Model-implied instrumental variable (MIIV) estimation}
 \usage{
-miive(model = model, data = NULL, sample.cov = NULL, sample.mean = NULL,
-  sample.nobs = NULL, sample.cov.rescale = TRUE, instruments = NULL,
+miive(model = model, data = NULL, instruments = NULL, sample.cov = NULL,
+  sample.mean = NULL, sample.nobs = NULL, sample.cov.rescale = TRUE,
   estimator = "2SLS", control = NULL, se = "standard",
-  bootstrap = 1000L, est.only = FALSE)
+  bootstrap = 1000L, est.only = FALSE, piv.opts = c(estimator = "ULS", se
+  = "standard"))
 }
 \arguments{
 \item{model}{A model specified using lavaan model syntax or a \code{\link{miivs}} object. See the \code{model} argument within the \code{\link[lavaan]{lavaanify}} function for more information.}
 
 \item{data}{A data frame, list or environment or an object coercible by \code{as.data.frame} to data frame.}
+
+\item{instruments}{A user-supplied list of valid MIIVs for each equation. See Example 2 below.}
 
 \item{sample.cov}{Numeric matrix. A sample variance-covariance matrix. The rownames and colnames must contain the observed variable names.}
 
@@ -21,8 +24,6 @@ miive(model = model, data = NULL, sample.cov = NULL, sample.mean = NULL,
 \item{sample.nobs}{Number of observations if the full data frame is missing and only sample moments are given.}
 
 \item{sample.cov.rescale}{If \code{TRUE}, the sample covariance matrix provided by the user is internally rescaled by multiplying it with a factor (N-1)/N.}
-
-\item{instruments}{A user-supplied list of valid MIIVs for each equation. See Example 2 below.}
 
 \item{estimator}{Options \code{"2SLS"}, \code{"GMM"} or \code{"PIV"} for estimating the model parameters. Default is \code{"2SLS"}.}
 
@@ -33,6 +34,8 @@ miive(model = model, data = NULL, sample.cov = NULL, sample.mean = NULL,
 \item{bootstrap}{Number of bootstrap draws, if bootstrapping is used.}
 
 \item{est.only}{If \code{TRUE}, only the coefficients are returned.}
+
+\item{piv.opts}{Options to pass to lavaan's \code{\link[lavCor]{lavCor}} function.}
 }
 \value{
 A list of class \code{miive} containing the following elements:

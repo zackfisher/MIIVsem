@@ -5,9 +5,11 @@
 #' @param sample.nobs number of observations
 #' @param est.only should we only calculate coefficient estimates
 #' @param restrictions any equality constraints to be used in estimation
+#' @param piv.opts Options to pass to lavaan's \code{\link[lavCor]{lavCor}} function.
 
 #'@keywords internal
-miive.piv <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, restrictions){
+miive.piv <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, 
+                      restrictions, piv.opts = piv.opts){
 
   # The regression coefficients are estimated from
   # using the polychoric correlation matrix, so this must 
@@ -33,9 +35,13 @@ miive.piv <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, r
     #       This could be specified in the order argument below.
     
     pcr  <- unclass(lavaan::lavCor(
-      data, output= "cor", 
-      ordered = colnames(data)[!apply(data,2,is.numeric)],
-      missing = "FIML"
+      data, 
+      output= "cor", 
+      #ordered = colnames(data)[!apply(data,2,is.numeric)],
+      #missing = "FIML"
+      se = piv.opts["se"], 
+      estimator = piv.opts["estimator"],
+      ordered = colnames(data)[!apply(data,2,is.numeric)]
     ))
     
     
@@ -43,8 +49,11 @@ miive.piv <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, r
     # correlations.
     
     acov <- unclass(lavaan::vcov(lavaan::lavCor(
-      data, output = "fit", se = "standard" , 
-      estimator = "two.step",ordered = colnames(data)[!apply(data,2,is.numeric)]
+      data, 
+      output = "fit", 
+      se = piv.opts["se"] , 
+      estimator = piv.opts["estimator"],
+      ordered = colnames(data)[!apply(data,2,is.numeric)]
     ))) 
     
     # Remove thresholds from acov.pcr

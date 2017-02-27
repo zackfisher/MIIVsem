@@ -4,16 +4,17 @@
 #'
 #' @param model A model specified using lavaan model syntax or a \code{\link{miivs}} object. See the \code{model} argument within the \code{\link[lavaan]{lavaanify}} function for more information.
 #' @param data A data frame, list or environment or an object coercible by \code{as.data.frame} to data frame.
+#' @param instruments A user-supplied list of valid MIIVs for each equation. See Example 2 below. 
 #' @param sample.cov Numeric matrix. A sample variance-covariance matrix. The rownames and colnames must contain the observed variable names.
 #' @param sample.mean A sample mean vector.
 #' @param sample.nobs Number of observations if the full data frame is missing and only sample moments are given.
 #' @param sample.cov.rescale If \code{TRUE}, the sample covariance matrix provided by the user is internally rescaled by multiplying it with a factor (N-1)/N.
-#' @param instruments A user-supplied list of valid MIIVs for each equation. See Example 2 below. 
 #' @param estimator Options \code{"2SLS"}, \code{"GMM"} or \code{"PIV"} for estimating the model parameters. Default is \code{"2SLS"}.
 #' @param control .
 #' @param est.only If \code{TRUE}, only the coefficients are returned.
 #' @param se If "standard", conventional closed form standard errors are computed. If "boot" or "bootstrap", bootstrap standard errors are computed using standard bootstrapping.
 #' @param bootstrap Number of bootstrap draws, if bootstrapping is used.
+#' @param piv.opts Options to pass to lavaan's \code{\link[lavCor]{lavCor}} function.
 #' @details 
 #' 
 #' \itemize{
@@ -53,12 +54,13 @@
 #' @seealso \link{\code{miivs}}
 #'  
 #' @export
-miive <- function(model = model, data = NULL, sample.cov = NULL, 
+miive <- function(model = model, data = NULL,  instruments = NULL,
+                  sample.cov = NULL, 
                   sample.mean = NULL, sample.nobs = NULL, 
-                  sample.cov.rescale = TRUE, instruments = NULL, 
+                  sample.cov.rescale = TRUE, 
                   estimator = "2SLS", control = NULL, 
                   se = "standard", bootstrap = 1000L,
-                  est.only = FALSE){
+                  est.only = FALSE, piv.opts = c(estimator = "ULS", se = "standard")){
   
   #-------------------------------------------------------#  
   # Check class of model.
@@ -145,7 +147,7 @@ miive <- function(model = model, data = NULL, sample.cov = NULL,
   
   
   results <- switch(estimator,
-                    "PIV" = miive.piv(d, data, sample.cov, sample.mean, sample.nobs, est.only, restrictions),
+                    "PIV" = miive.piv(d, data, sample.cov, sample.mean, sample.nobs, est.only, restrictions, piv.opts = piv.opts),
                     "2SLS" = miive.2sls(d, data, sample.cov, sample.mean, sample.nobs, est.only, restrictions),
                     "GMM" = miive.gmm(d, data, sample.cov, sample.mean, sample.nobs, est.only, restrictions), # Not implemented
                     # In other cases, raise an error

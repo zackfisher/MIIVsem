@@ -163,12 +163,20 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
   modSyntax <- createModelSyntax(results$eqn, pt)
   
   # Obtain the variance and covariance point estimates.
-  varCoefs <- lavaan::parameterEstimates(lavaan::sem(
-    modSyntax, 
-    data, 
-    ordered = colnames(data)[!apply(data,2,is.numeric)], 
-    estimator = "ULS"
-  ))
+  if (estimator == "PIV"){
+    varCoefs <- lavaan::parameterEstimates(lavaan::sem(
+      modSyntax, 
+      data, 
+      ordered = colnames(data)[!apply(data,2,is.numeric)], 
+      estimator =  piv.opts["estimator"],
+      se =  piv.opts["se"]
+    ))
+  } else {
+    varCoefs <- lavaan::parameterEstimates(lavaan::sem(
+      modSyntax
+    ))
+    
+  }
   
   varCoefs <- varCoefs[varCoefs$op == "~~" & !is.na(varCoefs$z),c("lhs", "rhs", "est")]
   rownames(varCoefs) <- paste0(varCoefs$lhs, "~~",varCoefs$rhs)

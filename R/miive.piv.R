@@ -31,14 +31,9 @@ miive.piv <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only,
     # handled seperately. How does lavaan handle this in generation
     # of polychoric correlation matrix. 
     
-    # TODO: Continous variables should be treated as continous.
-    #       This could be specified in the order argument below.
-    
     pcr  <- unclass(lavaan::lavCor(
       data, 
       output= "cor", 
-      #ordered = colnames(data)[!apply(data,2,is.numeric)],
-      #missing = "FIML"
       se = piv.opts["se"], 
       estimator = piv.opts["estimator"],
       ordered = colnames(data)[!apply(data,2,is.numeric)]

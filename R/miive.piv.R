@@ -29,20 +29,22 @@ miive.piv <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, r
     # handled seperately. How does lavaan handle this in generation
     # of polychoric correlation matrix. 
     
-    # TODO: Ordered factors are treated differently, Should we assume
-    # the user has correctly specified any ordered factors as ordered
-    # prior to analysis?
+    # TODO: Continous variables should be treated as continous.
+    #       This could be specified in the order argument below.
     
     pcr  <- unclass(lavaan::lavCor(
-      data, output= "cor", ordered = colnames(data), missing = "FIML"
+      data, output= "cor", 
+      ordered = colnames(data)[!apply(data,2,is.numeric)],
+      missing = "FIML"
     ))
+    
     
     # Generate the asymptotic covariance matrix of polychoric 
     # correlations.
     
     acov <- unclass(lavaan::vcov(lavaan::lavCor(
       data, output = "fit", se = "standard" , 
-      estimator = "two.step",ordered = colnames(data)
+      estimator = "two.step",ordered = colnames(data)[!apply(data,2,is.numeric)]
     ))) 
     
     # Remove thresholds from acov.pcr

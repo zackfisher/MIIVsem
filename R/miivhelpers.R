@@ -49,4 +49,25 @@ buildSSCP <- function(sample.cov, sample.nobs, sample.means){
   return(res)
 }
 
-
+createModelSyntax <- function(eqns, pt){ # eqns <- results$eqn
+  # Fill parTable with fixed regression coefficients.
+  r <- sapply(eqns,"[[", c("coefficients"))
+  z <- cbind(do.call(rbind, strsplit(names(r), "~")), r)
+  z <- z[which(z[,2]!="1"),] # cuts down on nrow
+  
+  for(i in 1:nrow(z)){
+    eq <- z[i,]
+    pt[pt$op == "=~" & pt$lhs %in% eq[2] & pt$rhs %in% eq[1], c("free", "ustart")] <- c(0, as.numeric(eq[3]))
+    pt[pt$op == "~" & pt$lhs %in% eq[1] & pt$rhs %in% eq[2], c("free", "ustart")] <- c(0, as.numeric(eq[3]))
+  }
+  
+  mod <- paste(apply(pt, 1, function(eq){
+    ifelse(
+      !is.na(eq["ustart"]),
+      paste0(eq["lhs"], eq["op"], eq["ustart"], "*",eq["rhs"], "\n"),
+      paste0(eq["lhs"], eq["op"],eq["rhs"], "\n")
+    )
+  }), collapse = "")
+  
+  return(mod)
+}

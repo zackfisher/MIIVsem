@@ -157,12 +157,17 @@ miive <- function(model = model, data = NULL, sample.cov = NULL,
   #-------------------------------------------------------#
   
   # First fill the lavaan parTable with all regression style
-  # coefficients.
-  pt <- fillParTableRegCoefs(results$eqn, pt)
+  # coefficients and update the modely syntax.
+  modSyntax <- createModelSyntax(results$eqn, pt)
   
   # Obtain the variance and covariance point estimates.
-  varCoefs <- lavaan::parameterEstimates(lavaan::sem(pt, data, estimator = "ULS"))
-  varCoefs <- varCoefs[varCoefs$op == "~~",c("lhs", "rhs", "est")]
+  varCoefs <- lavaan::parameterEstimates(lavaan::sem(modSyntax, 
+    data, 
+    ordered = colnames(data), 
+    estimator = "ULS"
+  ))
+  
+  varCoefs <- varCoefs[varCoefs$op == "~~" & !is.na(varCoefs$z),c("lhs", "rhs", "est")]
   rownames(varCoefs) <- paste0(varCoefs$lhs, "~~",varCoefs$rhs)
   
   results$varCoefs <- varCoefs

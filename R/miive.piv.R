@@ -34,7 +34,7 @@ miive.piv <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only,
     pcr  <- unclass(lavaan::lavCor(
       data, 
       output= "cor", 
-      se = piv.opts["se"], 
+      #se = piv.opts["se"], 
       estimator = piv.opts["estimator"],
       ordered = colnames(data)[!apply(data,2,is.numeric)]
     ))

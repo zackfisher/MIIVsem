@@ -15,6 +15,7 @@
 #' @param se If "standard", conventional closed form standard errors are computed. If "boot" or "bootstrap", bootstrap standard errors are computed using standard bootstrapping.
 #' @param bootstrap Number of bootstrap draws, if bootstrapping is used.
 #' @param piv.opts Options to pass to lavaan's \code{\link[lavCor]{lavCor}} function.
+#' @param miivs.check Options to turn off check for user-supplied instruments validity as MIIVs.
 #' @details 
 #' 
 #' \itemize{
@@ -60,7 +61,8 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
                   sample.cov.rescale = TRUE, 
                   estimator = "2SLS", control = NULL, 
                   se = "standard", bootstrap = 1000L,
-                  est.only = FALSE, piv.opts = c(estimator = "ULS", se = "standard")){
+                  est.only = FALSE, piv.opts = c(estimator = "ULS", se = "standard"),
+                  miivs.check=TRUE){
   
   #-------------------------------------------------------#  
   # Check class of model.
@@ -91,7 +93,7 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
   #           set of estimating equations and (2) if the instruments
   #           provided by the user are valid MIIVs.
   #-------------------------------------------------------#
-  d  <- parseInstrumentSyntax(d, instruments)
+  d  <- parseInstrumentSyntax(d, instruments, miivs.check)
   
   
   #-------------------------------------------------------#  
@@ -151,7 +153,7 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
                     "2SLS" = miive.2sls(d, data, sample.cov, sample.mean, sample.nobs, est.only, restrictions),
                     "GMM" = miive.gmm(d, data, sample.cov, sample.mean, sample.nobs, est.only, restrictions), # Not implemented
                     # In other cases, raise an error
-                    stop(paste("Invalid estimator:", estimator,"Valid estimators are: 2SLS, GMM"))
+                    stop(paste("Invalid estimator:", estimator,"Valid estimators are: 2SLS, GMM, PIV"))
   )
   
   #-------------------------------------------------------#
@@ -168,12 +170,13 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
       modSyntax, 
       data, 
       ordered = colnames(data)[!apply(data,2,is.numeric)], 
-      estimator =  piv.opts["estimator"],
-      se =  piv.opts["se"]
+      estimator =  "ULS", # piv.opts["estimator"],
     ))
   } else {
     varCoefs <- lavaan::parameterEstimates(lavaan::sem(
-      modSyntax
+      modSyntax,
+      data,
+      estimator =  "ULS"
     ))
     
   }

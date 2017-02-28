@@ -79,12 +79,17 @@ derPvy <- function(Pvv, Pvz, Pvy){
 
 buildKmatrix <- function(d, pcr){
   
+  # Calculate and store the partial derivatives for
+  # each equation in the system,
   td <- lapply(d, function(eq){
     eq$regDerivatives <- derRegPIV(pcr[eq$MIIVs, eq$MIIVs, drop = FALSE], 
                                    pcr[eq$MIIVs, eq$IVobs, drop = FALSE], 
                                    pcr[eq$MIIVs, eq$DVobs, drop = FALSE])
     eq
   })
+  
+  # td <- td[[1]]
+  
   # acmPos is a matrix containing the rho_{i,j} indices where i 
   # (column 1) and j (column 2) refer to the position of the 
   # variable (column 3) in the symmetric polychoric  
@@ -94,7 +99,7 @@ buildKmatrix <- function(d, pcr){
   })
   acmPos <- cbind(acmPos, c(1:nrow(acmPos)))  
   # View(cbind(acmPos, colnames(acov)))
-  krows <- lapply(td, function(eq){
+  krows <- lapply(td, function(eq){ # eq <- td[[1]]
     
     reg.varID <- apply(eq$regDerivatives$names, 2, function(x){
       match(x, colnames(pcr))

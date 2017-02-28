@@ -7,8 +7,8 @@
 miive(model = model, data = NULL, instruments = NULL, sample.cov = NULL,
   sample.mean = NULL, sample.nobs = NULL, sample.cov.rescale = TRUE,
   estimator = "2SLS", control = NULL, se = "standard",
-  bootstrap = 1000L, est.only = FALSE, piv.opts = c(estimator = "ULS", se
-  = "standard"), miivs.check = TRUE)
+  bootstrap = 1000L, est.only = FALSE, piv.opts = c(estimator =
+  "two.step", se = "standard"), miivs.check = TRUE)
 }
 \arguments{
 \item{model}{A model specified using lavaan model syntax or a \code{\link{miivs}} object. See the \code{model} argument within the \code{\link[lavaan]{lavaanify}} function for more information.}

@@ -61,7 +61,7 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
                   sample.cov.rescale = TRUE, 
                   estimator = "2SLS", control = NULL, 
                   se = "standard", bootstrap = 1000L,
-                  est.only = FALSE, piv.opts = c(estimator = "ULS", se = "standard"),
+                  est.only = FALSE, piv.opts = c(estimator = "two.step", se = "standard"),
                   miivs.check=TRUE){
   
   #-------------------------------------------------------#  
@@ -162,30 +162,28 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
   
   # First fill the lavaan parTable with all regression style
   # coefficients and update the modely syntax.
-  modSyntax <- createModelSyntax(results$eqn, pt)
-  
+  #modSyntax <- createModelSyntax(results$eqn, pt)
+
   # Obtain the variance and covariance point estimates.
-  if (estimator == "PIV"){
-    varCoefs <- lavaan::parameterEstimates(lavaan::sem(
-      modSyntax, 
-      data, 
-      ordered = colnames(data)[!apply(data,2,is.numeric)], 
-      estimator =  "ULS", # piv.opts["estimator"],
-    ))
-  } else {
-    varCoefs <- lavaan::parameterEstimates(lavaan::sem(
-      modSyntax,
-      data,
-      estimator =  "ULS"
-    ))
-    
-  }
-  
-  varCoefs <- varCoefs[varCoefs$op == "~~" & !is.na(varCoefs$z),c("lhs", "rhs", "est")]
-  rownames(varCoefs) <- paste0(varCoefs$lhs, "~~",varCoefs$rhs)
-  
-  results$varCoefs <- varCoefs
-  
+  # if (estimator == "PIV"){
+  #   varCoefs <- lavaan::parameterEstimates(lavaan::sem(
+  #     modSyntax,
+  #     data,
+  #     ordered = colnames(data)[!apply(data,2,is.numeric)],
+  #     estimator =  "ULS", # piv.opts["estimator"],
+  #   ))
+  # } else {
+  #   varCoefs <- lavaan::parameterEstimates(lavaan::sem(
+  #     modSyntax,
+  #     sample.cov = sample.cov, 
+  #     sample.nobs =sample.nobs,
+  #     estimator =  "ULS"
+  #   ))
+  # }
+  # varCoefs <- varCoefs[varCoefs$op == "~~" & !is.na(varCoefs$z),c("lhs", "rhs", "est")]
+  # rownames(varCoefs) <- paste0(varCoefs$lhs, "~~",varCoefs$rhs)
+  # results$varCoefs <- varCoefs
+  results$varCoefs <- NULL
   #-------------------------------------------------------#
   # Boostrap and substitute closed form SEs with boostrap SEs
   #-------------------------------------------------------#

@@ -37,21 +37,21 @@ buildBlockDiag <- function(d, mat, row, col, inv = FALSE, pcr = FALSE){
     })
 }
 
-buildSSCP <- function(sample.cov, sample.nobs, sample.means){
+buildSSCP <- function(sample.cov, sample.nobs, sample.mean){
   
-  res <- matrix(NA, length(sample.means)+1, length(sample.means)+1,
-                dimnames = list(c("1", names(sample.means)),
-                                   c("1", names(sample.means))))
+  res <- matrix(NA, length(sample.mean)+1, length(sample.mean)+1,
+                dimnames = list(c("1", names(sample.mean)),
+                                   c("1", names(sample.mean))))
   
   res[1,1]   <- sample.nobs
-  res[-1,1]  <- res[1,-1] <- sample.means*sample.nobs
-  res[-1,-1] <- (sample.cov + sample.means %*% t(sample.means))*sample.nobs
+  res[-1,1]  <- res[1,-1] <- sample.mean*sample.nobs
+  res[-1,-1] <- (sample.cov + sample.mean %*% t(sample.mean))*sample.nobs
   return(res)
 }
 
 createModelSyntax <- function(eqns, pt){ # eqns <- results$eqn
   # Fill parTable with fixed regression coefficients.
-  r <- sapply(eqns,"[[", c("coefficients"))
+  r <- unlist(sapply(eqns,"[[", c("coefficients")))
   z <- cbind(do.call(rbind, strsplit(names(r), "~")), r)
   z <- z[which(z[,2]!="1"),] # cuts down on nrow
   

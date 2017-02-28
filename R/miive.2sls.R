@@ -19,6 +19,11 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, 
     sample.mean <- colMeans(data)
   }
   
+  # A few basic sanity checks for user-supplied means
+  if(!is.null(data)){
+
+  }
+  
   # Build sum of squares and crossproducts matrix (SSCP).
   # From the means, covariances, and n's you can recover the
   # raw sum-of-squares and products matrix for all the variables. 

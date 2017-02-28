@@ -78,6 +78,34 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
     pt  <- res$pt
   } 
   
+  
+  # The estimation is done from covariance matrix and mean vector, 
+  # so these are calculated first
+  
+  if(!is.null(data)){
+    data <- data[complete.cases(data),]
+    sample.cov  <- cov(data)*(nrow(data)-1)/nrow(data)
+    sample.nobs <- nrow(data)
+    sample.mean <- colMeans(data)
+  }
+  
+  # A few basic sanity checks for user-supplied covariance matrices and
+  # mean vectors. 
+  if(is.null(data)){
+    if (!is.vector(sample.mean)){
+      stop(paste("miive: sample.mean must be a vector."))
+    }
+    
+    if (is.null(names(sample.mean))){
+      stop(paste("miive: sample.mean vector must have names."))
+    }
+    
+    if (names(sample.mean) != names(sample.cov)){
+      stop(paste("miive: names of sample.mean vector and sample.cov matrix must match."))
+    }
+  }
+  
+  
   #-------------------------------------------------------# 
   # parseInstrumentSyntax
   #-------------------------------------------------------# 

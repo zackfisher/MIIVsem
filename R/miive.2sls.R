@@ -19,9 +19,20 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, 
     sample.mean <- colMeans(data)
   }
   
-  # A few basic sanity checks for user-supplied means
-  if(!is.null(data)){
-
+  # A few basic sanity checks for user-supplied covariance matrices and
+  # mean vectors. 
+  if(is.null(data)){
+    if (!is.vector(sample.mean)){
+      stop(paste("miive: sample.mean must be a vector."))
+    }
+    
+    if (is.null(names(sample.mean))){
+      stop(paste("miive: sample.mean vector must have names."))
+    }
+    
+    if (names(sample.mean) != names(sample.cov)){
+      stop(paste("miive: names of sample.mean vector and sample.cov matrix must match."))
+    }
   }
   
   # Build sum of squares and crossproducts matrix (SSCP).

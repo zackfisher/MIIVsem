@@ -5,12 +5,11 @@
 #' @param sample.nobs number of observations
 #' @param est.only should we only calculate coefficient estimates
 #' @param restrictions any equality constraints to be used in estimation
-#' @param piv.opts Options to pass to lavaan's \code{\link[lavCor]{lavCor}} function.
-#' @param factorIndex logical vector indexing whether variables are factors
 
 #'@keywords internal
-miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, restrictions, piv.opts, factorIndex){
+miive.2sls.OLD <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, restrictions){
 
+  
   # Build sum of squares and crossproducts matrix (SSCP).
   # From the means, covariances, and n's you can recover the
   # raw sum-of-squares and products matrix for all the variables. 
@@ -19,23 +18,9 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, 
   # matrix is X'X = (n - 1)S + n\bar{x}\bar{x}'. You then need to 
   # add the row/column for the constant, which is just n in the 1, 1 
   # position and n\bar{x} elsewhere.
-  
-  if(any(factorIndex)){
-    
-    pcr    <- TRUE
-    
-    estMat <- unclass(lavaan::lavCor(data, output= "cor", 
-                      estimator = piv.opts["estimator"],
-                      ordered = colnames(data)[factorIndex]))
-    
-  } else {
-    
-    pcr    <- FALSE
-    
-    estMat <- buildSSCP(sample.cov, sample.nobs, sample.mean)
-    
-  }
 
+  SSCP <- buildSSCP(sample.cov, sample.nobs, sample.mean)
+  
   # Construct the following matrices:
   # XY1: A vector of crossproducts of fitted values from the first stage
   #      regression and the dependent variables. The crossproducts
@@ -44,10 +29,10 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, 
   #      from the first stage regressions for all equations.
   # ZV:  A block diagonal matrix of crossproducts between the instuments
   #      and independent variables for all equations
-  ZV   <- buildBlockDiag(d, estMat, "IVobs", "MIIVs", inv = FALSE, pcr)
-  VV   <- buildBlockDiag(d, estMat, "MIIVs", "MIIVs", inv = FALSE, pcr)
-  VY   <- unlist(lapply(d, function(x){estMat[if(pcr) x$MIIVs else c("1",x$MIIVs), x$DVobs, drop = FALSE]}))
-    
+  
+  ZV   <- buildBlockDiag(d, SSCP, "IVobs", "MIIVs")
+  VV   <- buildBlockDiag(d, SSCP, "MIIVs", "MIIVs", inv = FALSE)
+  VY   <- unlist(lapply(d,function(x) SSCP[c("1",x$MIIVs), x$DVobs, drop = FALSE]))
 
   # DV: Y; EV: Z; MIIVs: V
   # First calculate the part that is used in both equations.
@@ -85,9 +70,7 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, 
   # TODO: Should the names use Lavaan convetion where regressions of observed 
   # variables on latent variables use =~ instead of x and have the LHS and RHS reversed?
    
-  names(coef) <- unlist(lapply(d, function(x) {
-    paste0(x$DVlat,"~", if(pcr) x$IVlat else c("1",x$IVlat) )
-  }))
+  names(coef) <- unlist(lapply(d, function(x) paste0(x$DVlat,"~", c("1", x$IVlat))))
   
   # Start building the return object
   
@@ -97,13 +80,9 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, 
               sample.nobs = sample.nobs)
 
   # Add coefficients to equations list.
-  coefIndex <- unlist(lapply(seq_along(d), function(x) {
-    rep(x,(length(d[[x]]$IVobs)+ ifelse(pcr, 0, 1)))
-  }))
-  
-  coefList  <- split(coef, coefIndex); 
-  names(coefList) <- rep("coefficients",length(d))
-  d  <- lapply(seq_along(d), function(x) append(d[[x]], coefList[x])) 
+  coefIndex <- unlist(lapply(seq_along(d), function(x) rep(x,(length(d[[x]]$IVobs)+1))))
+  coefList  <- split(coef, coefIndex); names(coefList) <- rep("coefficients",length(d))
+  d         <- lapply(seq_along(d), function(x) append(d[[x]], coefList[x])) 
   
   if(!est.only){
     
@@ -122,48 +101,25 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, 
     # TODO: How should equation-level sigma^2 be handled when cross-
     #       equation restrictions are present?
     
-    if (pcr){ # begin PCR
-      if (is.null(restrictions)){
-        
-        # I do not know if this is valid but eq$sigma is required for
-        # the sargan test.
-        d <- lapply(d, function(eq) { 
-          eq$sigma <-(estMat[eq$DVobs, eq$DVobs] + (t(eq$coefficients) %*% 
-          estMat[c(eq$IVobs), c(eq$IVobs)] %*% eq$coefficients) -
-          (2 * estMat[eq$DVobs, c(eq$IVobs)] %*% eq$coefficients)) 
-          eq
-        })
-        
-        K       <- buildKmatrix(d, pcr)
-        coefCov <- K %*% acov %*% t(K) 
-        
-      } else {
-        # TODO: this must be implemented in the generatiion of polychoric acov.
-        stop(paste("miive: restrictions on coefficient covariance matrix not implemented."))
-      }
-
-    } else { # begin SSCP
-      d <- lapply(d, function(eq) { 
-        eq$sigma <-(sample.cov[eq$DVobs, eq$DVobs] + (t(eq$coefficients[-1]) %*% 
-                    sample.cov[c(eq$IVobs), c(eq$IVobs)] %*% eq$coefficients[-1]) -
+    d <- lapply(d, function(eq) { 
+      eq$sigma <-  (sample.cov[eq$DVobs, eq$DVobs] +  (t(eq$coefficients[-1]) %*% 
+                   sample.cov[c(eq$IVobs), c(eq$IVobs)] %*% eq$coefficients[-1]) -
                    (2 * sample.cov[eq$DVobs, c(eq$IVobs)] %*% eq$coefficients[-1])) 
-        eq
-      })
-      
-      sig <- diag(unlist(lapply(d, function(eq) rep(eq$sigma, length(eq$coefficients)))))
-      
-      if (is.null(restrictions)){
-        
-        coefCov <- solve(XX1 %*% t(solve(sig)))
-        
-      } else {
-        
-        R0 <- matrix(0, ncol=nrow(R), nrow=nrow(R))
-        coefCov <- solve(rbind(cbind((XX1 %*% t(solve(sig))), t(R)), 
-                               cbind(R, R0)))[1:nrow(XX1), 1:nrow(XX1)]
-      }
-    }
+      eq
+    })
     
+    sig <- diag(unlist(lapply(d, function(eq) rep(eq$sigma, length(eq$coefficients)))))
+    
+    if (is.null(restrictions)){
+      
+      coefCov <- solve(XX1 %*% t(solve(sig)))
+      
+    } else {
+      
+      R0 <- matrix(0, ncol=nrow(R), nrow=nrow(R))
+      coefCov <- solve(rbind(cbind((XX1 %*% t(solve(sig))), t(R)), 
+                             cbind(R, R0)))[1:nrow(XX1), 1:nrow(XX1)]
+    }
     
     res$coefCov <- coefCov
 
@@ -173,13 +129,11 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, 
     dvs <- unlist(lapply(d, "[[", "DVobs"))
     B   <- diag(length(dvs))
     colnames(B) <- rownames(B) <- dvs
-    idx <- do.call("rbind",lapply(d, function(eq){
-      cbind(eq$DVobs, eq$IVobs, if (pcr) eq$coefficients else eq$coefficients[-1] )
-    }))
+    idx <- do.call("rbind",lapply(d, function(eq) cbind(eq$DVobs, eq$IVobs, eq$coefficients[-1])))
     idx <- idx[idx[,2] %in% dvs, ,drop = FALSE]
     B[idx[,2:1, drop = FALSE]] <- -1*as.numeric(idx[,3])
     
-    res$residCov <- t(B) %*% (if (pcr) estMat else sample.cov)[dvs,dvs] %*% B
+    res$residCov <- t(B) %*% sample.cov[dvs,dvs] %*% B
     
     # Sargan's test from sample covariances (Hayashi, p. 228)
     # TODO: Check for within-equation restrictions 
@@ -189,18 +143,6 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, 
     # TODO: I passed sample.cov, sample.mean and sample.obs
     #       in the results object. We could move this out 
     #       but then it would be calculated for est.only.
-    
-    if (pcr){
-      # TODO: Theoretical justification needed for Sargan based
-      #       on polychoric correlations.
-      d <- lapply(d, function(eq) { 
-        eq$sargan <-  NULL
-        eq$sargan.df <- NULL
-        eq$sargan.p <- NULL
-        eq
-      })
-      
-    } else {
     d <- lapply(d, function(eq) { 
       eq$sargan <-  (
         t(sample.cov[eq$MIIVs,eq$DVobs, drop = FALSE] - 
@@ -213,11 +155,11 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, 
       eq$sargan.df <- length(eq$MIIVs) - length(eq$IVobs)
       eq$sargan.p <- pchisq(eq$sargan, eq$sargan.df, lower.tail = FALSE)
       eq
-     })
-   }
+    })
+  }
 
   res$eqn <- d
   
   return(res)
-  }
+  
 }

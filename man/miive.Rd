@@ -8,7 +8,7 @@ miive(model = model, data = NULL, instruments = NULL, sample.cov = NULL,
   sample.mean = NULL, sample.nobs = NULL, sample.cov.rescale = TRUE,
   estimator = "2SLS", control = NULL, se = "standard",
   bootstrap = 1000L, est.only = FALSE, piv.opts = c(estimator =
-  "two.step", se = "standard"), miivs.check = TRUE)
+  "two.step", se = "standard"), miivs.check = TRUE, factor.vars = NULL)
 }
 \arguments{
 \item{model}{A model specified using lavaan model syntax or a \code{\link{miivs}} object. See the \code{model} argument within the \code{\link[lavaan]{lavaanify}} function for more information.}
@@ -38,6 +38,8 @@ miive(model = model, data = NULL, instruments = NULL, sample.cov = NULL,
 \item{piv.opts}{Options to pass to lavaan's \code{\link[lavCor]{lavCor}} function.}
 
 \item{miivs.check}{Options to turn off check for user-supplied instruments validity as MIIVs.}
+
+\item{factor.vars}{A vector of variable names to be treated as ordered factors in generating the polychoric correlation matrix.}
 }
 \value{
 A list of class \code{miive} containing the following elements:

@@ -16,6 +16,7 @@
 #' @param bootstrap Number of bootstrap draws, if bootstrapping is used.
 #' @param piv.opts Options to pass to lavaan's \code{\link[lavCor]{lavCor}} function.
 #' @param miivs.check Options to turn off check for user-supplied instruments validity as MIIVs.
+#' @param factor.vars A vector of variable names to be treated as ordered factors in generating the polychoric correlation matrix.
 #' @details 
 #' 
 #' \itemize{
@@ -62,7 +63,7 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
                   estimator = "2SLS", control = NULL, 
                   se = "standard", bootstrap = 1000L,
                   est.only = FALSE, piv.opts = c(estimator = "two.step", se = "standard"),
-                  miivs.check=TRUE){
+                  miivs.check=TRUE, factor.vars = NULL){
   
   #-------------------------------------------------------#  
   # Check class of model.
@@ -78,20 +79,16 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
     pt  <- res$pt
   } 
   
-  
-  # The estimation is done from covariance matrix and mean vector, 
-  # so these are calculated first
-  
-  if(!is.null(data)){
-    data <- data[complete.cases(data),]
-    sample.cov  <- cov(data)*(nrow(data)-1)/nrow(data)
-    sample.nobs <- nrow(data)
-    sample.mean <- colMeans(data)
-  }
-  
-  # A few basic sanity checks for user-supplied covariance matrices and
-  # mean vectors. 
+  #-------------------------------------------------------# 
+  # A few basic sanity checks for user-supplied covariance 
+  # matrices and mean vectors. Also, rescale cov.matrix.
+  #-------------------------------------------------------# 
   if(is.null(data)){
+    
+    if (!is.null(factor.vars)){
+      stop(paste("miive: raw data required for using factor variables."))
+    }
+    
     if (!is.vector(sample.mean)){
       stop(paste("miive: sample.mean must be a vector."))
     }
@@ -100,11 +97,49 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
       stop(paste("miive: sample.mean vector must have names."))
     }
     
-    if (names(sample.mean) != names(sample.cov)){
+    if (!all.equal(names(sample.mean),colnames(sample.cov), check.attributes = FALSE)){
       stop(paste("miive: names of sample.mean vector and sample.cov matrix must match."))
+    }
+    
+    # Rescale user-provided covariance matrix.
+    if(sample.cov.rescale & ! is.null(sample.cov)){
+      sample.cov <- sample.cov * (sample.nobs-1)/sample.nobs
     }
   }
   
+  #-------------------------------------------------------# 
+  # Check if any variables are categorical.
+  #-------------------------------------------------------# 
+  if (is.null(data)){
+    factorIndex <- FALSE
+  } else {
+    factorIndex <- vapply(data,is.factor, c(is.factor=FALSE))
+  }
+  
+  if(any(factorIndex)){
+    
+    # If factor.vars weren't given in the original input throw an error. 
+    if (is.null(factor.vars)){
+      stop(paste("miive: undeclared factors in dataset."))
+    }
+    
+    # If factor.vars don't match those passed to miive by user throw an error. 
+    if (!identical(sort(colnames(data)[factorIndex]),sort(factor.vars))){
+      stop(paste("miive: undeclared factors found in dataset or factor.vars."))
+    }
+
+  }
+  
+  #-------------------------------------------------------# 
+  # The estimation is done from covariance matrix and mean 
+  # vector, so these are calculated first
+  #-------------------------------------------------------# 
+  if(!is.null(data)){
+    data <- data[complete.cases(data),]
+    sample.cov  <- cov(data)*(nrow(data)-1)/nrow(data)
+    sample.nobs <- nrow(data)
+    sample.mean <- colMeans(data)
+  }
   
   #-------------------------------------------------------# 
   # parseInstrumentSyntax
@@ -113,6 +148,10 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
   #                returned from miivs search function.
   #           (2) instruments argument, null by default,
   #               if no instruments have been supplied.
+  #           (3) miivs.check, default is true.  Can be 
+  #               used to turn off miiv validity cehcks,
+  #               for example, if instruments are not in
+  #               model.
   #          
   #  return:  (1) updated 'd' 
   #
@@ -123,15 +162,6 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
   #-------------------------------------------------------#
   d  <- parseInstrumentSyntax(d, instruments, miivs.check)
   
-  
-  #-------------------------------------------------------#  
-  # Rescale user-provided covariance matrix.
-  #-------------------------------------------------------#
-  if(sample.cov.rescale & ! is.null(sample.cov)){
-    
-    sample.cov <- sample.cov * (sample.nobs-1)/sample.nobs
-    
-  }
   
   #-------------------------------------------------------#  
   # Build Restriction Matrices.
@@ -177,8 +207,7 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
   
   
   results <- switch(estimator,
-                    "PIV" = miive.piv(d, data, sample.cov, sample.mean, sample.nobs, est.only, restrictions, piv.opts = piv.opts),
-                    "2SLS" = miive.2sls(d, data, sample.cov, sample.mean, sample.nobs, est.only, restrictions),
+                    "2SLS" = miive.2sls(d, data, sample.cov, sample.mean, sample.nobs, est.only, restrictions, piv.opts, factorIndex),
                     "GMM" = miive.gmm(d, data, sample.cov, sample.mean, sample.nobs, est.only, restrictions), # Not implemented
                     # In other cases, raise an error
                     stop(paste("Invalid estimator:", estimator,"Valid estimators are: 2SLS, GMM, PIV"))

@@ -19,7 +19,7 @@ miivhelper.bindmatrices <- function(x, empty){
 }
 
 
-buildBlockDiag <- function(d, mat, row, col, inv = FALSE, pcr = FALSE){
+buildBlockDiag <- function(d, mat, row, col, inv = FALSE, pcr){
  
   res <- lavaan::lav_matrix_bdiag(
     if (inv){

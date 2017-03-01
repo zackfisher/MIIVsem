@@ -227,7 +227,7 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, 
    }
 
   res$eqn <- d
-  
+  res$restrictions <- restrictions
   return(res)
   }
 }

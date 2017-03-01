@@ -136,9 +136,11 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
   #-------------------------------------------------------# 
   if(!is.null(data)){
     data <- data[complete.cases(data),]
-    sample.cov  <- cov(data)*(nrow(data)-1)/nrow(data)
     sample.nobs <- nrow(data)
-    sample.mean <- colMeans(data)
+    if (!any(factorIndex)){
+      sample.cov  <- cov(data)*(nrow(data)-1)/nrow(data)
+      sample.mean <- colMeans(data)
+    }
   }
   
   #-------------------------------------------------------# 

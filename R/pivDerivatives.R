@@ -115,8 +115,12 @@ buildKmatrix <- function(d, pcr){
     posInfo <- merge(reg.varID, acmPos, by=c(1,2))
     posInfo <- posInfo[order(posInfo$order), ]
     
-    rowK <- rep(0, 1/2 * nrow(pcr)* (nrow(pcr)-1))
-    rowK[posInfo[,4]] <- eq$regDerivatives$deriv[,1]
+    # rowK <- rep(0, 1/2 * nrow(pcr)* (nrow(pcr)-1))
+    rowK <- matrix(0, nrow = ncol(eq$regDerivatives$deriv),
+                      ncol = 1/2 * nrow(pcr)* (nrow(pcr)-1))
+    
+    rowK[,posInfo[,4]] <- t(eq$regDerivatives$deriv)
+    
     rowK
   })
   return(do.call("rbind", krows))

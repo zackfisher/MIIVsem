@@ -28,6 +28,15 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, 
                       estimator = piv.opts["estimator"],
                       ordered = colnames(data)[factorIndex]))
     
+    # Generate the asymptotic covariance matrix of polychoric 		
+    # correlations.		
+    acov <- unclass(lavaan::vcov(lavaan::lavCor(data, output = "fit", 		
+            se = piv.opts["se"] ,estimator = piv.opts["estimator"],		
+            ordered = colnames(data)[factorIndex]	))) 
+    
+    # Remove thresholds from acov.pcr		
+    acov <- acov[1:(1/2*nrow(estMat)*(nrow(estMat)-1)),1:(1/2*nrow(estMat)*(nrow(estMat)-1))]
+  
   } else {
     
     pcr    <- FALSE
@@ -98,7 +107,7 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, 
 
   # Add coefficients to equations list.
   coefIndex <- unlist(lapply(seq_along(d), function(x) {
-    rep(x,(length(d[[x]]$IVobs)+ ifelse(pcr, 0, 1)))
+    rep(x,(length(d[[x]]$IVobs) + ifelse(pcr, 0, 1)))
   }))
   
   coefList  <- split(coef, coefIndex); 
@@ -134,7 +143,7 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, 
           eq
         })
         
-        K       <- buildKmatrix(d, pcr)
+        K       <- buildKmatrix(d, estMat)
         coefCov <- K %*% acov %*% t(K) 
         
       } else {
@@ -143,6 +152,7 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, 
       }
 
     } else { # begin SSCP
+      
       d <- lapply(d, function(eq) { 
         eq$sigma <-(sample.cov[eq$DVobs, eq$DVobs] + (t(eq$coefficients[-1]) %*% 
                     sample.cov[c(eq$IVobs), c(eq$IVobs)] %*% eq$coefficients[-1]) -

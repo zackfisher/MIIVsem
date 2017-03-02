@@ -4,10 +4,6 @@ print.miive <- function(x,  digits = max(3, getOption("digits") - 2),...){
   
   # MIIVsem version number
   cat(paste0("MIIVsem (", packageVersion("MIIVsem"),") results"), "\n", sep="")
-  cat(sprintf( "%-40s %s", "Number of observations", x$sample.nobs),"\n")
-  cat(sprintf( "%-40s %s", "Number of equations", length(x$eqn)),"\n")
-  cat(sprintf( "%-40s %s", "Estimator", x$estimator),"\n")
-  cat("\n")
   
   w1 <- 30 # width of column 1
   w2 <- 30 # width of column 2

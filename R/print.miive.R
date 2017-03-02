@@ -2,26 +2,23 @@
 #' @export
 print.miive <- function(x,  digits = max(3, getOption("digits") - 2),...){
   
-  header.mat <- as.data.frame(rbind(
-    c("Number of observations: ", x$sample.nobs),
-    c("Number of equations: ", length(x$eqn)),
-    c("Estimator: ", x$estimator)), row.names = NULL)
-  
-  for (i in 1:ncol(header.mat)) {
-    header.mat[, i] = format(header.mat[, i], 
-                            justify = ifelse(i == 1, "left", "right"))
-  }
-  
-  cat("\n")
-  cat(paste0("MIIVsem (", packageVersion("MIIVsem"),") results"), "\n")
-  cat("\n")
-  print(header.mat,quote = FALSE,row.names = FALSE, col.names = FALSE)
-  #cat("Number of observations:", x$sample.nobs, "\n")
-  #cat("Number of equations:", length(x$eqn), "\n")
-  #cat("Estimator:", x$estimator, "\n")
+  # MIIVsem version number
+  cat(paste0("MIIVsem (", packageVersion("MIIVsem"),") results"), "\n", sep="")
+  cat(sprintf( "%-40s %s", "Number of observations", x$sample.nobs),"\n")
+  cat(sprintf( "%-40s %s", "Number of equations", length(x$eqn)),"\n")
+  cat(sprintf( "%-40s %s", "Estimator", x$estimator),"\n")
   cat("\n")
   
-
+  w1 <- 30 # width of column 1
+  w2 <- 30 # width of column 2
+  
+  head.txt  <- do.call("rbind",
+               list(c("Number of observations", x$sample.nobs),
+                    c("Number of equations", length(x$eqn)),
+                    c("Estimator", x$estimator)))
+  for(i in 1:nrow(head.info)){
+    cat(sprintf("%-*s %*s\n", w1, head.txt[i,1], w2, head.txt[i, 2]));
+  }; cat("\n")
   
   # This is only temporary for debugging.
   # 

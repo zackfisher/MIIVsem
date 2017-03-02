@@ -13,20 +13,6 @@ derRegPIV <- function(Pvv, Pvz, Pvy){
   )
 }
 
-# Partial derivative of theta with respect to Pvv
-# derPvv <- function(Pvv, Pvz, Pvy){
-#   numDerPvv     <- function(vechPvv, Pvz, Pvy){
-#     matdim <- ceiling(sqrt(2*length(vechPvv)))
-#     Pvv    <- matrix(0, nrow = matdim, ncol = matdim)
-#     Pvv[col(Pvv) < row(Pvv)] <- vechPvv
-#     Pvv <- Pvv + t(Pvv)
-#     diag(Pvv) <- 1
-#     solve(t(Pvz)%*%solve(Pvv)%*%Pvz) %*% t(Pvz)%*%solve(Pvv) %*% Pvy
-#   }
-#   deriv <- t(numDeriv::jacobian(numDerPvv, Pvv[lower.tri(Pvv)], Pvz = Pvz, Pvy = Pvy))
-#   names <- t(combn(colnames(Pvv), 2))
-#   return(list(deriv = deriv, names = names))
-# }
 
 derPvv <- function(Pvv, Pvz, Pvy){
   U1    <- solve(t(Pvz) %*% solve(Pvv) %*% Pvz)
@@ -41,16 +27,6 @@ derPvv <- function(Pvv, Pvz, Pvy){
 }
 
 
-# Partial derivative of theta with respect to Pvz
-# derPvz <- function(Pvv, Pvz, Pvy){
-#   numDerPvz     <- function(Pvz, Pvv, Pvy){
-#     U  <- solve(t(Pvz) %*% solve(Pvv) %*% Pvz)
-#     U %*% (t(Pvz)%*% solve(Pvv) %*% Pvy)
-#   }
-#   deriv <- t(numDeriv::jacobian(numDerPvz, Pvz, Pvv = Pvv, Pvy = Pvy))
-#   names <- as.matrix(expand.grid(rownames(Pvz),colnames(Pvz)))
-#   return(list(deriv = deriv, names = names))
-# }
 derPvz <- function(Pvv, Pvz, Pvy){
   U     <- solve(t(Pvz) %*% solve(Pvv) %*% Pvz)
   TH    <- U %*% t(Pvz) %*% solve(Pvv) %*% Pvy
@@ -61,15 +37,7 @@ derPvz <- function(Pvv, Pvz, Pvy){
   return(list(deriv = deriv, names = names))
 }
 
-# Partial derivative of theta with respect to Pvy
-# derPvy <- function(Pvv, Pvz, Pvy){
-#   numDerPvy     <- function(Pvy, Pvz, Pvv){
-#     solve(t(Pvz)%*%solve(Pvv)%*%Pvz) %*% t(Pvz)%*%solve(Pvv) %*% Pvy
-#   }
-#   deriv <- t(numDeriv::jacobian(numDerPvy, Pvy, Pvz = Pvz, Pvv = Pvv))
-#   names <- as.matrix(expand.grid(rownames(Pvy),colnames(Pvy)))
-#   return(list(deriv = deriv, names = names))
-# }
+
 derPvy <- function(Pvv, Pvz, Pvy){
   deriv <- t(solve(t(Pvz) %*% solve(Pvv) %*% Pvz) %*% t(Pvz) %*% solve(Pvv))
   names <- as.matrix(expand.grid(rownames(Pvy),colnames(Pvy)))

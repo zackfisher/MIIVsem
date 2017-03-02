@@ -2,12 +2,26 @@
 #' @export
 print.miive <- function(x,  digits = max(3, getOption("digits") - 2),...){
   
+  header.mat <- as.data.frame(rbind(
+    c("Number of observations: ", x$sample.nobs),
+    c("Number of equations: ", length(x$eqn)),
+    c("Estimator: ", x$estimator)), row.names = NULL)
+  
+  for (i in 1:ncol(header.mat)) {
+    header.mat[, i] = format(header.mat[, i], 
+                            justify = ifelse(i == 1, "left", "right"))
+  }
+  
   cat("\n")
   cat(paste0("MIIVsem (", packageVersion("MIIVsem"),") results"), "\n")
   cat("\n")
-  cat("Number of observations:", x$sample.nobs, "\n")
-  cat("Number of equations:", length(x$eqn), "\n")
+  print(header.mat,quote = FALSE,row.names = FALSE, col.names = FALSE)
+  #cat("Number of observations:", x$sample.nobs, "\n")
+  #cat("Number of equations:", length(x$eqn), "\n")
+  #cat("Estimator:", x$estimator, "\n")
   cat("\n")
+  
+
   
   # This is only temporary for debugging.
   # 

@@ -36,6 +36,8 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, 
     
     # Remove thresholds from acov.pcr		
     acov <- acov[1:(1/2*nrow(estMat)*(nrow(estMat)-1)),1:(1/2*nrow(estMat)*(nrow(estMat)-1))]
+    
+    
   
   } else {
     
@@ -117,7 +119,9 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, 
   res <- list(coefficients = coef,
               sample.cov = sample.cov,
               sample.mean = sample.mean,
-              sample.nobs = sample.nobs)
+              sample.nobs = sample.nobs,
+              restrictions = restrictions,
+              estimator = ifelse(pcr, "MIIV-2SLS (PIV)", "MIIV-2SLS"))
 
   # Add coefficients to equations list.
   coefIndex <- unlist(lapply(seq_along(d), function(x) {
@@ -227,7 +231,6 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, 
    }
 
   res$eqn <- d
-  res$restrictions <- restrictions
   return(res)
   }
 }

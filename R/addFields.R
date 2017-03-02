@@ -24,8 +24,9 @@ addFields <- function(d, factorNames){
     cbind(eq$DVobs, eq$IVobs, eq$Label)
   })))
   
-  # restricted dependent variables
-  resDVs <- labs_i[duplicated(labs_i[,3,drop=FALSE]) & !is.na(labs_i[,3,drop=FALSE]),1]
+  # save labels for any coefficient that is constrained.
+  conLabs <- labs_i[duplicated(labs_i[,3,drop=FALSE]) & !is.na(labs_i[,3,drop=FALSE]),3]
+  resDVs  <- labs_i[labs_i[,3] %in% conLabs, 1]
   
   # add restricted field to equations list
   d <- lapply(d, function(eq){ 

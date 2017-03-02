@@ -26,7 +26,7 @@ parameterTable <- function(x){
     coef.mat <- cbind(coef.mat, sarganTests)
   }
   
-  
+  coef.mat[is.infinite(coef.mat[,"z-value"]),c("Std.Err","z-value","P(>|z|)")] <- NA
   
   # if(! is.null(x$varCoefs)){
   # 

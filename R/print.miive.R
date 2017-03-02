@@ -17,8 +17,6 @@ print.miive <- function(x,  digits = max(3, getOption("digits") - 2),...){
   
   coef.mat <- parameterTable(x)
   
-  coef.mat[is.infinite(coef.mat[,"z-value"]),c("Std.Err","z-value","P(>|z|)")] <- NA
-  
   print(coef.mat, digits = digits, na.print = "", quote = FALSE, justify = "none")
   
   if(! is.null(x$varCoefs)){

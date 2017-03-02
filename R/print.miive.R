@@ -3,7 +3,7 @@
 print.miive <- function(x,  digits = max(3, getOption("digits") - 2),...){
   
   # MIIVsem version number
-  cat(paste0("MIIVsem (", packageVersion("MIIVsem"),") results"), "\n", sep="")
+  cat(paste0("MIIVsem (", packageVersion("MIIVsem"),") results"), "\n\n")
   
   w1 <- 30 # width of column 1
   w2 <- 30 # width of column 2
@@ -12,7 +12,7 @@ print.miive <- function(x,  digits = max(3, getOption("digits") - 2),...){
                list(c("Number of observations", x$sample.nobs),
                     c("Number of equations", length(x$eqn)),
                     c("Estimator", x$estimator)))
-  for(i in 1:nrow(head.info)){
+  for(i in 1:nrow(head.txt)){
     cat(sprintf("%-*s %*s\n", w1, head.txt[i,1], w2, head.txt[i, 2]));
   }; cat("\n")
   

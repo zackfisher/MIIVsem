@@ -4,8 +4,8 @@
 \alias{miive.2sls}
 \title{Two-stage least square estimator for a system of equations}
 \usage{
-miive.2sls(d, data, sample.cov, sample.mean, sample.nobs, est.only,
-  restrictions, piv.opts, factorIndex)
+miive.2sls(d, data, sample.cov, sample.mean, sample.nobs, est.only, piv.opts,
+  factorIndex)
 }
 \arguments{
 \item{d}{a list containing the system of MIIV estimating equations}
@@ -16,11 +16,11 @@ miive.2sls(d, data, sample.cov, sample.mean, sample.nobs, est.only,
 
 \item{est.only}{should we only calculate coefficient estimates}
 
-\item{restrictions}{any equality constraints to be used in estimation}
-
 \item{piv.opts}{Options to pass to lavaan's \code{\link[lavCor]{lavCor}} function.}
 
 \item{factorIndex}{logical vector indexing whether variables are factors}
+
+\item{restrictions}{any equality constraints to be used in estimation}
 }
 \description{
 Two-stage least square estimator for a system of equations

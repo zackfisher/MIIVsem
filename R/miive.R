@@ -163,28 +163,19 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
   #           provided by the user are valid MIIVs.
   #-------------------------------------------------------#
   d  <- parseInstrumentSyntax(d, instruments, miivs.check)
-  
+  #-------------------------------------------------------# 
   
   #-------------------------------------------------------#  
-  # Build Restriction Matrices.
-  # returns NULL if there are no restrictions,
-  # otherwise returns a list containing the 'R' matrix
-  # and 'q' vector, as well as a vector 'cons' of 
-  # the constrained coefficients.
+  # Add logical "categorical" field to equation list "d" 
+  # where "categorical" is TRUE if any
+  # variables in the equation are categorical. This is 
+  # needed for the restrictions matrix.
+  #
+  # Add logical "restricted" field to equation if 
+  # the equation contains any restrictions
   #-------------------------------------------------------#  
-  restrictions <- buildRestrictMat(d)
-  #-------------------------------------------------------#  
-  
-  # TODO: Check that all specified variables exists in the data and
-  # throw an error if not.
-  
-  # TODO: Check if any variables are factors.  If so, 
-  # set 'estimator' to "PIV". 
-  
-  #estimator <- ifelse(any(
-  #   sapply(data[,unlist(unique(lapply(d,"[",c("DVobs","IVobs"))))], is.factor)
-  #  ), "PIV", estimator)
-    
+  d <- addFields(d, colnames(data)[factorIndex])
+  #-------------------------------------------------------# 
   
   #-------------------------------------------------------#
   # estimator: miive.2sls()
@@ -209,8 +200,8 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
   
   
   results <- switch(estimator,
-                    "2SLS" = miive.2sls(d, data, sample.cov, sample.mean, sample.nobs, est.only, restrictions, piv.opts, factorIndex),
-                    "GMM" = miive.gmm(d, data, sample.cov, sample.mean, sample.nobs, est.only, restrictions), # Not implemented
+                    "2SLS" = miive.2sls(d, data, sample.cov, sample.mean, sample.nobs, est.only, piv.opts, factorIndex),
+                    "GMM" = miive.gmm(d, data, sample.cov, sample.mean, sample.nobs, est.only), # Not implemented
                     # In other cases, raise an error
                     stop(paste("Invalid estimator:", estimator,"Valid estimators are: 2SLS, GMM, PIV"))
   )

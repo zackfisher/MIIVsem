@@ -28,16 +28,17 @@ parameterTable <- function(x){
   
   
   
-  if(! is.null(x$varCoefs)){
-  
-    # Temporary for debugging
-    colnames(x$varCoefs) <- c("lhs","rhs","Estimate")
+  # if(! is.null(x$varCoefs)){
+  # 
+  #   # Temporary for debugging
+  #   colnames(x$varCoefs) <- c("lhs","rhs","Estimate")
+  #   
+  #   tmp.mat <- matrix(NA, nrow = nrow(x$varCoefs), ncol = ncol(coef.mat))
+  #   colnames(tmp.mat) <- colnames(coef.mat)
+  #   tmp.mat[,"Estimate"] <- x$varCoefs[,"Estimate"]
+  #   rownames(tmp.mat) <- rownames(x$varCoefs)
+  #   coef.mat <- rbind(coef.mat, tmp.mat)
+  # }
     
-    tmp.mat <- matrix(NA, nrow = nrow(x$varCoefs), ncol = ncol(coef.mat))
-    colnames(tmp.mat) <- colnames(coef.mat)
-    tmp.mat[,"Estimate"] <- x$varCoefs[,"Estimate"]
-    rownames(tmp.mat) <- rownames(x$varCoefs)
-    coef.mat <- rbind(coef.mat, tmp.mat)
-  }
   return(coef.mat)
 }

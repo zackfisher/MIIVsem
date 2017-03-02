@@ -15,29 +15,9 @@ print.miive <- function(x,  digits = max(3, getOption("digits") - 2),...){
   #       RHS =~ LHS for latent variable and similar
   #       output when summary command is called.
   
-  coef.mat <- matrix(x$coefficients, ncol = 1, 
-                     dimnames = list(names(x$coefficients),"Estimate"))
+  coef.mat <- parameterTable(x)
   
-  if(! is.null(x$coefCov)){
-    
-    coef.mat <- cbind(coef.mat,
-                      Std.Err = sqrt(diag(x$coefCov)),
-                      "z-value" = x$coefficients/sqrt(diag(x$coefCov)),
-                      "P(>|z|)" = 2*(pnorm(abs(x$coefficients/sqrt(diag(x$coefCov))), lower.tail=FALSE)))
-  }
-  
-  if(! is.null(x$eqn[[1]]$sargan)){
-    sarganTests <- do.call(rbind,
-                           lapply(x$eqn, function(eq){
-                             cbind(c(eq$sargan, rep(NA, length(eq$coefficients)-1)),
-                                   c(eq$sargan.df, rep(NA, length(eq$coefficients)-1)),
-                                   c(eq$sargan.p, rep(NA, length(eq$coefficients)-1))
-                             )
-                           }))
-    
-    colnames(sarganTests) <- c("Sargan", "df", "P(Chi)")
-    coef.mat <- cbind(coef.mat, sarganTests)
-  }
+  coef.mat[is.infinite(coef.mat[,"z-value"]),c("Std.Err","z-value","P(>|z|)")] <- NA
   
   print(coef.mat, digits = digits, na.print = "", quote = FALSE, justify = "none")
   

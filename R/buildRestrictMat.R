@@ -4,14 +4,23 @@
 # and 'q' vector, as well as a vector 'cons' of 
 # the constrained coefficients.
 
-buildRestrictMat <- function(d){
+buildRestrictMat <- function(d, pcr){
   
   # vector containing dv_iv coefficient label
-  coef_i <- unlist(lapply(d,  function(x) paste0(x$DVobs,"_",c("(Intercept)",x$IVobs))))
-  
+  #coef_i <- unlist(lapply(d,  function(x) {paste0(x$DVobs,"_",c("(Intercept)",x$IVobs))}))
+  coef_i <- unlist(lapply(d,  function(eq) {
+    if (pcr) { 
+      paste0(eq$DVobs,"_",eq$IVobs) 
+    } else { 
+      paste0(eq$DVobs,"_",c("(Intercept)",eq$IVobs)) 
+    }
+  }))
   
   # vector containing labels (add an NA term to correspond with intercepts)
-  labs_i <- unlist(lapply(lapply(d, "[[", "Label"), function(x) c(NA, x)))
+  #labs_i <- unlist(lapply(lapply(d, "[[", "Label"), function(x) c(NA, x)))
+  labs_i <- unlist(lapply(d, function(eq){
+    if (pcr) eq$Label else c(NA, eq$Label)
+  }))
   
   # remove NAs from both vectors
   coef_j <- coef_i[!is.na(labs_i)]
@@ -36,6 +45,7 @@ buildRestrictMat <- function(d){
           # per label.
           primary   <- coef_j[labs_i == l][ 1L]
           secondary <- coef_j[labs_i == l][-1L]
+          
           tmp  <- paste0(primary,"=",secondary)
           cons <- c(cons, tmp)
         }

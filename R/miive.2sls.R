@@ -9,7 +9,7 @@
 #' @param factorIndex logical vector indexing whether variables are factors
 
 #'@keywords internal
-miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, restrictions, piv.opts, factorIndex){
+miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, piv.opts, factorIndex){
 
   # Build sum of squares and crossproducts matrix (SSCP).
   # From the means, covariances, and n's you can recover the
@@ -44,6 +44,20 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, 
     estMat <- buildSSCP(sample.cov, sample.nobs, sample.mean)
     
   }
+  
+  #-------------------------------------------------------#  
+  # Build Restriction Matrices.
+  # returns NULL if there are no restrictions,
+  # otherwise returns a list containing the 'R' matrix
+  # and 'q' vector, as well as a vector 'cons' of 
+  # the constrained coefficients.
+  #
+  # We throw an error here if there is a restriction 
+  # between a equation with d$categorical = TRUE and
+  # d$categorical = FALSE.
+  #-------------------------------------------------------#  
+  restrictions <- buildRestrictMat(d, pcr)
+  #-------------------------------------------------------#  
 
   # Construct the following matrices:
   # XY1: A vector of crossproducts of fitted values from the first stage
@@ -132,24 +146,10 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, 
     #       equation restrictions are present?
     
     if (pcr){ # begin PCR
-      if (is.null(restrictions)){
-        
-        # I do not know if this is valid but eq$sigma is required for
-        # the sargan test.
-        d <- lapply(d, function(eq) { 
-          eq$sigma <-(estMat[eq$DVobs, eq$DVobs] + (t(eq$coefficients) %*% 
-          estMat[c(eq$IVobs), c(eq$IVobs)] %*% eq$coefficients) -
-          (2 * estMat[eq$DVobs, c(eq$IVobs)] %*% eq$coefficients)) 
-          eq
-        })
-        
-        K       <- buildKmatrix(d, estMat)
-        coefCov <- K %*% acov %*% t(K) 
-        
-      } else {
-        # TODO: this must be implemented in the generatiion of polychoric acov.
-        stop(paste("miive: restrictions on coefficient covariance matrix not implemented."))
-      }
+
+      K       <- buildKmatrix(d, estMat)
+      coefCov <- K %*% acov %*% t(K) 
+
 
     } else { # begin SSCP
       

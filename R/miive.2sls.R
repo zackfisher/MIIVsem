@@ -76,7 +76,12 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, 
 
   # DV: Y; EV: Z; MIIVs: V
   # First calculate the part that is used in both equations.
-  ZVsVV <- ZV %*% chol2inv(chol(VV))
+  #ZVsVV <- ZV %*% chol2inv(chol(VV))
+  ZVsVV <- lavaan::lav_matrix_bdiag(lapply(d, function(eq){
+    estMat[c("1",eq[["IVobs"]]), c("1",eq[["MIIVs"]]), drop = FALSE] %*%
+      chol2inv(chol(estMat[c("1",eq[["MIIVs"]]), c("1",eq[["MIIVs"]]), drop = FALSE]))
+  }))
+  
   XX1   <- ZVsVV %*% t(ZV)
   XY1   <- ZVsVV %*% VY
   
@@ -208,9 +213,9 @@ miive.2sls <- function(d, data, sample.cov, sample.mean, sample.nobs, est.only, 
       # TODO: Theoretical justification needed for Sargan based
       #       on polychoric correlations.
       d <- lapply(d, function(eq) { 
-        eq$sargan <-  NULL
+        eq$sargan    <- NULL
         eq$sargan.df <- NULL
-        eq$sargan.p <- NULL
+        eq$sargan.p  <- NULL
         eq
       })
       

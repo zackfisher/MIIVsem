@@ -135,7 +135,7 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
   # vector, so these are calculated first
   #-------------------------------------------------------# 
   if(!is.null(data)){
-    data <- data[complete.cases(data),]
+    data        <- data[complete.cases(data),]
     sample.nobs <- nrow(data)
     if (!any(factorIndex)){
       sample.cov  <- cov(data)*(nrow(data)-1)/nrow(data)

@@ -6,9 +6,8 @@
 \usage{
 miive(model = model, data = NULL, instruments = NULL, sample.cov = NULL,
   sample.mean = NULL, sample.nobs = NULL, sample.cov.rescale = TRUE,
-  estimator = "2SLS", control = NULL, se = "standard",
-  bootstrap = 1000L, est.only = FALSE, piv.opts = c(estimator =
-  "two.step", se = "standard"), miivs.check = TRUE, factor.vars = NULL)
+  estimator = "2SLS", se = "standard", bootstrap = 1000L,
+  est.only = FALSE, miiv.check = TRUE, factor.vars = NULL)
 }
 \arguments{
 \item{model}{A model specified using lavaan model syntax or a \code{\link{miivs}} object. See the \code{model} argument within the \code{\link[lavaan]{lavaanify}} function for more information.}
@@ -21,13 +20,11 @@ miive(model = model, data = NULL, instruments = NULL, sample.cov = NULL,
 
 \item{sample.mean}{A sample mean vector.}
 
-\item{sample.nobs}{Number of observations if the full data frame is missing and only sample moments are given.}
+\item{sample.nobs}{Number of observations in the full data frame.}
 
 \item{sample.cov.rescale}{If \code{TRUE}, the sample covariance matrix provided by the user is internally rescaled by multiplying it with a factor (N-1)/N.}
 
-\item{estimator}{Options \code{"2SLS"}, \code{"GMM"} or \code{"PIV"} for estimating the model parameters. Default is \code{"2SLS"}.}
-
-\item{control}{.}
+\item{estimator}{Options \code{"2SLS"} or \code{"GMM"} for estimating the model parameters. Default is \code{"2SLS"}.}
 
 \item{se}{If "standard", conventional closed form standard errors are computed. If "boot" or "bootstrap", bootstrap standard errors are computed using standard bootstrapping.}
 
@@ -35,11 +32,9 @@ miive(model = model, data = NULL, instruments = NULL, sample.cov = NULL,
 
 \item{est.only}{If \code{TRUE}, only the coefficients are returned.}
 
-\item{piv.opts}{Options to pass to lavaan's \code{\link[lavCor]{lavCor}} function.}
+\item{factor.vars}{A vector of variable names to be treated as ordered factors in generating the polychoric correlation matrix.}
 
 \item{miivs.check}{Options to turn off check for user-supplied instruments validity as MIIVs.}
-
-\item{factor.vars}{A vector of variable names to be treated as ordered factors in generating the polychoric correlation matrix.}
 }
 \value{
 A list of class \code{miive} containing the following elements:
@@ -57,7 +52,8 @@ Estimate SEM models using model-implied instrumental variables (MIIVs).
 }
 \details{
 \itemize{
-\item{\code{instruments}} {Using the \code{instruments} option you can specify the MIIVs directly for each equation in the model.
+\item{\code{instruments}} {
+  Using the \code{instruments} option you can specify the MIIVs directly for each equation in the model.
   To utilize this option you must first define a list of instruments using the syntax displayed below. After the list is defined, 
   set the \code{instruments} argument equal to the name of the list of MIIVs. Note, \code{instruments} are specified for an equation,
   and not for a specific endogenous variable.}
@@ -154,5 +150,5 @@ Equation	Modeling:	Present	and	Future,	A	Festschrift	in	Honor	of	Karl
 Joreskog	(pp. 119-138).	Lincoln,	IL: Scientific	Software.
 }
 \seealso{
-\link{\code{miivs}}
+\link{MIIVsem}{miivs}
 }

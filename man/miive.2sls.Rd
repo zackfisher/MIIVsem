@@ -4,25 +4,36 @@
 \alias{miive.2sls}
 \title{Two-stage least square estimator for a system of equations}
 \usage{
-miive.2sls(d, data, sample.cov, sample.mean, sample.nobs, est.only, piv.opts,
-  factorIndex)
+miive.2sls(d, g, r, est.only)
 }
 \arguments{
-\item{d}{a list containing the system of MIIV estimating equations}
+\item{d}{a list containing equation information}
 
-\item{sample.cov}{sample covariance matrix}
+\item{g}{a list containing data information}
 
-\item{sample.nobs}{number of observations}
+\item{r}{a list containing coefficient restrictions}
 
 \item{est.only}{should we only calculate coefficient estimates}
-
-\item{piv.opts}{Options to pass to lavaan's \code{\link[lavCor]{lavCor}} function.}
-
-\item{factorIndex}{logical vector indexing whether variables are factors}
-
-\item{restrictions}{any equality constraints to be used in estimation}
 }
 \description{
 Two-stage least square estimator for a system of equations
+}
+\details{
+MIIV estimation using estimation functions. An 
+estimation function retuns a list containing the
+following elements:
+
+coefficients - a vector of estimated coefficients
+coefCov      - variance covariance matrix of the estimates
+               (optional, depending on the est.only argument)
+residCov     - variance covariance matrix of the equation
+               disturbances (optional, depending on the 
+               est.only argument).
+eqn -          a list of miiv equations and equation level
+               estimation results. fields added include:
+                 coefficients: coefficients
+                 sigma       : equation sigma^2
+                 sargan      : Sargan's test statistic
+                 sargan.df   : df freedom for Sargan's
 }
 \keyword{internal}

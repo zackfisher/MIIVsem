@@ -1,7 +1,7 @@
 #' @method print miive 
 #' @export
-print.miive <- function(x,  digits = max(3, getOption("digits") - 2),...){
-  
+print.miive <- function(x,...){
+
   # MIIVsem version number
   cat(paste0("MIIVsem (", packageVersion("MIIVsem"),") results"), "\n\n")
   
@@ -24,7 +24,11 @@ print.miive <- function(x,  digits = max(3, getOption("digits") - 2),...){
   
   coef.mat <- parameterTable(x)
   
-  print(coef.mat, digits = digits, na.print = "", quote = FALSE, justify = "none")
+  coef.mat.df <- as.data.frame(coef.mat)
+  coef.mat <- as.matrix(format.data.frame(coef.mat.df, digits = 3, na.encode = FALSE))
+  coef.mat[is.na(coef.mat.df)] <- NA
+  
+  print(coef.mat, digits = 3, na.print = "", quote = FALSE, justify = "none")
   
   if(! is.null(x$varCoefs)){
     

@@ -1,6 +1,6 @@
 #' @export
-parameterTable <- function(x){
-  
+parameterTable <- function(x, digits = max(3, getOption("digits"))){
+
     coef.mat <- matrix(x$coefficients, ncol = 1, 
                      dimnames = list(names(x$coefficients),"Estimate"))
   
@@ -13,12 +13,14 @@ parameterTable <- function(x){
                       "P(>|z|)" = 2*(pnorm(abs(x$coefficients/sqrt(diag(x$coefCov))), lower.tail=FALSE)))
   }
   
-  if(! is.null(x$eqn[[1]]$sargan)){
+    
+  if(any(unlist(lapply(x$eqn, function(eq) !is.na(eq$sargan))))){
     sarganTests <- do.call(rbind,
                            lapply(x$eqn, function(eq){
-                             cbind(c(eq$sargan, rep(NA, length(eq$coefficients)-1)),
-                                   c(eq$sargan.df, rep(NA, length(eq$coefficients)-1)),
-                                   c(eq$sargan.p, rep(NA, length(eq$coefficients)-1))
+                             cbind(
+                               c(eq$sargan, rep(NA, length(eq$coefficients)-1)),
+                               c(eq$sargan.df, rep(NA, length(eq$coefficients)-1)),
+                               c(eq$sargan.p, rep(NA, length(eq$coefficients)-1))
                              )
                            }))
     

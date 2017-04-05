@@ -19,10 +19,8 @@ derPvv <- function(Pvv, Pvz, Pvy){
   U2    <- t(Pvz) %*% solve(Pvv) %*% Pvy
   TERM1 <- kronecker(t(solve(Pvv)%*%Pvz%*%U1 %*%U2),U1 %*% t(Pvz)%*%solve(Pvv))
   TERM2 <- kronecker(t(solve(Pvv)%*%Pvy),U1 %*% t(Pvz)%*%solve(Pvv)) 
-  
   deriv <- t((TERM1 - TERM2) %*% buildDuplicator(nrow(Pvv)))
   names <- t(combn(colnames(Pvv), 2))
-  
   return(list(deriv = deriv, names = names))
 }
 
@@ -32,7 +30,7 @@ derPvz <- function(Pvv, Pvz, Pvy){
   TH    <- U %*% t(Pvz) %*% solve(Pvv) %*% Pvy
   ER    <- (Pvy) - (Pvz %*% TH) 
   deriv <- t(kronecker(U, t(solve(Pvv) %*% ER)) - 
-               kronecker(t(TH), U %*% t(Pvz) %*% solve(Pvv)))
+             kronecker(t(TH), U %*% t(Pvz) %*% solve(Pvv)))
   names <- as.matrix(expand.grid(rownames(Pvz),colnames(Pvz)))
   return(list(deriv = deriv, names = names))
 }
@@ -44,34 +42,82 @@ derPvy <- function(Pvv, Pvz, Pvy){
   return(list(deriv = deriv, names = names))
 }
 
-
-buildKmatrix <- function(d, pcr){
+buildCategoricalK <- function(eq, mat){
   
-  # Calculate and store the partial derivatives for
-  # each equation in the system,
-  td <- lapply(d, function(eq){
-    eq$regDerivatives <- derRegPIV(pcr[eq$MIIVs, eq$MIIVs, drop = FALSE], 
-                                   pcr[eq$MIIVs, eq$IVobs, drop = FALSE], 
-                                   pcr[eq$MIIVs, eq$DVobs, drop = FALSE])
-    eq
-  })
-  
-  # td <- td[[1]]
+  eq$regDerivatives <- derRegPIV(
+    mat[eq$MIIVs, eq$MIIVs, drop = FALSE], 
+    mat[eq$MIIVs, eq$IVobs, drop = FALSE], 
+    mat[eq$MIIVs, eq$DVobs, drop = FALSE]
+  )
   
   # acmPos is a matrix containing the rho_{i,j} indices where i 
   # (column 1) and j (column 2) refer to the position of the 
   # variable (column 3) in the symmetric polychoric  
   # correlation matrix. 
-  acmPos <- apply(t(combn(colnames(pcr), 2)), 2, function(x){
-    match(x, colnames(pcr))
+  
+  acmPos <- apply(t(combn(colnames(mat), 2)), 2, function(x){
+    match(x, colnames(mat))
   })
   acmPos <- cbind(acmPos, c(1:nrow(acmPos)))  
+  
+  reg.varID <- apply(eq$regDerivatives$names, 2, function(x){
+    match(x, colnames(mat))
+  })
+  
+  # In reg.varID we need to order the rows so that col1 < col2
+  reg.varID <- transform(reg.varID, 
+                         min = pmin(Var1, Var2), 
+                         max = pmax(Var1, Var2))[,-c(1:2)]
+  
+  # merge changes the order so this needs to be corrected.
+  reg.varID$order <- seq(1:nrow(reg.varID))
+  posInfo <- merge(reg.varID, acmPos, by=c(1,2))
+  posInfo <- posInfo[order(posInfo$order), ]
+  
+  rowK <- matrix(0, ncol(eq$regDerivatives$deriv), 1/2*nrow(mat)^2)
+  rowK[,posInfo[,4]] <- t(eq$regDerivatives$deriv)
+  rowK
+}
+
+buildKmatrix <- function(eq, g){
+  
+  # Calculate and store the partial derivatives for
+  # each equation in the system,
+  td <- lapply(d, function(eq){
+    if (any(eq$categorical)){
+      eq$regDerivatives <- derRegPIV(
+        g$sample.polychoric[eq$MIIVs, eq$MIIVs, drop = FALSE], 
+        g$sample.polychoric[eq$MIIVs, eq$IVobs, drop = FALSE], 
+        g$sample.polychoric[eq$MIIVs, eq$DVobs, drop = FALSE])
+
+    } else {
+      eq$regDerivatives <- derRegPIV(
+        g$sample.sscp[c("1", eq$MIIVs), c("1", eq$MIIVs), drop = FALSE], 
+        g$sample.sscp[c("1", eq$MIIVs), c("1", eq$IVobs), drop = FALSE], 
+        g$sample.sscp[c("1", eq$MIIVs), eq$DVobs, drop = FALSE])
+    }
+    eq
+  })
+
+  # acmPos is a matrix containing the rho_{i,j} indices where i 
+  # (column 1) and j (column 2) refer to the position of the 
+  # variable (column 3) in the symmetric polychoric  
+  # correlation matrix. 
+  
+  acmPos <- apply(t(combn(colnames(g$sample.polychoric), 2)), 2, function(x){
+    match(x, colnames(g$sample.polychoric))
+  })
+  acmPos <- cbind(acmPos, c(1:nrow(acmPos)))  
+  
+  
   # View(cbind(acmPos, colnames(acov)))
   krows <- lapply(td, function(eq){ # eq <- td[[1]]
     
-    reg.varID <- apply(eq$regDerivatives$names, 2, function(x){
-      match(x, colnames(pcr))
-    })
+    if (any(eq$categorical)){
+    
+      reg.varID <- apply(eq$regDerivatives$names, 2, function(x){
+        match(x, colnames(g$sample.polychoric))
+      })
     
     # In reg.varID we need to order the rows so that col1 < col2
     reg.varID <- transform(reg.varID, 
@@ -84,15 +130,16 @@ buildKmatrix <- function(d, pcr){
     posInfo <- posInfo[order(posInfo$order), ]
     
     rowK <- matrix(0, nrow = ncol(eq$regDerivatives$deriv),
-                      ncol = 1/2 * nrow(pcr)* (nrow(pcr)-1))
+                      ncol = ncol(g$asymptotic.cov))
     
     # If the equation is restricted don't add the derivatives
-    
-    if (!eq$restricted){
-      rowK[,posInfo[,4]] <- t(eq$regDerivatives$deriv)
-    } 
+    rowK[,posInfo[,4]] <- t(eq$regDerivatives$deriv)
+    # if (!eq$restricted){
+    #   rowK[,posInfo[,4]] <- t(eq$regDerivatives$deriv)
+    # } 
     
     rowK
+    }
   })
   return(do.call("rbind", krows))
 }

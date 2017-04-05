@@ -80,17 +80,20 @@ miive.2sls <- function(d, g, r, est.only){
     
     coefficients <- as.numeric(
       (solve(rbind(cbind(lavaan::lav_matrix_bdiag(XX1), t(r$R)), 
-       cbind(r$R, R0))) %*% rbind(unlist(XY1), r$q))[1:ncol(r$R),]
+       cbind(r$R, R0))) %*% rbind(cbind(unlist(XY1)), r$q))[1:ncol(r$R),]
     )
+    
+    names(coefficients) <- unlist(lapply(d, function(eq) {
+      paste0(eq$DVlat,"~", if(eq$categorical) eq$IVlat else c("1",eq$IVlat))
+    }))
     
     # Add coefficients to equations list.
     coefList <- split(coefficients, unlist(lapply(seq_along(d), function(x){
-      z <- rep(x,(length(d[[x]]$IVobs) + ifelse(d[[x]]$categorical, 0, 1)))
-      names(z) <- paste0(eq[[x]]$DVlat,"~", if(eq[[x]]$categorical) eq[[x]]$IVlat else c("1",eq[[x]]$IVlat))
-      z
+      rep(x,(length(d[[x]]$IVobs) + ifelse(d[[x]]$categorical, 0, 1)))
     })))
     
-    d  <- lapply(seq_along(d), function(x){eq[[x]]$coefficients <- coefList[x]; eq}) 
+    names(coefList) <- rep("coefficients", length(coefList))
+    d  <- lapply(seq_along(d), function(x){append(d[[x]],coefList[x])}) 
     
   } 
   
@@ -124,16 +127,16 @@ miive.2sls <- function(d, g, r, est.only){
         d
         }, d, XX1, SIMPLIFY = FALSE)
         
+        coefCov <- lavaan::lav_matrix_bdiag(lapply(d,"[[","coefCov"))
+        rownames(coefCov) <- colnames(coefCov) <- names(coefficients)
         
-        
-        
-
       } else {
         
         sig  <- diag(unlist(lapply(d, function(eq)rep(eq$sigma, length(eq$coefficients)))))
         XX1F <- lavaan::lav_matrix_bdiag(XX1)
         coefCov <- solve(rbind(cbind((XX1F %*% t(solve(sig))), t(r$R)),
                                cbind(r$R, R0)))[1:nrow(XX1F), 1:nrow(XX1F)]
+        rownames(coefCov) <- colnames(coefCov) <- names(coefficients)
       }
     } 
     
@@ -150,8 +153,7 @@ miive.2sls <- function(d, g, r, est.only){
       
     }
     
-    coefCov <- lavaan::lav_matrix_bdiag(lapply(d,"[[","coefCov"))
-    rownames(coefCov) <- colnames(coefCov) <- names(coefficients)
+
     # Calculate the residual covariance matrix for the full system of
     # equations based on covariance matrix input.
 
@@ -171,8 +173,9 @@ miive.2sls <- function(d, g, r, est.only){
     # rownames(residCov) <- colnames(residCov) <- unlist(lapply(d,"[","DVlat"))
 
     # Sargan's test (Hayashi, p. 228)
+    # what about restrictions?
     d <- lapply(d, function(eq) {
-      if (eq$categorical | eq$restricted){
+      if (eq$categorical){
         eq$sargan    <- NA
         eq$sargan.df <- NA
         eq$sargan.p  <- NA

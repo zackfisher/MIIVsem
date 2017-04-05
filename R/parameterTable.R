@@ -29,7 +29,7 @@ parameterTable <- function(x, digits = max(3, getOption("digits"))){
   }
   
   coef.mat[is.infinite(coef.mat[,"z-value"]),c("Std.Err","z-value","P(>|z|)")] <- NA
-  
+  coef.mat <- round(coef.mat, digits)
   # if(! is.null(x$varCoefs)){
   # 
   #   # Temporary for debugging

@@ -144,17 +144,22 @@ processData <- function(data = data,
         ordered = factor.vars 
       )
       
+      
+      sample.sscp <- NULL
+ 
       # Polychoric correlation matrix. 
       sample.polychoric <- unclass(lavaan::inspect(fit, "cov.ov"))
       
       # Asymptotic covariance matrix of polychoric correlations. 
       asymptotic.cov  <- unclass(lavaan::inspect(fit, "vcov"))
       
-      # Remove thresholds.
-      asymptotic.cov  <- asymptotic.cov[
-        1:(1/2*nrow(sample.polychoric)*(nrow(sample.polychoric))),
-        1:(1/2*nrow(sample.polychoric)*(nrow(sample.polychoric)))
-      ]
+      ordered.varnames <- apply(t(combn(colnames(sample.polychoric), 2)), 1, function(x){
+        paste0(x[1], "~~", x[2])
+      })
+      
+      # Reorder asymptotic covariance matrix.
+      asymptotic.cov  <- asymptotic.cov[ordered.varnames, ordered.varnames]
+
 
     } else {
       
@@ -215,7 +220,7 @@ processData <- function(data = data,
         sample.sscp <- buildSSCP(sample.cov, sample.mean, sample.nobs)
         if( is.null(factor.vars) ){ asymptotic.cov <- NULL }
       }
-    } # end continuous only
+    } 
   
   }
  

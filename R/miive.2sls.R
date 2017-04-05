@@ -151,6 +151,9 @@ miive.2sls <- function(d, g, r, est.only){
         eq
       })
       
+      coefCov <- lavaan::lav_matrix_bdiag(lapply(d,"[[","coefCov"))
+      rownames(coefCov) <- colnames(coefCov) <- names(coefficients)
+      
     }
     
 

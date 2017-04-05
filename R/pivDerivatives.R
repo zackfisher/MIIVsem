@@ -74,7 +74,7 @@ buildCategoricalK <- function(eq, mat){
   posInfo <- merge(reg.varID, acmPos, by=c(1,2))
   posInfo <- posInfo[order(posInfo$order), ]
   
-  rowK <- matrix(0, ncol(eq$regDerivatives$deriv), 1/2*nrow(mat)^2)
+  rowK <- matrix(0, ncol(eq$regDerivatives$deriv), ncol(combn(colnames(mat), 2)))
   rowK[,posInfo[,4]] <- t(eq$regDerivatives$deriv)
   rowK
 }
@@ -130,7 +130,7 @@ buildKmatrix <- function(eq, g){
     posInfo <- posInfo[order(posInfo$order), ]
     
     rowK <- matrix(0, nrow = ncol(eq$regDerivatives$deriv),
-                      ncol = ncol(g$asymptotic.cov))
+                      ncol = ncol(combn(colnames(mat), 2)))
     
     # If the equation is restricted don't add the derivatives
     rowK[,posInfo[,4]] <- t(eq$regDerivatives$deriv)

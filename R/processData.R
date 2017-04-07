@@ -121,19 +121,44 @@ processData <- function(data = data,
     var.nobs        <- nrow(data) - colSums(is.na(data))
     var.missing     <- sapply(var.nobs, function(x) ifelse(x==sample.nobs, FALSE, TRUE))
     var.categorical <- vapply(data, is.factor, c(is.factor=FALSE))
+    
+    
+    # data <- bollen1989a
+    # var.categorical <- c(T,T,T,rep(F, 8))
+    # factor.vars <- c("y2")
+    # 
+    # var.categorical <- c(F,T,F,rep(F, 8))
+    # factor.vars <- c("y2", "y3")
 
     if( any(var.categorical) | !is.null(factor.vars) ){ 
       
-      # if there are factors in data not given by the user
-      
-      if (is.null(factor.vars)){
-        stop(paste("miive: undeclared factors in dataset.", 
-                   "use the factor.vars argument to specify "))
+      if (any(var.categorical)) { ## are there any factors in the data
+        ## if there are undeclared factors throw an error
+        if (length(setdiff(colnames(data)[var.categorical],factor.vars)) > 1){
+          msg <- c("miive: the following undeclared factors were found in data: ", 
+                   paste0(
+                     setdiff(colnames(data)[var.categorical],factor.vars), 
+                   collapse = ", "
+                   ), 
+                   ". Use the factor.vars argument to specify categorical variables.")
+          
+          stop(paste0(msg))
+        }
       }
       
-      #if (!identical(sort(colnames(data[,is.factor(data)])),sort(factor.vars))){
-      #  stop(paste("miive: factor variables in data and factor.vars argument do not match."))
-      #}
+      # convert any variables listed in factor.vars to categorical
+      data[,factor.vars] <- lapply(data[,factor.vars], ordered)
+      var.categorical    <- vapply(data, is.factor, c(is.factor=FALSE))
+  
+      # are there any exogenous categorical variables in data?
+      
+      if(length(pt[pt$op =="~~" & pt$exo == 1L, "lhs"]) > 1){
+        if (length(intersect(pt[pt$op =="~~" & pt$exo == 1L, "lhs"],factor.vars)) > 1){
+          ov.names.x <- intersect(pt[pt$op =="~~" & pt$exo == 1L, "lhs"],factor.vars)
+        } else {
+          ov.names.x <- NULL
+        }
+      }
       
       fit <- lavaan::lavCor(
         data, 
@@ -141,6 +166,7 @@ processData <- function(data = data,
         missing = "pairwise",
         estimator = piv.opts["estimator"],
         se = piv.opts["se"],
+        ov.names.x = ov.names.x,
         ordered = factor.vars 
       )
       

@@ -128,7 +128,7 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
   #-------------------------------------------------------# 
   # Process data. See documentation of processRawData. 
   #-------------------------------------------------------# 
-  g <- processData(data, sample.cov, sample.mean, sample.nobs, factor.vars)
+  g <- processData(data, sample.cov, sample.mean, sample.nobs, factor.vars, pt)
   
   
   #-------------------------------------------------------#  

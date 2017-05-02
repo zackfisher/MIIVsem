@@ -100,7 +100,7 @@ estimatesTable <- function(x, digits = max(3, getOption("digits"))){
       rep(eq$sargan.p, length(eq$coefficients))})
       #c(eq$sargan.p, rep(NA, length(eq$coefficients)-1))})
     ), 
-    "eq" = unlist(lapply(x$eqn[meas.eqns], function(eq){
+    "eq" = unlist(lapply(x$eqn[str.eqns], function(eq){
       rep(eq$EQnum, length(eq$coefficients))})
     ), 
     stringsAsFactors = FALSE

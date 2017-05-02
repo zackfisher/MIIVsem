@@ -120,6 +120,22 @@ print.miive <- function(fit,...){
     }
   }
   
+  if(!is.null(x$se)) {
+    
+    se.idx <- which(is.na(x$se))
+    
+    if(length(se.idx) > 0L) {
+      m[se.idx, "se"] <- ""
+      
+      if(!is.null(x$z)) {
+        m[se.idx, "z"] <- ""
+      }
+      if(!is.null(x$pvalue)) {
+        m[se.idx, "pvalue"] <- ""
+      }
+    }
+  }
+  
   # rename some column names
   colnames(m)[ colnames(m) ==     "lhs" ] <- ""
   colnames(m)[ colnames(m) ==      "op" ] <- ""

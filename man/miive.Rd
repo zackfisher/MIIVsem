@@ -68,8 +68,8 @@ Estimate SEM models using model-implied instrumental variables (MIIVs).
   on the standard deviation of successful bootstrap replications.  The 
   \code{z-value} and \code{P(>|z|)} assume the ratio of the coefficient 
   estimate to the bootstrap standard deviation approximates a normal 
-  distribution.  Note, the Sargan test statistic is calculated from the original 
-  sample and is not a bootstrap estimate.
+  distribution.  Note, the Sargan test statistic is calculated from the 
+  original sample and is not a bootstrap estimate.
   }
 }
 }

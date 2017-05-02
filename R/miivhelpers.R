@@ -39,7 +39,7 @@ buildBlockDiag <- function(d, mat, row, col, inv = FALSE, pcr){
 
 createModelSyntax <- function(eqns, pt){ # eqns <- results$eqn
   # Fill parTable with fixed regression coefficients.
-  r <- unlist(sapply(eqns,"[[", c("coefficients")))
+  r <- unlist(lapply(eqns,"[[", c("coefficients")))
   z <- cbind(do.call(rbind, strsplit(names(r), "~")), r)
   #z <- z[which(z[,2]!="1"),] # cuts down on nrow
   

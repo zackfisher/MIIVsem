@@ -2,10 +2,9 @@
 #' @export
 print.miive <- function(fit,...){
   
-  fit <- x
   # What esimtators were used?
   eq.estimators <- unlist(lapply(fit$eqn, function(eq){
-    if (x$estimator == "2SLS"){
+    if (fit$estimator == "2SLS"){
       if (eq$categorical){
         "MIIV-2SLS (PIV)"
       } else {
@@ -46,16 +45,16 @@ print.miive <- function(fit,...){
   if (fit$se  %in% c("boot", "bootstrap")){
     boot.txt  <- do.call("rbind",
       list(
-        c("Bootstrap iterations", fit$bootstrap)
+        c("Bootstrap reps requested", fit$bootstrap),
+        c("Bootstrap reps successful", fit$bootstrap.true)
       )
     )
     for(i in 1:nrow(boot.txt)){
       cat(sprintf("%-*s %*s\n", w1, boot.txt[i,1], w2, boot.txt[i, 2]));
-    }; cat("\n")
-  } else {
-    cat("\n")
-  }
+    }
+  } 
   
+  cat("\n")
   
   ## code taken from the extraordinary
   ## lavan::lav_print function
@@ -67,7 +66,8 @@ print.miive <- function(fit,...){
                  "VARIANCES",
                  "COVARIANCES")
   
-  x <- estimatesTable(fit)
+  x    <- estimatesTable(fit)
+  x$eq <- NULL
   
   nd          <- 3L
   num.format  <- paste("%", max(8, nd + 5), ".", nd, "f", sep = "")

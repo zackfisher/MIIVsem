@@ -186,44 +186,31 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
   #-------------------------------------------------------#
   if (var.cov){
     
-    v <- estVarCovar(data, results$eqn, d.un, pt, ordered)
-
+    vcov.model <- createModelSyntax(results$eqn, pt)
+    v <- estVarCovar(data, vcov.model, ordered)
+    
   } else {
     
     v <- NULL
     
   }
 
-  
-  # First fill the lavaan parTable with all regression style
-  # coefficients and update the modely syntax.
-  #modSyntax <- createModelSyntax(results$eqn, pt)
-
-  # Obtain the variance and covariance point estimates.
-  # if (estimator == "PIV"){
-  #   varCoefs <- lavaan::parameterEstimates(lavaan::sem(
-  #     modSyntax,
-  #     data,
-  #     ordered = colnames(data)[!apply(data,2,is.numeric)],
-  #     estimator =  "ULS", # piv.opts["estimator"],
-  #   ))
-  # } else {
-  #   varCoefs <- lavaan::parameterEstimates(lavaan::sem(
-  #     modSyntax,
-  #     sample.cov = sample.cov, 
-  #     sample.nobs =sample.nobs,
-  #     estimator =  "ULS"
-  #   ))
-  # }
-  # varCoefs <- varCoefs[varCoefs$op == "~~" & !is.na(varCoefs$z),c("lhs", "rhs", "est")]
-  # rownames(varCoefs) <- paste0(varCoefs$lhs, "~~",varCoefs$rhs)
-  # results$varCoefs <- varCoefs
-  #results$varCoefs <- NULL
   #-------------------------------------------------------#
   # Boostrap and substitute closed form SEs with boostrap SEs
   #-------------------------------------------------------#
   
   if(se == "boot" | se == "bootstrap"){
+    
+    # Do this outside of the bootstrap loop
+    if (var.cov){
+      
+      if(length(d.un) > 0){
+        stop(paste("MIIVsem: variance covariance esimtation not",
+                   "allowed in the presence of underidentified",
+                   "equations."))
+      }
+      
+    }
     
     boot.results <- boot::boot(data, function(origData, indices){
       
@@ -238,21 +225,26 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
         pt = pt
       )
       
+      
       brep <- switch(
         estimator,
         "2SLS" = miive.2sls(d, d.un, g, r, est.only = TRUE),
         "GMM"  = miive.gmm(d, d.un, g, r, est.only = TRUE), # Not implemented
         # In other cases, raise an error
-        stop(paste("Invalid estimator:", estimator, "Valid estimators are: 2SLS, GMM"))
+        stop(paste(
+          "Invalid estimator:", 
+          estimator, 
+          "Valid estimators are: 2SLS, GMM")
+        )
       )
       
       if (var.cov){
         
-        c(brep$coefficients, 
-          estVarCovar(
-            bsample,brep$eqn, d.un, pt, ordered
-          )$coefficients
-        )
+        num.vcov   <- nrow(pt[pt$op == "~~",])
+        vcov.model <- createModelSyntax(brep$eqn, pt)
+        vcov.coefs <- estVarCovar(bsample,vcov.model, ordered)$coefficients
+        
+        c(brep$coefficients, vcov.coefs)
         
       } else {
         
@@ -262,8 +254,11 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
       
     }, bootstrap)
     
-    # Replace the estimated variances of estimates with the boostrap estimates
-    coefCov <- cov(boot.results$t)
+    # Replace the estimated variances of estimates 
+    # with the boostrap estimates
+    boot.mat       <- boot.results$t[complete.cases(boot.results$t),]
+    results$bootstrap.true <- nrow(boot.mat)
+    coefCov <- cov(boot.mat)
     rownames(coefCov) <- colnames(coefCov) <- c(
       names(results$coefficients), if (var.cov) names(v$coefficients) else NULL
     )
@@ -288,21 +283,16 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
     results$boot <- boot.results
   }
   
-  
-  # recombine equations list for identified
-  # and not identified equation
-  # d <- append(results$eqn, d.un)
-  # d <- d[order(sapply(d,'[[',"EQnum"))]
-  
+
   
   # assemble return object
-  results$eqn.unid  <- d.un
-  results$estimator <- estimator
-  results$se        <- se
-  results$bootstrap <- bootstrap
-  results$call      <- match.call()
-  results$r         <- r
-  results$v         <- v
+  results$eqn.unid       <- d.un
+  results$estimator      <- estimator
+  results$se             <- se
+  results$bootstrap      <- bootstrap
+  results$call           <- match.call()
+  results$r              <- r
+  results$v              <- v
   
   class(results)  <- "miive"
   

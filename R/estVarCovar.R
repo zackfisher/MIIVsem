@@ -1,41 +1,47 @@
 #' Estimate the variance and covariance parameters
 #' 
 #' @param data
-#' @param d
-#' @param d.un
-#' @param pt
+#' @param vcov.model
 #' @param ordered
 #' 
 #'@keywords internal
-estVarCovar <- function(data, d, d.un, pt, ordered){
+estVarCovar <- function(data, vcov.model, ordered){
   
   v <- list()
-
-  if(length(d.un) > 0){
-    stop(paste("MIIVsem: variance covariance esimtation not",
-                "allowed in the presence of underidentified",
-                "equations."))
-  }
-    
-  v$coefficients <- unlist(apply(
-    lavaan::parameterEstimates(
-      lavaan::sem(
-        createModelSyntax(d, pt),
-        data,
-        ordered = ordered
-      )), 1, function(x){
-        if (x["op"] == "~~"){
-          coefi <- x["est"]
-          names(coefi) <- paste0(x["lhs"],x["op"],x["rhs"])
-          coefi
-        }
-      }
-    )
-  )
   
-  storage.mode(v$coefficients) <- "numeric"
-  
-  
+  v$coefficients  <- tryCatch(
+    {
+      pe <- lavaan::parameterEstimates(
+        lavaan::sem(
+          vcov.model,
+          se = "none",
+          data,
+          ordered = ordered
+        )
+      )
+      pe <- pe[pe$op == "~~", , drop = FALSE]
+      v.coefficients        <- pe[,"est"]
+      names(v.coefficients) <- paste0(pe$lhs,"~~",pe$rhs)
+      v.coefficients
+    },
+    error = function(cond) 
+      { 
+        zt <- lavaan::lavaanify(vcov.model)
+        zt <- zt[zt$op == "~~", , drop = FALSE]
+        v.coefficients        <- rep(NA, nrow(zt))
+        names(v.coefficients) <- paste0(zt$lhs,"~~",zt$rhs)
+        v.coefficients
+      },
+    warning = function(cond) 
+      { 
+        zt <- lavaan::lavaanify(vcov.model)
+        zt <- zt[zt$op == "~~", , drop = FALSE]
+        v.coefficients        <- rep(NA, nrow(zt))
+        names(v.coefficients) <- paste0(zt$lhs,"~~",zt$rhs)
+        v.coefficients
+      },
+    finally={}
+  )    
   
   return(v)
 }

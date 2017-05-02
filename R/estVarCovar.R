@@ -3,9 +3,9 @@
 #' @param data
 #' @param vcov.model
 #' @param ordered
-#' 
+#' @param var.cov.estimator
 #'@keywords internal
-estVarCovar <- function(data, vcov.model, ordered){
+estVarCovar <- function(data, vcov.model, ordered,var.cov.estimator){
   
   v <- list()
   
@@ -14,6 +14,7 @@ estVarCovar <- function(data, vcov.model, ordered){
       pe <- lavaan::parameterEstimates(
         lavaan::sem(
           vcov.model,
+          estimator = var.cov.estimator,
           se = "none",
           data,
           ordered = ordered

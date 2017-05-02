@@ -17,7 +17,8 @@ Imports:
     Matrix,
     car,
     methods,
-    boot
+    boot,
+    MASS
 License: GPL-2
 LazyData: true
 ByteCompile: true

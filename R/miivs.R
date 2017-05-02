@@ -71,6 +71,16 @@ miivs <- function(model){
   
   pt <- lavaan::lavaanify(model, auto = TRUE)
   
+  # Remove any covariance or variance constrained to zero
+  var.covar.zero <- which(
+    pt$op     == "~~" & 
+    pt$ustart == 0
+  )
+  
+  if (length(var.covar.zero) > 1){
+    pt <- pt[-var.covar.zero, , drop = FALSE]
+  }
+
   #------------------------------------------------------------------------#
   # Parse parTable and add any equality or numeric constraints .           
   #
@@ -228,7 +238,8 @@ miivs <- function(model){
   # Then solve setting all non-zero effects to ones to find out element 
   # that are influenced by NAs.
   BetaNA <- I-(is.na(Beta) | Beta != 0)
-  BetaNA <- solve(BetaNA)
+  #BetaNA <- solve(BetaNA)
+  BetaNA <- MASS::ginv(BetaNA)
   BetaI[BetaNA != 0 & BetaI == 0] <- NA
   
   Sigma <- BetaI %naproduct% Gamma %naproduct% Phi %naproduct% 

@@ -12,6 +12,7 @@
 #' @param estimator Options \code{"2SLS"} or \code{"GMM"} for estimating the model parameters. Default is \code{"2SLS"}.
 #' @param est.only If \code{TRUE}, only the coefficients are returned.
 #' @param var.cov If \code{TRUE}, variance and covariance parameters are estimated.
+#' @param var.cov.estimator The estimator to use for variance and covariance parameters.
 #' @param se If "standard", conventional closed form standard errors are computed. If "boot" or "bootstrap", bootstrap standard errors are computed using standard bootstrapping.
 #' @param bootstrap Number of bootstrap draws, if bootstrapping is used.
 #' @param miivs.check Options to turn off check for user-supplied instruments validity as MIIVs.
@@ -71,7 +72,8 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
                   sample.cov = NULL, sample.mean = NULL, sample.nobs = NULL, 
                   sample.cov.rescale = TRUE, estimator = "2SLS", 
                   se = "standard", bootstrap = 1000L, est.only = FALSE, 
-                  var.cov = FALSE, miiv.check = TRUE, ordered = NULL){
+                  var.cov = FALSE, var.cov.estimator = "ML",
+                  miiv.check = TRUE, ordered = NULL){
   
   #-------------------------------------------------------# 
   # A few basic sanity checks for user-supplied covariance 
@@ -199,7 +201,7 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
   if (var.cov){
     
     vcov.model <- createModelSyntax(results$eqn, pt)
-    v <- estVarCovar(data, vcov.model, ordered)
+    v <- estVarCovar(data, vcov.model, ordered,var.cov.estimator)
     
   } else {
     
@@ -254,7 +256,7 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
         
         num.vcov   <- nrow(pt[pt$op == "~~",])
         vcov.model <- createModelSyntax(brep$eqn, pt)
-        vcov.coefs <- estVarCovar(bsample,vcov.model, ordered)$coefficients
+        vcov.coefs <- estVarCovar(bsample,vcov.model, ordered,var.cov.estimator)$coefficients
         
         c(brep$coefficients, vcov.coefs)
         

@@ -25,8 +25,8 @@ print.miive <- function(fit,...){
   # MIIVsem version number
   cat(paste0("MIIVsem (", packageVersion("MIIVsem"),") results"), "\n\n")
   
-  w1 <- 25 # width of column 1
-  w2 <- 10 # width of column 2
+  w1 <- 40 # width of column 1
+  w2 <- 36 # width of column 2
   
   head.txt  <- do.call("rbind",
     list(

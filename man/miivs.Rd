@@ -38,10 +38,10 @@ information for each equation in the system:
 }
 \section{Scaling Indicators}{
 
-Following the lavaan model syntax, latent variables are defined using the
-\code{=~} operator.  For first order factors, the scaling indicator chosen
-is the first observed variable on the RHS of an equation. For the model below
-\code{Z1} would be chosen as the scaling indicator for \code{L1} and  
+Following the \code{lavaan} model syntax, latent variables are defined 
+using the \code{"=~"} operator.  For first order factors, the scaling indicator 
+chosen is the first observed variable on the RHS of an equation. For the model 
+below \code{Z1} would be chosen as the scaling indicator for \code{L1} and  
 \code{Z4} would be chosen as the scaling indicator for \code{L2}.
 
 \preformatted{model <- '
@@ -49,10 +49,10 @@ is the first observed variable on the RHS of an equation. For the model below
     L2 =~ Z4 + Z5 + Z6
 '
 }
+}
 
-For higher-order factor models, the scaling indicator for the higher order
-factor is taken from the scaling indicator that would have been 
-assigned to the first lower-order factor on the RHS of the equation. 
+\section{Higher-order Factor Models}{
+
 For example, in the model below, the  scaling indicator for the higher-order 
 factor \code{H1} is taken to be \code{Z1}, the scaling indicator 
 that would have been assigned to the first lower-order factor \code{L1}.
@@ -61,34 +61,6 @@ that would have been assigned to the first lower-order factor \code{L1}.
 \preformatted{model <- '
     H1 =~ L1 + L2 
     L1 =~ Z1 + Z2 + Z3
-    L2 =~ Z4 + Z5 + Z6
-'
-}
-}
-
-\section{Equality Constraints}{
-
-
-Within- and across-equation equality constraints on the factor loading
-and regression coefficients can be imposed directly in the model syntax. 
-To specify equality constraints between different parameters equivalent
-labels should be prepended to the variable name using the \code{*} operator.
-For example, we could constrain the factor loadings for two non-scaling 
-indicators of latent factor \code{L1} to equality using the following 
-model syntax.  
-
-\preformatted{model <- '
-    L1 =~ Z1 + B1*Z2 + B1*Z3
-    L2 =~ Z4 + Z5 + Z6
-'
-}
-
-The factor loading and regression coefficients can also be constrained
-to specific numberic values in a similar fashion. Below we constrain
-the second factor loading for the \code{L1} factor to a value of \code{2}
-
-\preformatted{model <- '
-    L1 =~ Z1 + 2*Z2 + Z3
     L2 =~ Z4 + Z5 + Z6
 '
 }
@@ -116,12 +88,8 @@ bollen1989a_model <- '
 miivs(bollen1989a_model)
 }
 \references{
-Bollen,	K. A. and	D. J.	Bauer.	2004.	Automating	the	Selection	of 
-	Model-Implied	Instrumental	Variables.	\emph{Sociological	Methods	and	
-	Research}, 32, 425-52.
-	
-	Bentler, P. M., and Weeks, D. G. (1980). Linear structural equations with 
-	latent variables. Psychometrika, 45(3), 289–308.
+Bollen, K. A. 1996.	An	Alternative	2SLS Estimator	for	Latent	
+Variable	Models.	\emph{Psychometrika}, 61, 109-121.
 }
 \seealso{
 \code{\link{miive}}

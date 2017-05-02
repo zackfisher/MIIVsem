@@ -41,13 +41,14 @@ createModelSyntax <- function(eqns, pt){ # eqns <- results$eqn
   # Fill parTable with fixed regression coefficients.
   r <- unlist(sapply(eqns,"[[", c("coefficients")))
   z <- cbind(do.call(rbind, strsplit(names(r), "~")), r)
-  z <- z[which(z[,2]!="1"),] # cuts down on nrow
+  #z <- z[which(z[,2]!="1"),] # cuts down on nrow
   
   for(i in 1:nrow(z)){
     eq <- z[i,]
     pt[pt$op == "=~" & pt$lhs %in% eq[2] & pt$rhs %in% eq[1], c("free", "ustart")] <- c(0, as.numeric(eq[3]))
     pt[pt$op == "~" & pt$lhs %in% eq[1] & pt$rhs %in% eq[2], c("free", "ustart")] <- c(0, as.numeric(eq[3]))
   }
+  
   
   mod <- paste(apply(pt, 1, function(eq){
     ifelse(
@@ -57,5 +58,34 @@ createModelSyntax <- function(eqns, pt){ # eqns <- results$eqn
     )
   }), collapse = "")
   
+  mod.int <- paste(apply(z, 1, function(eq){
+    if (eq[2] == "1"){
+      paste0(eq[1], "~", eq[3], "*1", "\n")
+    } else {
+      paste0("")
+    }
+  }), collapse = "")
+  
+  mod <- paste0(mod, mod.int)
+  
   return(mod)
+}
+
+
+makeName <- function(names, prefix = NULL) {
+  W <- 14
+  if(is.null(prefix)) {
+    prefix <- rep("", length(names))
+  }
+  multiB <- FALSE
+  if(any(nchar(names) != nchar(names, "bytes"))){
+    multiB <- TRUE
+  }
+  if(!multiB) {
+    names <- abbreviate(names, minlength = W, strict = TRUE)
+  } else {
+    names <- sprintf(paste("%-", W, "s", sep=""), names)
+  }
+  char.format <- paste("%3s%-", W, "s", sep = "")
+  sprintf(char.format, prefix, names)
 }

@@ -4,10 +4,12 @@
 \alias{miive.2sls}
 \title{Two-stage least square estimator for a system of equations}
 \usage{
-miive.2sls(d, g, r, est.only)
+miive.2sls(d, d.un, g, r, est.only)
 }
 \arguments{
 \item{d}{a list containing equation information}
+
+\item{d.un}{a list containing underidentified equation information}
 
 \item{g}{a list containing data information}
 
@@ -19,21 +21,6 @@ miive.2sls(d, g, r, est.only)
 Two-stage least square estimator for a system of equations
 }
 \details{
-MIIV estimation using estimation functions. An 
-estimation function retuns a list containing the
-following elements:
 
-coefficients - a vector of estimated coefficients
-coefCov      - variance covariance matrix of the estimates
-               (optional, depending on the est.only argument)
-residCov     - variance covariance matrix of the equation
-               disturbances (optional, depending on the 
-               est.only argument).
-eqn -          a list of miiv equations and equation level
-               estimation results. fields added include:
-                 coefficients: coefficients
-                 sigma       : equation sigma^2
-                 sargan      : Sargan's test statistic
-                 sargan.df   : df freedom for Sargan's
 }
 \keyword{internal}

@@ -92,9 +92,9 @@ parseInstrumentSyntax <- function(d, instruments, miiv.check){
     # Are all the dvs from the instrument list in the eqns list?
     if (length(setdiff(names(mts), lapply(d,"[[","DVobs"))) > 0) {
       
-      stop("MIIVsem: The dependent variable ", 
-           setdiff(names(mts), lapply(d,"[[","DVobs")),
-           " was not found in the set of estimating equations.")
+      stop("MIIVsem: dependent variables ", 
+           paste0(setdiff(names(mts), lapply(d,"[[","DVobs")),collapse="," ),
+           " not found in the set of estimating equations.")
       
     }
     

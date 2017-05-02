@@ -1,30 +1,15 @@
 #' Two-stage least square estimator for a system of equations
 #' 
 #' @param d a list containing equation information
+#' @param d.un a list containing underidentified equation information
 #' @param g a list containing data information
 #' @param r a list containing coefficient restrictions 
 #' @param est.only should we only calculate coefficient estimates
 #' 
 #' @details 
-#' MIIV estimation using estimation functions. An 
-#' estimation function retuns a list containing the
-#' following elements:
-#'
-#' coefficients - a vector of estimated coefficients
-#' coefCov      - variance covariance matrix of the estimates
-#'                (optional, depending on the est.only argument)
-#' residCov     - variance covariance matrix of the equation
-#'                disturbances (optional, depending on the 
-#'                est.only argument).
-#' eqn -          a list of miiv equations and equation level
-#'                estimation results. fields added include:
-#'                  coefficients: coefficients
-#'                  sigma       : equation sigma^2
-#'                  sargan      : Sargan's test statistic
-#'                  sargan.df   : df freedom for Sargan's
 #'
 #'@keywords internal
-miive.2sls <- function(d, g, r, est.only){
+miive.2sls <- function(d, d.un, g, r, est.only){
     
   # Construct the following matrices:
   # XY1: A vector of crossproducts of fitted values from the first stage
@@ -34,32 +19,54 @@ miive.2sls <- function(d, g, r, est.only){
   #      from the first stage regressions for all equations.
   # ZV:  A block diagonal matrix of crossproducts between the instuments
   #      and independent variables for all equations
+  
   sVV <- lapply(d, function(eq){
     if(eq$categorical){
-      chol2inv(chol(g$sample.polychoric[eq[["MIIVs"]], eq[["MIIVs"]], drop = FALSE]))
+      chol2inv(chol(
+        g$sample.polychoric[
+          eq[["MIIVs"]], eq[["MIIVs"]], drop = FALSE
+        ]
+      ))
     } else {
-      chol2inv(chol(g$sample.sscp[c("1",eq[["MIIVs"]]), c("1",eq[["MIIVs"]]), drop = FALSE]))
+      chol2inv(chol(
+        g$sample.sscp[
+          c("1",eq[["MIIVs"]]), c("1",eq[["MIIVs"]]), drop = FALSE
+        ]
+      ))
     }
   })
   
   ZV <- lapply(d, function(eq){
     if(eq$categorical){
-      g$sample.polychoric[eq[["IVobs"]], eq[["MIIVs"]], drop = FALSE]
+      g$sample.polychoric[
+        eq[["IVobs"]], eq[["MIIVs"]], drop = FALSE
+      ]
     } else {
-      g$sample.sscp[c("1",eq[["IVobs"]]), c("1",eq[["MIIVs"]]), drop = FALSE]
+      g$sample.sscp[
+        c("1",eq[["IVobs"]]), c("1",eq[["MIIVs"]]), drop = FALSE
+      ]
     }
   })
 
   VY <- lapply(d, function(eq){
     if(eq$categorical){
-      g$sample.polychoric[eq[["MIIVs"]], eq[["DVobs"]], drop = FALSE]
+      g$sample.polychoric[
+        eq[["MIIVs"]], eq[["DVobs"]], drop = FALSE
+      ]
     } else {
-      g$sample.sscp[c("1",eq[["MIIVs"]]), eq[["DVobs"]], drop = FALSE]
+      g$sample.sscp[
+        c("1",eq[["MIIVs"]]), eq[["DVobs"]], drop = FALSE
+      ]
     }
   })
   
-  XX1 <- mapply(function(ZV,sVV){ZV %*% sVV %*% t(ZV)},ZV,sVV)
-  XY1 <- mapply(function(ZV,sVV,VY){ZV %*% sVV %*% VY},ZV,sVV,VY)
+  XX1 <- mapply(function(ZV,sVV){
+    ZV %*% sVV %*% t(ZV)
+  },ZV,sVV, SIMPLIFY = FALSE)
+  
+  XY1 <- mapply(function(ZV,sVV,VY){
+    ZV %*% sVV %*% VY
+  },ZV,sVV,VY, SIMPLIFY = FALSE)
   
   if (is.null(r$R)){ 
     
@@ -100,6 +107,8 @@ miive.2sls <- function(d, g, r, est.only){
   residCov <- NULL
   coefCov  <- NULL
   
+  
+  
   if(!est.only){
 
     if (!is.null(g$sample.cov)){
@@ -132,18 +141,37 @@ miive.2sls <- function(d, g, r, est.only){
         
       } else {
         
-        sig  <- diag(unlist(lapply(d, function(eq)rep(eq$sigma, length(eq$coefficients)))))
+        sig  <- diag(unlist(lapply(d, function(eq){
+          rep(eq$sigma, length(eq$coefficients))
+        })))
+        
         XX1F <- lavaan::lav_matrix_bdiag(XX1)
+        
         coefCov <- solve(rbind(cbind((XX1F %*% t(solve(sig))), t(r$R)),
                                cbind(r$R, R0)))[1:nrow(XX1F), 1:nrow(XX1F)]
         rownames(coefCov) <- colnames(coefCov) <- names(coefficients)
+        
+        d <- lapply(d, function(eq) {
+          if (eq$categorical) {
+            eq$coefCov <- NA
+          } else {
+            eq$coefCov <- coefCov[
+              paste0(eq$DVlat,"~",c("1", eq$IVlat)),
+              paste0(eq$DVlat,"~",c("1", eq$IVlat)), 
+              drop = FALSE
+            ]
+          }
+          eq
+        })
+        
       }
-    } 
+      
+    }
     
     if (!is.null(g$sample.polychoric)){
       
       d <- lapply(d, function(eq){
-        if(eq$categorical) { # eq <- d[[1]]; mat <- g$sample.polychoric
+        if(eq$categorical) { # eq <- d[[4]]; mat <- g$sample.polychoric
           K <- buildCategoricalK(eq, g$sample.polychoric)
           eq$coefCov <-  K %*% g$asymptotic.cov %*% t(K)
           rownames(eq$coefCov) <- colnames(eq$coefCov) <- names(eq$coefficients)
@@ -183,25 +211,35 @@ miive.2sls <- function(d, g, r, est.only){
         eq$sargan.df <- NA
         eq$sargan.p  <- NA
       } else {
-        eq$sargan <-
-          (t(g$sample.cov[eq$MIIVs,eq$DVobs, drop = FALSE] -
-               g$sample.cov[eq$MIIVs,eq$IVobs, drop = FALSE] %*%
-               eq$coefficients[-1]) %*%
-             solve(g$sample.cov[eq$MIIVs,eq$MIIVs]) %*%
-             (g$sample.cov[eq$MIIVs,eq$DVobs, drop = FALSE] -
-                g$sample.cov[eq$MIIVs,eq$IVobs, drop = FALSE] %*%
-                eq$coefficients[-1]) /  eq$sigma)*g$sample.nobs
-        eq$sargan.df <- length(eq$MIIVs) - length(eq$IVobs)
-        eq$sargan.p <- pchisq(eq$sargan, eq$sargan.df, lower.tail = FALSE)
+        eq$sargan.df <- length(setdiff(eq$MIIVs,eq$IVobs)) - length(eq$IVobs)
+        if (eq$sargan.df > 0 ){
+          eq$sargan <-
+            (t(g$sample.cov[eq$MIIVs,eq$DVobs, drop = FALSE] -
+                 g$sample.cov[eq$MIIVs,eq$IVobs, drop = FALSE] %*%
+                 eq$coefficients[-1]) %*%
+               solve(g$sample.cov[eq$MIIVs,eq$MIIVs]) %*%
+               (g$sample.cov[eq$MIIVs,eq$DVobs, drop = FALSE] -
+                  g$sample.cov[eq$MIIVs,eq$IVobs, drop = FALSE] %*%
+                  eq$coefficients[-1]) /  eq$sigma)*g$sample.nobs
+          
+          eq$sargan.p <- pchisq(eq$sargan, eq$sargan.df, lower.tail = FALSE)
+        } else {
+          eq$sargan    <- NA
+          eq$sargan.df <- NA
+          eq$sargan.p  <- NA
+        }
         
       }
       eq
      })
     
   }
+  
   g$coefficients <- coefficients
   g$coefCov      <- coefCov
   g$eqn          <- d
+  
   return(g)
+  
 }
 

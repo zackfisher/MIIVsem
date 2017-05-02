@@ -11,10 +11,11 @@
 #' @param sample.cov.rescale If \code{TRUE}, the sample covariance matrix provided by the user is internally rescaled by multiplying it with a factor (N-1)/N.
 #' @param estimator Options \code{"2SLS"} or \code{"GMM"} for estimating the model parameters. Default is \code{"2SLS"}.
 #' @param est.only If \code{TRUE}, only the coefficients are returned.
+#' @param var.cov If \code{TRUE}, variance and covariance parameters are estimated.
 #' @param se If "standard", conventional closed form standard errors are computed. If "boot" or "bootstrap", bootstrap standard errors are computed using standard bootstrapping.
 #' @param bootstrap Number of bootstrap draws, if bootstrapping is used.
 #' @param miivs.check Options to turn off check for user-supplied instruments validity as MIIVs.
-#' @param factor.vars A vector of variable names to be treated as ordered factors in generating the polychoric correlation matrix.
+#' @param ordered A vector of variable names to be treated as ordered factors in generating the polychoric correlation matrix.
 #' @details 
 #' 
 #' \itemize{
@@ -58,7 +59,7 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
                   sample.cov = NULL, sample.mean = NULL, sample.nobs = NULL, 
                   sample.cov.rescale = TRUE, estimator = "2SLS", 
                   se = "standard", bootstrap = 1000L, est.only = FALSE, 
-                  miiv.check=TRUE, factor.vars = NULL){
+                  var.cov = FALSE, miiv.check = TRUE, ordered = NULL){
   
   #-------------------------------------------------------# 
   # A few basic sanity checks for user-supplied covariance 
@@ -67,7 +68,7 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
   #-------------------------------------------------------# 
   if(is.null(data)){
     
-    if (!is.null(factor.vars)){
+    if (!is.null(ordered)){
       stop(paste("miive: raw data required when declaring factor variables."))
     }
     
@@ -110,6 +111,14 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
   d  <- parseInstrumentSyntax(d, instruments, miiv.check)
   
   #-------------------------------------------------------# 
+  # remove equations that are not identified
+  #-------------------------------------------------------#
+  underid   <- sapply(d, function(eq) {
+    length(eq$MIIVs) < length(eq$IVobs)
+  })
+  d.un <- d[ underid]; d   <- d[!underid]
+  
+  #-------------------------------------------------------# 
   # Remove variables from data that are not in model 
   # syntax and preserve the original column ordering.
   #-------------------------------------------------------# 
@@ -117,18 +126,14 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
     data     <- data[,colnames(data) %in% unique(unlist(lapply(d, function(eq){
       c(eq$DVobs,eq$IVobs,eq$MIIVs)
     })))]
+    data <- as.data.frame(data)
   }
-  
-  if(!is.null(factor.vars)){
-    data[,factor.vars] <- lapply(data[,factor.vars], ordered)
-  }
- 
 
-  
+
   #-------------------------------------------------------# 
   # Process data. See documentation of processRawData. 
   #-------------------------------------------------------# 
-  g <- processData(data, sample.cov, sample.mean, sample.nobs, factor.vars, pt)
+  g <- processData(data, sample.cov, sample.mean, sample.nobs, ordered, pt)
   
   
   #-------------------------------------------------------#  
@@ -143,7 +148,14 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
   d <- lapply(d, function (eq) {
     eq$missing <- ifelse(any(g$var.nobs[c(eq$DVobs, eq$IVobs, eq$MIIVs)] < g$sample.nobs), TRUE, FALSE)
     eq$categorical <- ifelse(any(g$var.categorical[c(eq$DVobs, eq$IVobs, eq$MIIVs)]), TRUE, FALSE)
-    eq$restricted <- ifelse(r$eq.restricted[eq$DVobs], TRUE, FALSE)
+    eq$exogenous   <- ifelse(any(g$var.exogenous[c(eq$DVobs, eq$IVobs, eq$MIIVs)]), TRUE, FALSE)
+    eq$restricted  <- ifelse(r$eq.restricted[eq$DVobs], TRUE, FALSE)
+    # For now throw an error if a categorical equatio contains an exogenous variable. 
+    if (eq$categorical & eq$exogenous){
+      stop(paste("miive: exogenous variables in",
+                 "equations containing categorical variables (including MIIVs)",
+                 "are not currently supported."))
+    }
     # throw an error if a categorical equation includes restrictions
     # if (eq$categorical & eq$restricted){
     #   stop(paste("miive: Restrictions on coefficients in",
@@ -163,8 +175,8 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
   #-------------------------------------------------------#
   results <- switch(
     estimator,
-      "2SLS" = miive.2sls(d, g, r, est.only),
-      "GMM"  = miive.gmm(d, g, r, est.only), # Not implemented
+      "2SLS" = miive.2sls(d, d.un, g, r, est.only),
+      "GMM"  = miive.gmm(d, d.un, g, r, est.only), # Not implemented
       # In other cases, raise an error
       stop(paste("Invalid estimator:", estimator, "Valid estimators are: 2SLS, GMM"))
   )
@@ -172,6 +184,17 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
   #-------------------------------------------------------#
   # Estimate variance and covariance point
   #-------------------------------------------------------#
+  if (var.cov){
+    
+    v <- estVarCovar(data, results$eqn, d.un, pt, ordered)
+
+  } else {
+    
+    v <- NULL
+    
+  }
+
+  
   # First fill the lavaan parTable with all regression style
   # coefficients and update the modely syntax.
   #modSyntax <- createModelSyntax(results$eqn, pt)
@@ -195,34 +218,92 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
   # varCoefs <- varCoefs[varCoefs$op == "~~" & !is.na(varCoefs$z),c("lhs", "rhs", "est")]
   # rownames(varCoefs) <- paste0(varCoefs$lhs, "~~",varCoefs$rhs)
   # results$varCoefs <- varCoefs
-  results$varCoefs <- NULL
+  #results$varCoefs <- NULL
   #-------------------------------------------------------#
   # Boostrap and substitute closed form SEs with boostrap SEs
   #-------------------------------------------------------#
   
   if(se == "boot" | se == "bootstrap"){
-    boot.results <- boot::boot(data,function(origData,indices){
+    
+    boot.results <- boot::boot(data, function(origData, indices){
       
       bsample <- origData[indices,]
-      brep <- switch(estimator,
-             "2SLS" = miive.2sls(d, bsample, sample.cov = NULL, sample.mean = NULL, sample.nobs = NULL, est.only = TRUE, restrictions),
-             "GMM" = miive.2sls(d, bsample, sample.cov = NULL, sample.mean = NULL, sample.nobs = NULL, est.only = TRUE, restrictions)) # Not implemented
-             # No need to raise an error here becaues we would have raised it earlier in any case
-      brep$coefficients
+      
+      g <- processData(
+        data = bsample, 
+        sample.cov = NULL, 
+        sample.mean = NULL, 
+        sample.nobs = NULL, 
+        ordered = ordered, 
+        pt = pt
+      )
+      
+      brep <- switch(
+        estimator,
+        "2SLS" = miive.2sls(d, d.un, g, r, est.only = TRUE),
+        "GMM"  = miive.gmm(d, d.un, g, r, est.only = TRUE), # Not implemented
+        # In other cases, raise an error
+        stop(paste("Invalid estimator:", estimator, "Valid estimators are: 2SLS, GMM"))
+      )
+      
+      if (var.cov){
+        
+        c(brep$coefficients, 
+          estVarCovar(
+            bsample,brep$eqn, d.un, pt, ordered
+          )$coefficients
+        )
+        
+      } else {
+        
+        brep$coefficients
+        
+      }
+      
     }, bootstrap)
     
     # Replace the estimated variances of estimates with the boostrap estimates
-    results$coefCov <- cov(boot.results$t)
-    
-    # Store the boot object as a part of the result object. This is useful for calculating CIs or
+    coefCov <- cov(boot.results$t)
+    rownames(coefCov) <- colnames(coefCov) <- c(
+      names(results$coefficients), if (var.cov) names(v$coefficients) else NULL
+    )
+    results$coefCov <- coefCov
+
+    # Store the boot object as a part of the result object. 
+    # This is useful for calculating CIs or
     # other bootstrap postestimation.
-    
+    results$eqn <- lapply(results$eqn, function(eq) {
+      if (eq$categorical) {
+        eq$coefCov <- NA
+      } else {
+        eq$coefCov <- coefCov[
+          paste0(eq$DVlat,"~",c("1", eq$IVlat)),
+          paste0(eq$DVlat,"~",c("1", eq$IVlat)), 
+          drop = FALSE
+          ]
+      }
+      eq
+    })
+
     results$boot <- boot.results
   }
   
-  # Keep the function call
-  results$call <- match.call()
+  
+  # recombine equations list for identified
+  # and not identified equation
+  # d <- append(results$eqn, d.un)
+  # d <- d[order(sapply(d,'[[',"EQnum"))]
+  
+  
+  # assemble return object
+  results$eqn.unid  <- d.un
   results$estimator <- estimator
+  results$se        <- se
+  results$bootstrap <- bootstrap
+  results$call      <- match.call()
+  results$r         <- r
+  results$v         <- v
+  
   class(results)  <- "miive"
   
   results

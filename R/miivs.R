@@ -15,10 +15,10 @@
 #' parameter estimates. 
 #' 
 #' @section Scaling Indicators:
-#' Following the lavaan model syntax, latent variables are defined using the
-#' \code{=~} operator.  For first order factors, the scaling indicator chosen
-#' is the first observed variable on the RHS of an equation. For the model below
-#' \code{Z1} would be chosen as the scaling indicator for \code{L1} and  
+#' Following the \code{lavaan} model syntax, latent variables are defined 
+#' using the \code{"=~"} operator.  For first order factors, the scaling indicator 
+#' chosen is the first observed variable on the RHS of an equation. For the model 
+#' below \code{Z1} would be chosen as the scaling indicator for \code{L1} and  
 #' \code{Z4} would be chosen as the scaling indicator for \code{L2}.
 #' 
 #' \preformatted{model <- '
@@ -27,9 +27,7 @@
 #' '
 #' }
 #' 
-#' For higher-order factor models, the scaling indicator for the higher order
-#' factor is taken from the scaling indicator that would have been 
-#' assigned to the first lower-order factor on the RHS of the equation. 
+#' @section Higher-order Factor Models:
 #' For example, in the model below, the  scaling indicator for the higher-order 
 #' factor \code{H1} is taken to be \code{Z1}, the scaling indicator 
 #' that would have been assigned to the first lower-order factor \code{L1}.
@@ -42,31 +40,6 @@
 #' '
 #' }
 #' 
-#' @section Equality Constraints:
-#' 
-#' Within- and across-equation equality constraints on the factor loading
-#' and regression coefficients can be imposed directly in the model syntax. 
-#' To specify equality constraints between different parameters equivalent
-#' labels should be prepended to the variable name using the \code{*} operator.
-#' For example, we could constrain the factor loadings for two non-scaling 
-#' indicators of latent factor \code{L1} to equality using the following 
-#' model syntax.  
-#' 
-#' \preformatted{model <- '
-#'     L1 =~ Z1 + B1*Z2 + B1*Z3
-#'     L2 =~ Z4 + Z5 + Z6
-#' '
-#' }
-#' 
-#' The factor loading and regression coefficients can also be constrained
-#' to specific numberic values in a similar fashion. Below we constrain
-#' the second factor loading for the \code{L1} factor to a value of \code{2}
-#' 
-#' \preformatted{model <- '
-#'     L1 =~ Z1 + 2*Z2 + Z3
-#'     L2 =~ Z4 + Z5 + Z6
-#' '
-#' }
 #' 
 #' @details 
 #' 
@@ -84,12 +57,8 @@
 #'
 #' @references 
 #' 
-#'  Bollen,	K. A. and	D. J.	Bauer.	2004.	Automating	the	Selection	of 
-#' 	Model-Implied	Instrumental	Variables.	\emph{Sociological	Methods	and	
-#' 	Research}, 32, 425-52.
-#' 	
-#' 	Bentler, P. M., and Weeks, D. G. (1980). Linear structural equations with 
-#' 	latent variables. Psychometrika, 45(3), 289–308.                 
+#' Bollen, K. A. 1996.	An	Alternative	2SLS Estimator	for	Latent	
+#' Variable	Models.	\emph{Psychometrika}, 61, 109-121.
 #' 	
 #' @example example/bollen1989-miivs.R
 #'
@@ -108,10 +77,13 @@ miivs <- function(model){
   #   More complicated constraints are possible during estimation but
   #   would require a more systematic method for parsing the parTable.  
   #------------------------------------------------------------------------#
+  bad.ops <- c("==", "~*~","<~")
   
   # Stop if there are any constraints entered using the '==' operator.
-  if (length(pt$lhs[pt$op == "==" & pt$user != 2]) > 0) {
-    stop(paste("miivs: MIIVsem does not currently support the '==' operator."))
+  if (length(pt$lhs[pt$op %in% bad.ops & pt$user != 2]) > 0) {
+    stop(paste("miivs: MIIVsem does not currently support",
+               "the following operators:", 
+               paste0(bad.ops,collapse = ", "),"."))
   }
 
   # Store any usable constraints in the mlabel column of pt. By using
@@ -126,8 +98,20 @@ miivs <- function(model){
   }
   
   # Remove any scaling indicators
-  tmpMarkers <- pt[pt$op == "=~",]$rhs[which(!duplicated(pt[pt$op == "=~",]$lhs))]
+  tmpMarkers <- pt[pt$op == "=~",]$rhs[
+    which(!duplicated(pt[pt$op == "=~",]$lhs))
+  ]
+  
+  
+  
+  # For now, throw an error if the scaling indicator cross loads
   if (length(tmpMarkers) > 0){
+    for(i in 1:length(tmpMarkers)){
+      if(length(pt[pt$op == "=~" & pt$rhs == tmpMarkers[i],"lhs"]) > 1){
+        stop(paste("miivs: scaling indicators with a factor complexity", 
+                   "greater than 1 are not currently supported."))
+      }
+    }
     pt[pt$op == "=~" & pt$rhs %in% tmpMarkers,]$mlabel <- NA
   }
   
@@ -229,29 +213,6 @@ miivs <- function(model){
   # Calculate the model implied covariance matrix. We need to define 
   # a custom matrix operator. Normally, anything multiplied by NA 
   # (free parameters in our case) is NA. However we need 0*NA = 0. 
-  
-  # NOTE: This operation is computationally inefficient when the number
-  #       of variables in the model is large. 
-  
-  # `%naproduct%` <- function(x, y) {
-  #   r <- matrix(0,nrow(x),ncol(y))
-  #   for(i in 1:nrow(r)){
-  #     for(j in 1:ncol(r)){
-  #       e <- x[i,]*y[,j]
-  #       e[which(x[i,]==0)] <- 0
-  #       e[which(y[,j]==0)] <- 0
-  #       r[i,j] <- sum(e)
-  #     }
-  #   }
-  #   rownames(r) <- rownames(x)
-  #   colnames(r) <- colnames(y)
-  #   return(r)
-  # }
-  
-  # Calculate the model implied covariance matrix. We need to define 
-  # a custom matrix operator. Normally, anything multiplied by NA 
-  # (free parameters in our case) is NA. However we need 0*NA = 0. 
-  #
   `%naproduct%` <- function(x, y) {
     as.matrix(Matrix::Matrix(x, sparse = T) %*% Matrix::Matrix(y, sparse = T))
   }
@@ -281,7 +242,7 @@ miivs <- function(model){
   gamBeta <- cbind(gamma,beta)
   
   # Build the MIIV models:Loop over all variables that receive a path 
-  eqns <- list()
+  eqns <- list(); cntr <- 1;
   
   for(dv in unique(rownames(gamBeta)[which(apply(is.na(gamBeta),1,any))])){
     
@@ -291,6 +252,8 @@ miivs <- function(model){
     vars <- c(dv,colnames(gamBeta)[c(which(gamBeta[dv,]!=0), which(is.na(gamBeta[dv,])))])
     
     # Add DVs and IVs before potential scaling indicator substitution. 
+    eq$EQnum <- cntr
+    eq$EQmod <- NA
     eq$DVlat <- dv
     eq$IVlat <- setdiff(vars[-1], errVars)
 
@@ -312,6 +275,7 @@ miivs <- function(model){
         # Deal with higher order factors
         while(marker %in% latVars){
           
+          eq$EQmod <- "measurement"
           marker <- rownames(gamBeta)[which(gamBeta[,marker]==1)[1]]
           compositeDisturbance <- c(compositeDisturbance,paste("e.",marker,sep=""))
           
@@ -323,7 +287,7 @@ miivs <- function(model){
       }
       
     }
-  
+    
     eq$DVobs <- vars[1]
     eq$IVobs <- setdiff(vars[-1], errVars)
     eq$CDist <- compositeDisturbance
@@ -362,6 +326,17 @@ miivs <- function(model){
     
     eq$MIIVs <- names(which((e&i)[obsVars]))
     
+    # Add equation type: we did this for higher order factors above. 
+    eq$EQmod <- if(is.na(eq$EQmod)){
+      if ( (eq$IVlat != eq$IVobs) && (eq$DVlat == eq$DVobs) ){
+        "measurement"
+      } else {
+        "structural"
+      }
+    }
+    
+    cntr <- cntr + 1
+    
     eqns <- c(eqns,list(eq))
   }
   
@@ -380,7 +355,18 @@ miivs <- function(model){
     eqns[[j]]$Label <- labi[which(lhsi %in% td)][match(ti, rhsi[which(lhsi %in% td)])]
   }
   
-  res <- list(eqns = eqns, pt = pt)
+  res <- list(
+    eqns = eqns, 
+    pt = pt, 
+    matrices = list(
+      Sigma = Sigma, 
+      Beta = Beta, 
+      BetaI = BetaI, 
+      Gamma = Gamma, 
+      Phi = Phi
+    )
+  )
+  
   class(res) <- "miivs"
   res
   

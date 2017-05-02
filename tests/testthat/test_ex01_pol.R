@@ -52,8 +52,8 @@ library("MIIVsem")
    context("ex01: poldemo sargan test statistics correct")
   #-------------------------------------------------------# 
   
-  sargan <- unlist(lapply(fit$eq, "[", c("sargan")))
-  names(sargan) <- unlist(lapply(fit$eq, "[", c("DVlat")))
+  sargan <- unlist(lapply(fit$eqn, "[", c("sargan")))
+  names(sargan) <- unlist(lapply(fit$eqn, "[", c("DVlat")))
   sargan   <- sargan[sort(names(sargan))]
   
   expect_equal_to_reference(
@@ -65,8 +65,8 @@ library("MIIVsem")
   context("ex01: poldemo sargan df correct")
   #-------------------------------------------------------# 
   
-  sargandf <- unlist(lapply(fit$eq, "[", c("sargan.df")))
-  names(sargandf) <- unlist(lapply(fit$eq, "[", c("DVlat")))
+  sargandf <- unlist(lapply(fit$eqn, "[", c("sargan.df")))
+  names(sargandf) <- unlist(lapply(fit$eqn, "[", c("DVlat")))
   sargandf   <- sargandf[sort(names(sargandf))]
   
   expect_equal_to_reference(
@@ -78,8 +78,8 @@ library("MIIVsem")
   context("ex01: poldemo sargan p-values correct")
   #-------------------------------------------------------# 
   
-  sarganp <- unlist(lapply(fit$eq, "[", c("sargan.p")))
-  names(sarganp) <- unlist(lapply(fit$eq, "[", c("DVlat")))
+  sarganp <- unlist(lapply(fit$eqn, "[", c("sargan.p")))
+  names(sarganp) <- unlist(lapply(fit$eqn, "[", c("DVlat")))
   sarganp   <- sarganp[sort(names(sarganp))]
   
   expect_equal_to_reference(

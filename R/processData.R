@@ -4,7 +4,7 @@
 #' @param sample.cov Numeric matrix. A sample variance-covariance matrix. The rownames and colnames must contain the observed variable names.
 #' @param sample.mean A sample mean vector.
 #' @param sample.nobs Number of observations in the full data frame.
-#' @param factor.vars A user-supplied vector of variable names for any categorical variables in \code{data}.
+#' @param ordered A user-supplied vector of variable names for any ordered categorical variables in \code{data}.
 #' 
 #' @details 
 #' The internal function \code{processData} returns a list \code{g} 
@@ -17,7 +17,7 @@
 #'    \code{cov(data)*(nrow(data)-1)/nrow(data)}. When 
 #'    the raw data contains categorical variables, and these 
 #'    variables are also specified by the user in the 
-#'    \code{factor.vars} argument of the \code{miive} function, 
+#'    \code{ordered} argument of the \code{miive} function, 
 #'    \code{sample.cov} is the sample covariance matrix for any
 #'    continous variables included in the model syntax. If there are no 
 #'    continuous variables in the \code{model} statement \code{sample.cov} is
@@ -84,14 +84,15 @@
 #'   
 #'@keywords internal
 processData <- function(data = data, 
-                           sample.cov = sample.cov,
-                           sample.mean = sample.mean, 
-                           sample.nobs = sample.nobs, 
-                           factor.vars = factor.vars){
+                        sample.cov = sample.cov,
+                        sample.mean = sample.mean, 
+                        sample.nobs = sample.nobs, 
+                        ordered = ordered,
+                        pt = pt){
   
   if (is.null(data)){
     
-    if (!is.null(factor.vars)){
+    if (!is.null(ordered)){
       stop(paste("miive: if categorical.vars are declared raw data is required."))
     }
     
@@ -101,10 +102,13 @@ processData <- function(data = data,
     var.nobs <- NULL
     var.categorical <- NULL
     var.missing <- NULL
+    var.exogenous   <- colnames(data) %in% pt[ pt$exo == 1L & 
+                                               pt$op  == "~~" & 
+                                               pt$lhs == pt$rhs, "rhs" ]
+    names(var.exogenous) <- colnames(data)
     
   } else {
     
-  
     piv.opts <- c(
       estimator = "two.step", 
       se = "standard"
@@ -117,64 +121,56 @@ processData <- function(data = data,
       information = "observed"  # or "expected"
     )
   
+    # Data-level characteristics
     sample.nobs     <- nrow(data)
+    
+    # Variable level characteristics
     var.nobs        <- nrow(data) - colSums(is.na(data))
     var.missing     <- sapply(var.nobs, function(x) ifelse(x==sample.nobs, FALSE, TRUE))
     var.categorical <- vapply(data, is.factor, c(is.factor=FALSE))
+    var.exogenous   <- colnames(data) %in% pt[ pt$exo == 1L & 
+                                               pt$op  == "~~" & 
+                                               pt$lhs == pt$rhs, "rhs" ]
+    names(var.exogenous) <- colnames(data)
     
-    
-    # data <- bollen1989a
-    # var.categorical <- c(T,T,T,rep(F, 8))
-    # factor.vars <- c("y2")
-    # 
-    # var.categorical <- c(F,T,F,rep(F, 8))
-    # factor.vars <- c("y2", "y3")
-
-    if( any(var.categorical) | !is.null(factor.vars) ){ 
+    if( any(var.categorical) | !is.null(ordered) ){ 
       
       if (any(var.categorical)) { ## are there any factors in the data
         ## if there are undeclared factors throw an error
-        if (length(setdiff(colnames(data)[var.categorical],factor.vars)) > 1){
+        if (length(setdiff(colnames(data)[var.categorical],ordered)) > 0){
           msg <- c("miive: the following undeclared factors were found in data: ", 
                    paste0(
-                     setdiff(colnames(data)[var.categorical],factor.vars), 
+                     setdiff(colnames(data)[var.categorical],ordered), 
                    collapse = ", "
                    ), 
-                   ". Use the factor.vars argument to specify categorical variables.")
+                   ". Use the ordered argument to specify categorical variables.")
           
           stop(paste0(msg))
         }
       }
       
-      # convert any variables listed in factor.vars to categorical
-      data[,factor.vars] <- lapply(data[,factor.vars], ordered)
-      var.categorical    <- vapply(data, is.factor, c(is.factor=FALSE))
-  
-      # are there any exogenous categorical variables in data?
+      # For now we don't do anything about ov.exogenous variables.
+      ov.names.x <- NULL
       
-      if(length(pt[pt$op =="~~" & pt$exo == 1L, "lhs"]) > 1){
-        if (length(intersect(pt[pt$op =="~~" & pt$exo == 1L, "lhs"],factor.vars)) > 1){
-          ov.names.x <- intersect(pt[pt$op =="~~" & pt$exo == 1L, "lhs"],factor.vars)
-        } else {
-          ov.names.x <- NULL
-        }
-      }
+      # convert any variables listed in ordered to categorical
+      data[,ordered]  <- lapply(data[,ordered, drop = FALSE], ordered)
+      var.categorical <- vapply(data, is.factor, c(is.factor=FALSE))
       
       fit <- lavaan::lavCor(
         data, 
         output = "fit", 
-        missing = "pairwise",
+        missing = "listwise",
         estimator = piv.opts["estimator"],
         se = piv.opts["se"],
         ov.names.x = ov.names.x,
-        ordered = factor.vars 
+        ordered = setdiff(ordered, ov.names.x)
       )
       
       
       sample.sscp <- NULL
  
       # Polychoric correlation matrix. 
-      sample.polychoric <- unclass(lavaan::inspect(fit, "cov.ov"))
+      sample.polychoric <- unclass(lavaan::inspect(fit, "cor.ov"))
       
       # Asymptotic covariance matrix of polychoric correlations. 
       asymptotic.cov  <- unclass(lavaan::inspect(fit, "vcov"))
@@ -186,7 +182,6 @@ processData <- function(data = data,
       # Reorder asymptotic covariance matrix.
       asymptotic.cov  <- asymptotic.cov[ordered.varnames, ordered.varnames]
 
-
     } else {
       
       sample.polychoric <- NULL
@@ -195,7 +190,7 @@ processData <- function(data = data,
     
     continous.vars <- colnames(data)[!var.categorical]
     
-    if (length(continous.vars > 1)){
+    if (length(continous.vars) > 1){
       
       # Are there any missing observations
       if (any(var.nobs[continous.vars] < sample.nobs)){ # begin missing data
@@ -222,11 +217,6 @@ processData <- function(data = data,
         # Asymptotic covariance matrix of polychoric correlations. 
         asymptotic.cov  <- unclass(lavaan::inspect(fit, "vcov"))
         
-        asymptotic.cov  <- asymptotic.cov[
-          1:(1/2*nrow(sample.cov)*(nrow(sample.cov)+1)),
-          1:(1/2*nrow(sample.cov)*(nrow(sample.cov)+1))
-          ]
-        
         sample.sscp <- buildSSCP(sample.cov, sample.mean, sample.nobs)
         
         # Remove covariances among means?
@@ -244,7 +234,7 @@ processData <- function(data = data,
         sample.cov  <- cov(data[,continous.vars])*(nrow(data[,continous.vars])-1)/nrow(data[,continous.vars])
         sample.mean <- colMeans(data[,continous.vars])
         sample.sscp <- buildSSCP(sample.cov, sample.mean, sample.nobs)
-        if( is.null(factor.vars) ){ asymptotic.cov <- NULL }
+        if( is.null(ordered) ){ asymptotic.cov <- NULL }
       }
     } 
   
@@ -260,7 +250,8 @@ processData <- function(data = data,
     asymptotic.cov = asymptotic.cov,
     var.nobs = var.nobs,
     var.categorical = var.categorical,
-    var.missing = var.missing
+    var.missing = var.missing,
+    var.exogenous = var.exogenous
   )
 
 }

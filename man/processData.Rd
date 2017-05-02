@@ -5,8 +5,8 @@
 \title{Process data.}
 \usage{
 processData(data = data, sample.cov = sample.cov,
-  sample.mean = sample.mean, sample.nobs = sample.nobs,
-  factor.vars = factor.vars)
+  sample.mean = sample.mean, sample.nobs = sample.nobs, ordered = ordered,
+  pt = pt)
 }
 \arguments{
 \item{data}{A data frame containing only those variables specified in the model syntax.}
@@ -17,7 +17,7 @@ processData(data = data, sample.cov = sample.cov,
 
 \item{sample.nobs}{Number of observations in the full data frame.}
 
-\item{factor.vars}{A user-supplied vector of variable names for any categorical variables in \code{data}.}
+\item{ordered}{A user-supplied vector of variable names for any ordered categorical variables in \code{data}.}
 }
 \description{
 Process data.
@@ -33,7 +33,7 @@ which contains:
    \code{cov(data)*(nrow(data)-1)/nrow(data)}. When 
    the raw data contains categorical variables, and these 
    variables are also specified by the user in the 
-   \code{factor.vars} argument of the \code{miive} function, 
+   \code{ordered} argument of the \code{miive} function, 
    \code{sample.cov} is the sample covariance matrix for any
    continous variables included in the model syntax. If there are no 
    continuous variables in the \code{model} statement \code{sample.cov} is

@@ -15,23 +15,33 @@ derRegPIV <- function(Pvv, Pvz, Pvy){
 
 
 derPvv <- function(Pvv, Pvz, Pvy){
-  U1    <- solve(t(Pvz) %*% solve(Pvv) %*% Pvz)
-  U2    <- t(Pvz) %*% solve(Pvv) %*% Pvy
-  TERM1 <- kronecker(t(solve(Pvv)%*%Pvz%*%U1 %*%U2),U1 %*% t(Pvz)%*%solve(Pvv))
-  TERM2 <- kronecker(t(solve(Pvv)%*%Pvy),U1 %*% t(Pvz)%*%solve(Pvv)) 
-  deriv <- t((TERM1 - TERM2) %*% buildDuplicator(nrow(Pvv)))
-  names <- t(combn(colnames(Pvv), 2))
+  if(dim(Pvv)[1] == 1){
+    deriv = NULL
+    names = NULL
+  } else {
+    U1    <- solve(t(Pvz) %*% solve(Pvv) %*% Pvz)
+    U2    <- t(Pvz) %*% solve(Pvv) %*% Pvy
+    TERM1 <- kronecker(t(solve(Pvv)%*%Pvz%*%U1 %*%U2),U1 %*% t(Pvz)%*%solve(Pvv))
+    TERM2 <- kronecker(t(solve(Pvv)%*%Pvy),U1 %*% t(Pvz)%*%solve(Pvv)) 
+    deriv <- t((TERM1 - TERM2) %*% buildDuplicator(nrow(Pvv)))
+    names <- t(combn(colnames(Pvv), 2))
+  }
   return(list(deriv = deriv, names = names))
 }
 
 
 derPvz <- function(Pvv, Pvz, Pvy){
-  U     <- solve(t(Pvz) %*% solve(Pvv) %*% Pvz)
-  TH    <- U %*% t(Pvz) %*% solve(Pvv) %*% Pvy
-  ER    <- (Pvy) - (Pvz %*% TH) 
-  deriv <- t(kronecker(U, t(solve(Pvv) %*% ER)) - 
-             kronecker(t(TH), U %*% t(Pvz) %*% solve(Pvv)))
-  names <- as.matrix(expand.grid(rownames(Pvz),colnames(Pvz)))
+  if(identical(Pvv,Pvz)){
+    deriv = NULL
+    names = NULL
+  } else {
+    U     <- solve(t(Pvz) %*% solve(Pvv) %*% Pvz)
+    TH    <- U %*% t(Pvz) %*% solve(Pvv) %*% Pvy
+    ER    <- (Pvy) - (Pvz %*% TH) 
+    deriv <- t(kronecker(U, t(solve(Pvv) %*% ER)) - 
+               kronecker(t(TH), U %*% t(Pvz) %*% solve(Pvv)))
+    names <- as.matrix(expand.grid(rownames(Pvz),colnames(Pvz)))
+  }
   return(list(deriv = deriv, names = names))
 }
 
@@ -60,9 +70,9 @@ buildCategoricalK <- function(eq, mat){
   })
   acmPos <- cbind(acmPos, c(1:nrow(acmPos)))  
   
-  reg.varID <- apply(eq$regDerivatives$names, 2, function(x){
+  reg.varID <- rbind(apply(eq$regDerivatives$names, 2, function(x){
     match(x, colnames(mat))
-  })
+  }))
   
   # In reg.varID we need to order the rows so that col1 < col2
   reg.varID <- transform(reg.varID, 

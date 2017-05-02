@@ -3,7 +3,7 @@
 S3method(print,miive)
 S3method(print,miivs)
 S3method(summary,miive)
-export(parameterTable)
+export(estimatesTable)
 export(miive)
 export(miivs)
 import(car)

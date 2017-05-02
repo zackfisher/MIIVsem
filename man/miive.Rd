@@ -55,10 +55,22 @@ Estimate SEM models using model-implied instrumental variables (MIIVs).
 \details{
 \itemize{
 \item{\code{instruments}} {
-  Using the \code{instruments} option you can specify the MIIVs directly for each equation in the model.
-  To utilize this option you must first define a list of instruments using the syntax displayed below. After the list is defined, 
-  set the \code{instruments} argument equal to the name of the list of MIIVs. Note, \code{instruments} are specified for an equation,
-  and not for a specific endogenous variable.}
+  Using the \code{instruments} option you can specify the MIIVs directly 
+  for each equation in the model. To utilize this option you must first 
+  define a list of instruments using the syntax displayed below. After 
+  the list is defined, set the \code{instruments} argument equal to 
+  the name of the list of MIIVs. Note, \code{instruments} are specified 
+  for an equation, and not for a specific endogenous variable.
+  }
+\item{\code{se}} {
+  When \code{se} is set to \code{"boot"} or \code{"bootstrap"} standard errors
+  are computed using the pairs bootstrap. These standard errors are based
+  on the standard deviation of successful bootstrap replications.  The 
+  \code{z-value} and \code{P(>|z|)} assume the ratio of the coefficient 
+  estimate to the bootstrap standard deviation approximates a normal 
+  distribution.  Note, the Sargan test statistic is calculated from the original 
+  sample and is not a bootstrap estimate.
+  }
 }
 }
 \examples{

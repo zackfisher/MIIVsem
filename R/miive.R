@@ -272,7 +272,22 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
     # with the boostrap estimates
     boot.mat       <- boot.results$t[complete.cases(boot.results$t),]
     results$bootstrap.true <- nrow(boot.mat)
+    
+    # Need to determine which columns are constants
+    if (results$bootstrap.true > 0){
+      nearZero <- apply(boot.mat , 2, var, na.rm=TRUE) < 1e-16
+    } else {
+      nearZero <- FALSE
+    }
+    
     coefCov <- cov(boot.mat)
+    
+    if(any(nearZero)) {
+      coefCov[nearZero,nearZero] <- round(
+        coefCov[nearZero,nearZero], 1e-10
+      )
+    }
+    
     rownames(coefCov) <- colnames(coefCov) <- c(
       names(results$coefficients), if (var.cov) names(v$coefficients) else NULL
     )
@@ -283,12 +298,16 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
     # other bootstrap postestimation.
     results$eqn <- lapply(results$eqn, function(eq) {
       if (eq$categorical) {
-        eq$coefCov <- NA
+        eq$coefCov <- coefCov[
+            paste0(eq$DVlat,"~",c(eq$IVlat)),
+            paste0(eq$DVlat,"~",c(eq$IVlat)), 
+            drop = FALSE
+          ]
       } else {
         eq$coefCov <- coefCov[
-          paste0(eq$DVlat,"~",c("1", eq$IVlat)),
-          paste0(eq$DVlat,"~",c("1", eq$IVlat)), 
-          drop = FALSE
+            paste0(eq$DVlat,"~",c("1", eq$IVlat)),
+            paste0(eq$DVlat,"~",c("1", eq$IVlat)), 
+            drop = FALSE
           ]
       }
       eq
@@ -305,6 +324,7 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
   results$se             <- se
   results$bootstrap      <- bootstrap
   results$call           <- match.call()
+  results$ordered        <- ordered
   results$r              <- r
   results$v              <- v
   

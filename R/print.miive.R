@@ -34,7 +34,7 @@ print.miive <- function(fit,...){
       c("Number of equations", length(fit$eqn)),
       c("Estimator", disp.estimator),
       c("Standard Errors", ifelse(
-        fit$se %in% c("boot", "bootstrap"), "bootstrap", fit$se
+        any(fit$se %in% c("boot", "bootstrap")), "bootstrap", fit$se
       ))
     )
   )
@@ -134,6 +134,19 @@ print.miive <- function(fit,...){
   if(!is.null(x$se)) {
     
     se.idx <- which(is.na(x$se))
+    
+    if(length(se.idx) > 0L) {
+      m[se.idx, "se"] <- ""
+      
+      if(!is.null(x$z)) {
+        m[se.idx, "z"] <- ""
+      }
+      if(!is.null(x$pvalue)) {
+        m[se.idx, "pvalue"] <- ""
+      }
+    }
+    
+    se.idx <- which(x$se == 0.000)
     
     if(length(se.idx) > 0L) {
       m[se.idx, "se"] <- ""

@@ -65,7 +65,7 @@ createModelSyntax <- function(eqns, pt){ # eqns <- results$eqn
       paste0("")
     }
   }), collapse = "")
-  
+
   mod <- paste0(mod, mod.int)
   
   return(mod)

@@ -5,9 +5,19 @@
 #' @param ordered
 #' @param var.cov.estimator
 #'@keywords internal
-estVarCovar <- function(data, vcov.model, ordered,var.cov.estimator){
+estVarCovar <- function(data, 
+                        vcov.model, 
+                        ordered, 
+                        var.cov.estimator){
   
   v <- list()
+  
+  # if there are categorical variables
+  # and the estimator was left at the
+  # default of "ML" set to  "DWLS"
+  if(!is.null(ordered) & var.cov.estimator == "ML"){
+    var.cov.estimator <- "DWLS"
+  }
   
   v$coefficients  <- tryCatch(
     {
@@ -33,14 +43,14 @@ estVarCovar <- function(data, vcov.model, ordered,var.cov.estimator){
         names(v.coefficients) <- paste0(zt$lhs,"~~",zt$rhs)
         v.coefficients
       },
-    warning = function(cond) 
-      { 
-        zt <- lavaan::lavaanify(vcov.model)
-        zt <- zt[zt$op == "~~", , drop = FALSE]
-        v.coefficients        <- rep(NA, nrow(zt))
-        names(v.coefficients) <- paste0(zt$lhs,"~~",zt$rhs)
-        v.coefficients
-      },
+    # warning = function(cond) 
+    #   { 
+    #     zt <- lavaan::lavaanify(vcov.model)
+    #     zt <- zt[zt$op == "~~", , drop = FALSE]
+    #     v.coefficients        <- rep(NA, nrow(zt))
+    #     names(v.coefficients) <- paste0(zt$lhs,"~~",zt$rhs)
+    #     v.coefficients
+    #   },
     finally={}
   )    
   

@@ -13,12 +13,13 @@ Description: Functions for estimating structural equation models using model-
     implied instrumental variables.
 Suggests: R.rsp
 Imports:
+    stats,
+    utils,
+    methods,
     lavaan,
     Matrix,
     car,
-    methods,
-    boot,
-    MASS
+    boot
 License: GPL-2
 LazyData: true
 ByteCompile: true

@@ -20,7 +20,7 @@ print.miive <- function(fit,...){
   } else {
     "Mixed"
   }
-  
+
 
   # MIIVsem version number
   cat(paste0("MIIVsem (", packageVersion("MIIVsem"),") results"), "\n\n")
@@ -67,6 +67,17 @@ print.miive <- function(fit,...){
                  "COVARIANCES")
   
   x    <- estimatesTable(fit)
+  
+  ## remove duplicate Sargan test info from 
+  # regression equations to avoid confusion
+  dup.row.nums <- row.names(
+    x[x$op == "~",][which(duplicated(x[x$op == "~",]$lhs)),]
+  )
+  
+  if (length(dup.row.nums) > 0) {
+    x[dup.row.nums, c("sarg", "sarg.df", "sarg.p")] <- NA
+  }
+
   x$eq <- NULL
   
   nd          <- 3L

@@ -68,7 +68,6 @@
 
 miivs <- function(model){
 
-  
   pt <- lavaan::lavaanify(model, auto = TRUE)
   
   # Remove any covariance or variance constrained to zero
@@ -238,8 +237,20 @@ miivs <- function(model){
   # Then solve setting all non-zero effects to ones to find out element 
   # that are influenced by NAs.
   BetaNA <- I-(is.na(Beta) | Beta != 0)
-  #BetaNA <- solve(BetaNA)
-  BetaNA <- MASS::ginv(BetaNA)
+  
+  # Try to invert BetaNA
+  
+  trySolve <- function(mat){
+    class(try(solve(mat),silent=T))=="matrix"
+  }
+  if (trySolve(BetaNA)){ 
+    BetaNA <- solve(BetaNA) 
+  } else {
+    # fill the matrix with noise
+    nz <- length(BetaNA[BetaNA==-1])
+    BetaNA[BetaNA==-1] <- runif(nz)
+    BetaNA <- solve(BetaNA) 
+  }
   BetaI[BetaNA != 0 & BetaI == 0] <- NA
   
   Sigma <- BetaI %naproduct% Gamma %naproduct% Phi %naproduct% 

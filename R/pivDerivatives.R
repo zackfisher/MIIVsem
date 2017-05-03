@@ -24,7 +24,7 @@ derPvv <- function(Pvv, Pvz, Pvy){
     TERM1 <- kronecker(t(solve(Pvv)%*%Pvz%*%U1 %*%U2),U1 %*% t(Pvz)%*%solve(Pvv))
     TERM2 <- kronecker(t(solve(Pvv)%*%Pvy),U1 %*% t(Pvz)%*%solve(Pvv)) 
     deriv <- t((TERM1 - TERM2) %*% buildDuplicator(nrow(Pvv)))
-    names <- t(combn(colnames(Pvv), 2))
+    names <- t(utils::combn(colnames(Pvv), 2))
   }
   return(list(deriv = deriv, names = names))
 }
@@ -65,7 +65,7 @@ buildCategoricalK <- function(eq, mat){
   # variable (column 3) in the symmetric polychoric  
   # correlation matrix. 
   
-  acmPos <- apply(t(combn(colnames(mat), 2)), 2, function(x){
+  acmPos <- apply(t(utils::combn(colnames(mat), 2)), 2, function(x){
     match(x, colnames(mat))
   })
   acmPos <- cbind(acmPos, c(1:nrow(acmPos)))  
@@ -84,7 +84,7 @@ buildCategoricalK <- function(eq, mat){
   posInfo <- merge(reg.varID, acmPos, by=c(1,2))
   posInfo <- posInfo[order(posInfo$order), ]
   
-  rowK <- matrix(0, ncol(eq$regDerivatives$deriv), ncol(combn(colnames(mat), 2)))
+  rowK <- matrix(0, ncol(eq$regDerivatives$deriv), ncol(utils::combn(colnames(mat), 2)))
   rowK[,posInfo[,4]] <- t(eq$regDerivatives$deriv)
   rowK
 }

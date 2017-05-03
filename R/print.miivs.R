@@ -16,6 +16,8 @@ print.miivs <- function(x,...){
     if (i >  1) {modeqns <- rbind(modeqns,modtemp) }
   }
   
+  modeqns$'Composite Disturbance' <- NULL
+  
   cat("Model Equation Information \n")
   cat("\n")
   print(modeqns, quote = FALSE, right = FALSE, row.names = FALSE, print.gap=1)

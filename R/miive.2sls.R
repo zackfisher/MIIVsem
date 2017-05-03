@@ -211,7 +211,7 @@ miive.2sls <- function(d, d.un, g, r, est.only){
         eq$sargan.df <- NA
         eq$sargan.p  <- NA
       } else {
-        eq$sargan.df <- length(setdiff(eq$MIIVs,eq$IVobs)) - length(eq$IVobs)
+        eq$sargan.df <- length(eq$MIIVs) - length(eq$IVobs)
         if (eq$sargan.df > 0 ){
           eq$sargan <-
             (t(g$sample.cov[eq$MIIVs,eq$DVobs, drop = FALSE] -

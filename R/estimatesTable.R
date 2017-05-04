@@ -57,7 +57,32 @@ estimatesTable <- function(x, digits = max(3, getOption("digits"))){
     ), 
     stringsAsFactors = FALSE
   )
-    
+  
+  # add a scaling indicator for each latent variable
+  if(any(meas.eqns)){
+    meas.coef.mat <- 
+    rbind(do.call("rbind", apply(unique(do.call("rbind",
+      lapply(x$eqn[meas.eqns], function(eq){
+        c(eq$IVlat, eq$IVobs)
+    }))), 1, function(x){
+      data.frame(
+        "lhs"     = x[1],
+        "op"      = "=~",
+        "rhs"     = x[2],
+        "est"     = 1,
+        "se"      = 0,
+        "z"       = NA,
+        "pvalue"  = NA,
+        "sarg"    = NA,
+        "sarg.df" = NA,
+        "sarg.p"  = NA, 
+        "eq"      = NA, 
+        stringsAsFactors = FALSE
+      )
+    })), meas.coef.mat)
+  }
+  
+
   str.coef.mat <- data.frame(
     "lhs" = unlist(lapply(x$eqn[str.eqns], function(eq){
       rep(eq$DVlat, length(eq$coefficients))})
@@ -148,6 +173,8 @@ estimatesTable <- function(x, digits = max(3, getOption("digits"))){
   rownames(parTab) <- NULL
   
   parTab[is.infinite(parTab[,"z"]),c("se","z","pvalue")] <- NA
+  
+  parTab <- parTab[order(parTab$op, parTab$lhs),] 
   
   return(parTab)
 }

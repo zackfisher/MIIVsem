@@ -58,14 +58,16 @@ Estimate SEM models using model-implied instrumental variables (MIIVs).
 \details{
 \itemize{
 \item{\code{model}} {
+
   A model specified using a subset of the uses a subset of the model syntax 
-  employed by \pkg{lavaan}. See the \code{model} argument 
-  within the \code{\link[lavaan]{lavaanify}} function for more information. 
-  The following model syntax operators are currently supported: \code{"=~"},
-  \code{"~"}, \code{"~~"} and \code{"*"}. See below for details 
+  employed by \pkg{lavaan} or a \code{miivs} object return by the 
+  \code{miivs} functions. See the \code{model} argumen within the 
+  \code{\link[lavaan]{lavaanify}} function for more information. 
+  The following model syntax operators are currently supported: \code{=~},
+  \code{~}, \code{~~} and \code{*}. See below for details 
   on default behavior descriptions of how to specify the scaling 
-  indicator in latent variable models and impose equality constraints on the
-  parameter estimates. 
+  indicator in latent variable models and impose equality constraints 
+  on the parameter estimates. 
   
   \strong{Example using Syntax Operators}
   
@@ -177,6 +179,7 @@ Estimate SEM models using model-implied instrumental variables (MIIVs).
   }
   
   \item{\code{data}} {
+  
   A data.frame containing all of the observed variables specified in the
   model syntax. 
   }
@@ -209,23 +212,52 @@ Estimate SEM models using model-implied instrumental variables (MIIVs).
   }
   
   \item{\code{sample.cov}} {
-  The user may provide a sample covariance matrix in place of raw data.
+  
+  The user may provide a sample covariance matrix in lieu of raw data.
   If \code{sample.cov} is not \code{NULL} the user must also supply a
-  vector of sample means (\code{sample.mean}) as well as the number of 
+  vector of sample means (\code{sample.mean}), and the number of sample
   observations (\code{sample.nobs}) from which the means and covariances 
   were calculated.  Currently, \pkg{MIIVsem} does not support bootstrap 
   standard errors or polychoric instrumental variable esimtation when
-  the sample moments are used in place of raw data.  
+  the sample moments, rather than raw data, are used as input.  
+  }
+  
+  \item{\code{sample.mean}} {
+  
+  A named vector of length corresponding to the row and column dimensions
+  of the \code{sample.cov} matrix.  Names must also match those in the
+  \code{sample.cov}.  
+  }
+  
+  \item{\code{sample.cov.rescale}} {
+  
+  Default is \code{TRUE}.  If the sample covariance matrix provided 
+  by the user should be internally rescaled by multiplying it with a 
+  factor (N-1)/N.
+  }
+  
+  \item{\code{estimator}} {
+  
+  The default estimator is \code{2SLS}. For equations with continuous
+  variables only and no restrictions the estimatates are identical to 
+  those described in Bollen (1996, 2001). If restrictions are present 
+  a restricted MIIV-2SLS estimator is implemented using methods 
+  similar to those described by Greene (2000) but adapted for 
+  covariance based estimation. If an equation contains ordered 
+  categorical variables, declared in the \code{ordered} argument,
+  the PIV estimator described by Bollen and Maydeu-Olivares (2007)
+  is implemented.
   }
   
  \item{\code{se}} {
   When \code{se} is set to \code{"boot"} or \code{"bootstrap"} standard 
-  errors are computed using the pairs bootstrap. The standard errors 
-  are based on the standard deviation of successful bootstrap replications.  
-  The \code{z-value} and \code{P(>|z|)} assume the ratio of the coefficient 
-  estimate to the bootstrap standard deviation approximates a normal 
-  distribution.  Note, the Sargan test statistic is calculated from the 
-  original sample and is not a bootstrap-based estimate.
+  errors are computed using the pairs bootstrap (Freedman, 1984).
+  The standard errors are based on the standard deviation of successful 
+  bootstrap replications. The \code{z-value} and \code{P(>|z|)} assume 
+  the ratio of the coefficient estimate to the bootstrap standard 
+  deviation approximates a normal  distribution.  Note, the Sargan 
+  test statistic is calculated from the  original sample and is not 
+  a bootstrap-based estimate.
   }
 }
 }
@@ -312,15 +344,35 @@ bollen1989a_model_r <- '
 miive(model = bollen1989a_model_r, data = bollen1989a)
 }
 \references{
-Bollen, K. A. 1996.	An	Alternative	2SLS Estimator	for	Latent	
+Bollen, K. A. (1996).	An	Alternative	2SLS Estimator	for	Latent	
 Variable	Models.	\emph{Psychometrika}, 61, 109-121.
 
-Bollen,	K. A. 2001.	Two-stage	Least	Squares	and	Latent	Variable	Models:	
+Bollen, K. A. (2001).	Two-stage	Least	Squares	and	Latent	Variable	Models:	
 Simultaneous	Estimation	and	Robustness	to	Misspecifications.
 In	R.	Cudeck,	S.	Du	Toit,	and	D.	Sorbom	(Eds.),	Structural	
 Equation	Modeling:	Present	and	Future,	A	Festschrift	in	Honor	of	Karl	
 Joreskog	(pp. 119-138).	Lincoln,	IL: Scientific	Software.
+	
+Bollen, K. A., & Maydeu-Olivares, A. (2007). A Polychoric Instrumental 
+Variable (PIV) Estimator for Structural Equation Models with Categorical 
+Variables. \emph{Psychometrika}, 72(3), 309.
+
+Freedman, D. (1984). On Bootstrapping Two-Stage Least-Squares Estimates 
+in Stationary Linear Models. \emph{The Annals of Statistics}, 
+12(3), 827–842. 
+
+Greene, W. H. (2000). Econometric analysis. Upper Saddle River, 
+N.J: Prentice Hall.
 }
 \seealso{
 \link{MIIVsem}{miivs}
 }
+\keyword{2sls}
+\keyword{MIIV}
+\keyword{MIIV-2SLS}
+\keyword{PIV}
+\keyword{SEM}
+\keyword{instrument}
+\keyword{least-squares}
+\keyword{tsls}
+\keyword{two-stage}

@@ -181,6 +181,8 @@ print.miive <- function(fit,...){
     colnames(m)[!grepl("df", colnames(m))]
   )
 
+  ht <- TRUE
+  
   for(s in sections) {
     if(s == "MEASUREMENT MODEL") {
       row.idx <- which(x$op == "=~" & x$rhs != "1")
@@ -237,7 +239,19 @@ print.miive <- function(fit,...){
           M <- M[-del.idx,,drop=FALSE]
         }
       }
-      cat("\n", s, ":\n", sep = "")
+      
+      if(s %in% c("MEASUREMENT MODEL", "STRUCTURAL MODEL")) {
+        if(ht){
+          cat("\n", "STRUCTURAL COEFFICIENTS", ":\n", sep = "")
+          ht <- FALSE
+        } else {
+          #cat("\n\n", sep = "")
+          colnames(M)<- rep("", length(colnames(M)))
+        }
+      } else {
+        cat("\n", s, ":\n", sep = "")
+      }
+      
     
       if(s %in% "COVARIANCES"){
         colnames(M)[ grepl("Sargan",  colnames(M))] <- ""

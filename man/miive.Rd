@@ -57,22 +57,175 @@ Estimate SEM models using model-implied instrumental variables (MIIVs).
 }
 \details{
 \itemize{
-\item{\code{instruments}} {
+\item{\code{model}} {
+  A model specified using a subset of the uses a subset of the model syntax 
+  employed by \pkg{lavaan}. See the \code{model} argument 
+  within the \code{\link[lavaan]{lavaanify}} function for more information. 
+  The following model syntax operators are currently supported: \code{"=~"},
+  \code{"~"}, \code{"~~"} and \code{"*"}. See below for details 
+  on default behavior descriptions of how to specify the scaling 
+  indicator in latent variable models and impose equality constraints on the
+  parameter estimates. 
+  
+  \strong{Example using Syntax Operators}
+  
+  In the model below, 'L1 \code{=~} Z1 + Z2 + Z3'  indicates the 
+  latent variable L1 is measured by 3 indicators, Z1, Z2, and Z3. Likewise,
+  L2 is measured by 3 indicators, Z4, Z5, and Z6. The statement
+  'L1 \code{~} L2' specifies latent  variable L1 is regressed on latent 
+  variable L2. 'Z1 \code{~~} Z2' specifies the error of indicator 
+  Z2 is allowed to covary with the error of indicator Z3. The label
+  L3 appended to Z3 and Z6 in the measurement model equations 
+  constrains the factor loadings for Z3 and Z6 to equality. Additional 
+  details on constraints see Equality Constraints  and Parameter 
+  Restrictions.
+  
+  \preformatted{model <- '
+     L1 =~ Z1 + Z2 + L3*Z3
+     L2 =~ Z4 + Z5 + L3*Z6
+     L1  ~ L2
+     Z2 ~~ Z3
+  '}
+ 
+  \strong{Scaling Indicators}
+  
+  Following the \pkg{lavaan} model syntax, latent variables are defined 
+  using the \code{=~} operator.  For first order factors, the scaling 
+  indicator chosen is the first observed variable on the RHS of an 
+  equation. For the model  below \code{Z1} would be chosen as the 
+  scaling indicator for \code{L1} and \code{Z4} would be chosen as 
+  the scaling indicator for \code{L2}.
+  
+  \preformatted{model <- '
+     L1 =~ Z1 + Z2 + Z3
+     L2 =~ Z4 + Z5 + Z6
+  '}
+  
+  \strong{Higher-order Factor Models}
+  
+  For example, in the model below, the  scaling indicator for the 
+  higher-order factor \code{H1} is taken to be \code{Z1}, the scaling 
+  indicator that would have been assigned to the first lower-order 
+  factor \code{L1}.
+  
+  \preformatted{model <- '
+     H1 =~ L1 + L2 
+     L1 =~ Z1 + Z2 + Z3
+     L2 =~ Z4 + Z5 + Z6
+  '}
+  
+  \strong{Equality Constraints and Parameter Restrictions}
+  
+  Within- and across-equation equality constraints on the factor loading
+  and regression coefficients can be imposed directly in the model syntax. 
+  To specify equality constraints between different parameters equivalent
+  labels should be prepended to the variable name using the 
+  \code{*} operator. For example, we could constrain the factor 
+  loadings for two non-scaling indicators of latent factor \code{L1} to 
+  equality using the following  model syntax.
+  
+  \preformatted{model <- '
+     L1 =~ Z1 + B1*Z2 + B1*Z3
+     L2 =~ Z4 + Z5 + Z6
+  '}
+  
+  The factor loading and regression coefficients can also be constrained
+  to specific numeric values in a similar fashion. Below we constrain
+  the regression coefficient  of \code{L1} on \code{L2} to \code{1}.
+  
+  \preformatted{model <- '
+     L1 =~ Z1 + Z2 + Z3
+     L2 =~ Z4 + Z5 + Z6
+     L3 =~ Z7 + Z8 + Z9
+     L1  ~ 1*L2 + L3
+  '}
+  
+  \strong{Model Defaults}
+  
+  In addition to those relationships specified in the model syntax 
+  \pkg{MIIVsem} will automatically include the intercepts of any 
+  observed or latent variables. Covariances among exogenous latent
+  and observed  variables are included by default. 
+  Where appropriate the covariances of latent and observed dependent 
+  variables are also automatically included in the model specification.
+  These defaults correspond to those used by \pkg{lavaan} and 
+  \code{auto = TRUE}. 
+  
+  For example, in the model below the errors of Z1 and Z4 are allowed to 
+  covary, in addition to all pairs of exogenous variables.
+  
+  \preformatted{model <- '
+    Z1 ~ Z2 + Z3 
+    Z4 ~ Z5 + Z6
+  '}
+  
+  \strong{Invalid Specifications}
+  
+  Certain model specifications are not currently supported.  For example,
+  the scaling indicator of a latent variable is not permitted to
+  cross-load on another latent variable. For example, in the model below
+  \code{Z1}, the scaling indicator for L1, cross-loads on the latent 
+  variable \code{L2}. Executing a search on the model below will 
+  result in the warning: \emph{miivs: scaling indicators with a factor 
+  complexity greater than 1 are not currently supported}.
+  
+  \preformatted{model <- '
+    L1 =~ Z1 + Z2 + Z3
+    L2 =~ Z4 + Z5 + Z6 + Z1
+  '}
+  
+  }
+  
+  \item{\code{data}} {
+  A data.frame containing all of the observed variables specified in the
+  model syntax. 
+  }
+  
+  \item{\code{instruments}} {
+
   Using the \code{instruments} option you can specify the MIIVs directly 
   for each equation in the model. To utilize this option you must first 
-  define a list of instruments using the syntax displayed below. After 
-  the list is defined, set the \code{instruments} argument equal to 
-  the name of the list of MIIVs. Note, \code{instruments} are specified 
-  for an equation, and not for a specific endogenous variable.
+  define a list of instruments using the syntax displayed below. Here,
+  the dependent variable for each equation is listed on the LHS of the
+  \code{"~"} operator. In the case of latent variable equations, the
+  dependent variable is the scaling indicator associated with that
+  variable. The instruments are then given on the RHS, seperated
+  by \code{"+"} signs. For example, 
+  
+  \preformatted{myInstruments <- '
+     y1 ~ z1 + z2 + z3
+     y2 ~ z4 + z5
+  '
   }
-\item{\code{se}} {
-  When \code{se} is set to \code{"boot"} or \code{"bootstrap"} standard errors
-  are computed using the pairs bootstrap. These standard errors are based
-  on the standard deviation of successful bootstrap replications.  The 
-  \code{z-value} and \code{P(>|z|)} assume the ratio of the coefficient 
+    
+  After this list is defined, set the \code{instruments} argument equal to 
+  the name of the list of instruments (e.g. \code{myInstruments}). 
+  Note, that \code{instruments} are specified for an equation, 
+  and not for a specific endogenous variable. If only a subset of dependent
+  variables are listed in the instruments argument, only those  equations 
+  will be estimated.  If external or auxilliary instruments (instruments 
+  not otherwise included in the model) the \code{miivs.check} argument 
+  should be set to \code{FALSE}.
+  }
+  
+  \item{\code{sample.cov}} {
+  The user may provide a sample covariance matrix in place of raw data.
+  If \code{sample.cov} is not \code{NULL} the user must also supply a
+  vector of sample means (\code{sample.mean}) as well as the number of 
+  observations (\code{sample.nobs}) from which the means and covariances 
+  were calculated.  Currently, \pkg{MIIVsem} does not support bootstrap 
+  standard errors or polychoric instrumental variable esimtation when
+  the sample moments are used in place of raw data.  
+  }
+  
+ \item{\code{se}} {
+  When \code{se} is set to \code{"boot"} or \code{"bootstrap"} standard 
+  errors are computed using the pairs bootstrap. The standard errors 
+  are based on the standard deviation of successful bootstrap replications.  
+  The \code{z-value} and \code{P(>|z|)} assume the ratio of the coefficient 
   estimate to the bootstrap standard deviation approximates a normal 
   distribution.  Note, the Sargan test statistic is calculated from the 
-  original sample and is not a bootstrap estimate.
+  original sample and is not a bootstrap-based estimate.
   }
 }
 }
@@ -95,6 +248,7 @@ bollen1989a_model <- '
     y3   ~~ y7
     y4   ~~ y8
     y6   ~~ y8 
+
   '
 
 miive(model = bollen1989a_model, data = bollen1989a)

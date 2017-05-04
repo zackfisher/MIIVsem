@@ -1,6 +1,4 @@
-#' @method print miivs 
 #' @export
-
 print.miivs <- function(x,...){
   
   x <- x$eqns

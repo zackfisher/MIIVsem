@@ -16,6 +16,7 @@ bollen1989a_model <- '
     y3   ~~ y7
     y4   ~~ y8
     y6   ~~ y8 
+
   '
 
 miive(model = bollen1989a_model, data = bollen1989a)

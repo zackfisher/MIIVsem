@@ -6,13 +6,11 @@
 #' one containing observed variables with composite errors.  The miivs function 
 #' automatically makes this transformation.
 #'
-#' @param model A model specified using lavaan model syntax. See the \code{model} 
-#' argument within the \code{\link[lavaan]{lavaanify}} function for more information.
-#' A model specified using lavaan model syntax. See the \code{model} argument within 
-#' the \code{\link[lavaan]{lavaanify}} function for more information. See the
-#' documentation below for a description of how to specify the scaling 
-#' indicator in latent variable models and impose equality constraints on the
-#' parameter estimates. 
+#' @param model A model specified using lavaan model syntax. See the 
+#' \code{model} argument within the \code{\link[lavaan]{lavaanify}} function 
+#' for more information. See the documentation below for a description of how 
+#' to specify the scaling  indicator in latent variable models and impose 
+#' equality constraints on the parameter estimates. 
 #' 
 #' @section Scaling Indicators:
 #' Following the \code{lavaan} model syntax, latent variables are defined 
@@ -66,7 +64,7 @@
 #' 
 #' @export
 
-miivs <- function(model){
+miivs <- function(model, miivs.out = FALSE){
 
   pt <- lavaan::lavaanify(model, auto = TRUE)
   

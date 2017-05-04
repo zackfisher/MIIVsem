@@ -1,4 +1,3 @@
-#' @method print miive 
 #' @export
 print.miive <- function(fit,...){
   

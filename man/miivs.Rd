@@ -4,16 +4,14 @@
 \alias{miivs}
 \title{Model-implied instrumental variable (MIIV) search}
 \usage{
-miivs(model)
+miivs(model, miivs.out = FALSE)
 }
 \arguments{
-\item{model}{A model specified using lavaan model syntax. See the \code{model} 
-argument within the \code{\link[lavaan]{lavaanify}} function for more information.
-A model specified using lavaan model syntax. See the \code{model} argument within 
-the \code{\link[lavaan]{lavaanify}} function for more information. See the
-documentation below for a description of how to specify the scaling 
-indicator in latent variable models and impose equality constraints on the
-parameter estimates.}
+\item{model}{A model specified using lavaan model syntax. See the 
+\code{model} argument within the \code{\link[lavaan]{lavaanify}} function 
+for more information. See the documentation below for a description of how 
+to specify the scaling  indicator in latent variable models and impose 
+equality constraints on the parameter estimates.}
 }
 \value{
 A list of model equations.

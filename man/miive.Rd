@@ -7,8 +7,8 @@
 miive(model = model, data = NULL, instruments = NULL, sample.cov = NULL,
   sample.mean = NULL, sample.nobs = NULL, sample.cov.rescale = TRUE,
   estimator = "2SLS", se = "standard", bootstrap = 1000L,
-  est.only = FALSE, var.cov = FALSE, var.cov.estimator = "ML",
-  miiv.check = TRUE, ordered = NULL)
+  missing = "liswise", est.only = FALSE, var.cov = FALSE,
+  var.cov.estimator = "ML", miiv.check = TRUE, ordered = NULL)
 }
 \arguments{
 \item{model}{A model specified using lavaan model syntax or a \code{\link{miivs}} object. See the \code{model} argument within the \code{\link[lavaan]{lavaanify}} function for more information.}
@@ -31,15 +31,17 @@ miive(model = model, data = NULL, instruments = NULL, sample.cov = NULL,
 
 \item{bootstrap}{Number of bootstrap draws, if bootstrapping is used.}
 
+\item{missing}{If "listwise"...}
+
 \item{est.only}{If \code{TRUE}, only the coefficients are returned.}
 
 \item{var.cov}{If \code{TRUE}, variance and covariance parameters are estimated.}
 
 \item{var.cov.estimator}{The estimator to use for variance and covariance parameters.}
 
-\item{ordered}{A vector of variable names to be treated as ordered factors in generating the polychoric correlation matrix.}
+\item{miiv.check}{Options to turn off check for user-supplied instruments validity as MIIVs.}
 
-\item{miivs.check}{Options to turn off check for user-supplied instruments validity as MIIVs.}
+\item{ordered}{A vector of variable names to be treated as ordered factors in generating the polychoric correlation matrix.}
 }
 \value{
 A list of class \code{miive} containing the following elements:
@@ -207,7 +209,7 @@ Estimate SEM models using model-implied instrumental variables (MIIVs).
   and not for a specific endogenous variable. If only a subset of dependent
   variables are listed in the instruments argument, only those  equations 
   will be estimated.  If external or auxilliary instruments (instruments 
-  not otherwise included in the model) the \code{miivs.check} argument 
+  not otherwise included in the model) the \code{miiv.check} argument 
   should be set to \code{FALSE}.
   }
   

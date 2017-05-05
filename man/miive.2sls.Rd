@@ -20,7 +20,4 @@ miive.2sls(d, d.un, g, r, est.only)
 \description{
 Two-stage least square estimator for a system of equations
 }
-\details{
-
-}
 \keyword{internal}

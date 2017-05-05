@@ -4,7 +4,7 @@
 \alias{estVarCovar}
 \title{Estimate the variance and covariance parameters}
 \usage{
-estVarCovar(data, vcov.model, ordered, var.cov.estimator)
+estVarCovar(data, g, vcov.model, ordered, var.cov.estimator)
 }
 \description{
 Estimate the variance and covariance parameters

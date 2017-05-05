@@ -15,7 +15,8 @@
 #' @param var.cov.estimator The estimator to use for variance and covariance parameters.
 #' @param se If "standard", conventional closed form standard errors are computed. If "boot" or "bootstrap", bootstrap standard errors are computed using standard bootstrapping.
 #' @param bootstrap Number of bootstrap draws, if bootstrapping is used.
-#' @param miivs.check Options to turn off check for user-supplied instruments validity as MIIVs.
+#' @param missing If "listwise"... 
+#' @param miiv.check Options to turn off check for user-supplied instruments validity as MIIVs.
 #' @param ordered A vector of variable names to be treated as ordered factors in generating the polychoric correlation matrix.
 #' @details 
 #' 
@@ -170,7 +171,7 @@
 #'   and not for a specific endogenous variable. If only a subset of dependent
 #'   variables are listed in the instruments argument, only those  equations 
 #'   will be estimated.  If external or auxilliary instruments (instruments 
-#'   not otherwise included in the model) the \code{miivs.check} argument 
+#'   not otherwise included in the model) the \code{miiv.check} argument 
 #'   should be set to \code{FALSE}.
 #'   }
 #'   
@@ -268,8 +269,8 @@
 miive <- function(model = model, data = NULL,  instruments = NULL,
                   sample.cov = NULL, sample.mean = NULL, sample.nobs = NULL, 
                   sample.cov.rescale = TRUE, estimator = "2SLS", 
-                  se = "standard", bootstrap = 1000L, est.only = FALSE, 
-                  var.cov = FALSE, var.cov.estimator = "ML",
+                  se = "standard", bootstrap = 1000L, missing = "liswise",
+                  est.only = FALSE, var.cov = FALSE, var.cov.estimator = "ML",
                   miiv.check = TRUE, ordered = NULL){
   
   #-------------------------------------------------------# 
@@ -387,9 +388,9 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
   results <- switch(
     estimator,
       "2SLS" = miive.2sls(d, d.un, g, r, est.only),
-      "GMM"  = miive.gmm(d, d.un, g, r, est.only), # Not implemented
+      # "GMM"  = miive.gmm(d, d.un, g, r, est.only), # Not implemented
       # In other cases, raise an error
-      stop(paste("Invalid estimator:", estimator, "Valid estimators are: 2SLS, GMM"))
+      stop(paste("Invalid estimator:", estimator, "Valid estimators are: 2SLS"))
   )
   
   #-------------------------------------------------------#
@@ -398,7 +399,7 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
   if (var.cov){
     
     vcov.model <- createModelSyntax(results$eqn, pt)
-    v <- estVarCovar(data, vcov.model, ordered,var.cov.estimator)
+    v <- estVarCovar(data, g, vcov.model, ordered,var.cov.estimator)
     
   } else {
     
@@ -440,12 +441,12 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
       brep <- switch(
         estimator,
         "2SLS" = miive.2sls(d, d.un, g, r, est.only = TRUE),
-        "GMM"  = miive.gmm(d, d.un, g, r, est.only = TRUE), # Not implemented
+        #"GMM"  = miive.gmm(d, d.un, g, r, est.only = TRUE), # Not implemented
         # In other cases, raise an error
         stop(paste(
           "Invalid estimator:", 
           estimator, 
-          "Valid estimators are: 2SLS, GMM")
+          "Valid estimators are: 2SLS")
         )
       )
       
@@ -467,17 +468,17 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
     
     # Replace the estimated variances of estimates 
     # with the boostrap estimates
-    boot.mat       <- boot.results$t[complete.cases(boot.results$t),]
+    boot.mat       <- boot.results$t[stats::complete.cases(boot.results$t),]
     results$bootstrap.true <- nrow(boot.mat)
     
     # Need to determine which columns are constants
     if (results$bootstrap.true > 0){
-      nearZero <- apply(boot.mat , 2, var, na.rm=TRUE) < 1e-16
+      nearZero <- apply(boot.mat , 2, stats::var, na.rm=TRUE) < 1e-16
     } else {
       nearZero <- FALSE
     }
     
-    coefCov <- cov(boot.mat)
+    coefCov <- stats::cov(boot.mat)
     
     if(any(nearZero)) {
       coefCov[nearZero,nearZero] <- round(

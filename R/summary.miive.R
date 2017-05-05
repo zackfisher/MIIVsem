@@ -1,12 +1,12 @@
 #' @export
-summary.miive <- function(fit,eq.info = FALSE,...){
+summary.miive <- function(object, eq.info = FALSE,...){
   
   fUp <- function(x) {
     substr(x, 1, 1) <- toupper(substr(x, 1, 1)); x
   }
   
   # Print 
-  print(fit)
+  print(object)
   
   if (eq.info){
     
@@ -25,7 +25,7 @@ summary.miive <- function(fit,eq.info = FALSE,...){
       "Categorical Variable(s)"
     )
     
-    invisible(lapply(fit$eqn, function(eq){
+    invisible(lapply(object$eqn, function(eq){
       
       for(l in lbs){
         if(l == "Equation Number") {
@@ -44,13 +44,13 @@ summary.miive <- function(fit,eq.info = FALSE,...){
           
           m1 <- paste0("   ",l,": ")       
           m2 <- paste0(
-            if (fit$estimator == "2SLS"){
+            if (object$estimator == "2SLS"){
               if (eq$categorical) {
                 "MIIV-2SLS (PIV)"
               } else {
                 "MIIV-2SLS"
               }
-            } else if (fit$estimtor == "GMM"){
+            } else if (object$estimtor == "GMM"){
               "" # placeholder for GMM
             }
           )
@@ -98,7 +98,7 @@ summary.miive <- function(fit,eq.info = FALSE,...){
             if(eq$categorical){
               paste(intersect(
                 c(eq$DVobs, eq$IVobs, eq$MIIVs), 
-                fit$ordered
+                object$ordered
               ), collapse = ", ")            
             } else {
               "None"
@@ -111,7 +111,7 @@ summary.miive <- function(fit,eq.info = FALSE,...){
           m2 <- c(" ")
           cat(sprintf("%-*s %*s\n", w1, m1, w2, m2));
           
-          writeLines(strwrap(cat.vars, indent = 5,exdent = 5, width = w1+w2))
+          writeLines(strwrap(cat.var, indent = 5,exdent = 5, width = w1+w2))
           
         } else { 
           # do nothing

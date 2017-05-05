@@ -79,8 +79,6 @@
 #'  }
 #' }
 #' 
-#' @examples
-#' 
 #'   
 #'@keywords internal
 processData <- function(data = data, 
@@ -175,7 +173,7 @@ processData <- function(data = data,
       # Asymptotic covariance matrix of polychoric correlations. 
       asymptotic.cov  <- unclass(lavaan::inspect(fit, "vcov"))
       
-      ordered.varnames <- apply(t(combn(colnames(sample.polychoric), 2)), 1, function(x){
+      ordered.varnames <- apply(t(utils::combn(colnames(sample.polychoric), 2)), 1, function(x){
         paste0(x[1], "~~", x[2])
       })
       
@@ -231,7 +229,7 @@ processData <- function(data = data,
    
       
       } else { # end missing data
-        sample.cov  <- cov(data[,continous.vars])*(nrow(data[,continous.vars])-1)/nrow(data[,continous.vars])
+        sample.cov  <- stats::cov(data[,continous.vars])*(nrow(data[,continous.vars])-1)/nrow(data[,continous.vars])
         sample.mean <- colMeans(data[,continous.vars])
         sample.sscp <- buildSSCP(sample.cov, sample.mean, sample.nobs)
         if( is.null(ordered) ){ asymptotic.cov <- NULL }

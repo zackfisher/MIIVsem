@@ -13,8 +13,7 @@
 #' an error is thrown. 
 #' 
 #' @param d A list containing equation information.
-#' 
-#'@keywords internal
+#' @keywords internal
 buildRestrictMat <- function(d){
   
   # Reurns a vector of length equal to the 
@@ -28,7 +27,7 @@ buildRestrictMat <- function(d){
   # Labels may still be used without imposing restrictions.
   # Here we remove those labels. 
   coefIsRestricted <- sapply(coefIsLabeled, function(x) {
-    if (!is.na(x) & (is.numeric(type.convert(x, as.is=TRUE)) | 
+    if (!is.na(x) & (is.numeric(utils::type.convert(x, as.is=TRUE)) | 
         length(coefIsLabeled[coefIsLabeled %in% x]) > 1)){
       TRUE
     } else {
@@ -76,7 +75,7 @@ buildRestrictMat <- function(d){
     for(l in unique(labs_i)){ 
         
       # if the label is numeric
-      if (is.numeric(type.convert(l, as.is=TRUE))){
+      if (is.numeric(utils::type.convert(l, as.is=TRUE))){
           
         tmp  <- paste0(coef_i[labs_i == l],"=",labs_i[labs_i == l])
         cons <- c(cons, tmp)

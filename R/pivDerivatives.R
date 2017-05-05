@@ -75,6 +75,7 @@ buildCategoricalK <- function(eq, mat){
   }))
   
   # In reg.varID we need to order the rows so that col1 < col2
+  Var1 <- NULL; Var2 <- NULL
   reg.varID <- transform(reg.varID, 
                          min = pmin(Var1, Var2), 
                          max = pmax(Var1, Var2))[,-c(1:2)]

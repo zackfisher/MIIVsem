@@ -6,8 +6,6 @@
 #' @param r a list containing coefficient restrictions 
 #' @param est.only should we only calculate coefficient estimates
 #' 
-#' @details 
-#'
 #'@keywords internal
 miive.2sls <- function(d, d.un, g, r, est.only){
     
@@ -222,7 +220,7 @@ miive.2sls <- function(d, d.un, g, r, est.only){
                   g$sample.cov[eq$MIIVs,eq$IVobs, drop = FALSE] %*%
                   eq$coefficients[-1]) /  eq$sigma)*g$sample.nobs
           
-          eq$sargan.p <- pchisq(eq$sargan, eq$sargan.df, lower.tail = FALSE)
+          eq$sargan.p <- stats::pchisq(eq$sargan, eq$sargan.df, lower.tail = FALSE)
         } else {
           eq$sargan    <- NA
           eq$sargan.df <- NA

@@ -95,8 +95,4 @@ which contains:
  }
 }
 }
-\examples{
-
-  
-}
 \keyword{internal}

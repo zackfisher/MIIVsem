@@ -1,5 +1,9 @@
+#' Parameter estimates.
+#' 
+#' 
+#' @param x an object of class miive
 #' @export
-estimatesTable <- function(x, digits = max(3, getOption("digits"))){
+estimatesTable <- function(x){
 
   # measurement equations
   meas.eqns <-  unlist(lapply(x$eqn, function(eq){
@@ -41,7 +45,7 @@ estimatesTable <- function(x, digits = max(3, getOption("digits"))){
       eq$coefficients/sqrt(diag(eq$coefCov))})
     ),
     "pvalue" = unlist(lapply(x$eqn[meas.eqns], function(eq){
-      2*(pnorm(abs(eq$coefficients/sqrt(diag(eq$coefCov))), lower.tail=FALSE))})
+      2*(stats::pnorm(abs(eq$coefficients/sqrt(diag(eq$coefCov))), lower.tail=FALSE))})
     ),
     "sarg" = unlist(lapply(x$eqn[meas.eqns], function(eq){
       rep(eq$sargan, length(eq$coefficients))})
@@ -59,6 +63,7 @@ estimatesTable <- function(x, digits = max(3, getOption("digits"))){
   )
   
   # add a scaling indicator for each latent variable
+  
   if(any(meas.eqns)){
     meas.coef.mat <- 
     rbind(do.call("rbind", apply(unique(do.call("rbind",
@@ -111,7 +116,7 @@ estimatesTable <- function(x, digits = max(3, getOption("digits"))){
       eq$coefficients/sqrt(diag(eq$coefCov))})
     ),
     "pvalue" = unlist(lapply(x$eqn[str.eqns], function(eq){
-      2*(pnorm(abs(eq$coefficients/sqrt(diag(eq$coefCov))), lower.tail=FALSE))})
+      2*(stats::pnorm(abs(eq$coefficients/sqrt(diag(eq$coefCov))), lower.tail=FALSE))})
     ),
     "sarg" = unlist(lapply(x$eqn[str.eqns], function(eq){
       rep(eq$sargan, length(eq$coefficients))})
@@ -149,7 +154,7 @@ estimatesTable <- function(x, digits = max(3, getOption("digits"))){
       "z" = if(dim(vcov.coefCov)[1] == 0) NA else 
         v$coefficients/sqrt(diag(vcov.coefCov)),
       "pvalue" = if(dim(vcov.coefCov)[1] == 0) NA else  
-        2*(pnorm(abs(
+        2*(stats::pnorm(abs(
           v$coefficients/sqrt(diag(vcov.coefCov))), 
           lower.tail=FALSE)),
       "sarg" = NA,

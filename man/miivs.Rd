@@ -12,6 +12,9 @@ miivs(model, miivs.out = FALSE)
 for more information. See the documentation below for a description of how 
 to specify the scaling  indicator in latent variable models and impose 
 equality constraints on the parameter estimates.}
+
+\item{miivs.out}{A logical indicating whether the instruments argument
+will be printed to the console.}
 }
 \value{
 A list of model equations.

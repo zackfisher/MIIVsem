@@ -12,6 +12,9 @@
 #' to specify the scaling  indicator in latent variable models and impose 
 #' equality constraints on the parameter estimates. 
 #' 
+#' @param miivs.out A logical indicating whether the instruments argument
+#' will be printed to the console. 
+#'  
 #' @section Scaling Indicators:
 #' Following the \code{lavaan} model syntax, latent variables are defined 
 #' using the \code{"=~"} operator.  For first order factors, the scaling indicator 
@@ -98,7 +101,7 @@ miivs <- function(model, miivs.out = FALSE){
   pt$mlabel <- pt$label
   
   # Numeric contraints eneterd using '*' op. in the model syntax should
-  # also be added to the mlabel column.
+  # also be added to the mlabel column
   condNum <- !(pt$op == "=~" & !duplicated(pt$lhs)) & !is.na(pt$ustart)
   if (length(pt$ustart[condNum]) > 0){
     pt[condNum,]$mlabel <- pt[condNum,]$ustart
@@ -246,7 +249,7 @@ miivs <- function(model, miivs.out = FALSE){
   } else {
     # fill the matrix with noise
     nz <- length(BetaNA[BetaNA==-1])
-    BetaNA[BetaNA==-1] <- runif(nz)
+    BetaNA[BetaNA==-1] <- stats::runif(nz)
     BetaNA <- solve(BetaNA) 
   }
   BetaI[BetaNA != 0 & BetaI == 0] <- NA
@@ -377,14 +380,16 @@ miivs <- function(model, miivs.out = FALSE){
   
   res <- list(
     eqns = eqns, 
-    pt = pt, 
-    matrices = list(
-      Sigma = Sigma, 
-      Beta = Beta, 
-      BetaI = BetaI, 
-      Gamma = Gamma, 
-      Phi = Phi
-    )
+    pt = pt,
+    miivs.out = miivs.out,
+    matrices = 
+      list(
+        Sigma = Sigma, 
+        Beta = Beta, 
+        BetaI = BetaI, 
+        Gamma = Gamma, 
+        Phi = Phi
+      )
   )
   
   class(res) <- "miivs"

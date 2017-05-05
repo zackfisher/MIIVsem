@@ -1,9 +1,10 @@
 #' @export
-print.miive <- function(fit,...){
+print.miive <- function(x,...){
   
+
   # What esimtators were used?
-  eq.estimators <- unlist(lapply(fit$eqn, function(eq){
-    if (fit$estimator == "2SLS"){
+  eq.estimators <- unlist(lapply(x$eqn, function(eq){
+    if (x$estimator == "2SLS"){
       if (eq$categorical){
         "MIIV-2SLS (PIV)"
       } else {
@@ -22,18 +23,18 @@ print.miive <- function(fit,...){
 
 
   # MIIVsem version number
-  cat(paste0("MIIVsem (", packageVersion("MIIVsem"),") results"), "\n\n")
+  cat(paste0("MIIVsem (", utils::packageVersion("MIIVsem"),") results"), "\n\n")
   
   w1 <- 40 # width of column 1
   w2 <- 36 # width of column 2
   
   head.txt  <- do.call("rbind",
     list(
-      c("Number of observations", fit$sample.nobs),
-      c("Number of equations", length(fit$eqn)),
+      c("Number of observations", x$sample.nobs),
+      c("Number of equations", length(x$eqn)),
       c("Estimator", disp.estimator),
       c("Standard Errors", ifelse(
-        any(fit$se %in% c("boot", "bootstrap")), "bootstrap", fit$se
+        any(x$se %in% c("boot", "bootstrap")), "bootstrap", x$se
       ))
     )
   )
@@ -41,11 +42,11 @@ print.miive <- function(fit,...){
     cat(sprintf("%-*s %*s\n", w1, head.txt[i,1], w2, head.txt[i, 2]));
   }
   
-  if (fit$se  %in% c("boot", "bootstrap")){
+  if (x$se  %in% c("boot", "bootstrap")){
     boot.txt  <- do.call("rbind",
       list(
-        c("Bootstrap reps requested", fit$bootstrap),
-        c("Bootstrap reps successful", fit$bootstrap.true)
+        c("Bootstrap reps requested", x$bootstrap),
+        c("Bootstrap reps successful", x$bootstrap.true)
       )
     )
     for(i in 1:nrow(boot.txt)){
@@ -65,7 +66,7 @@ print.miive <- function(fit,...){
                  "VARIANCES",
                  "COVARIANCES")
   
-  x    <- estimatesTable(fit)
+  x    <- estimatesTable(x)
   
   ## remove duplicate Sargan test info from 
   # regression equations to avoid confusion

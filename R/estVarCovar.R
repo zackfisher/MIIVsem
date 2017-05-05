@@ -1,11 +1,13 @@
 #' Estimate the variance and covariance parameters
 #' 
 #' @param data
+#' @param g
 #' @param vcov.model
 #' @param ordered
 #' @param var.cov.estimator
 #'@keywords internal
 estVarCovar <- function(data, 
+                        g,
                         vcov.model, 
                         ordered, 
                         var.cov.estimator){
@@ -19,21 +21,40 @@ estVarCovar <- function(data,
     var.cov.estimator <- "DWLS"
   }
   
+
   v$coefficients  <- tryCatch(
     {
-      pe <- lavaan::parameterEstimates(
-        lavaan::sem(
-          vcov.model,
-          estimator = var.cov.estimator,
-          se = "none",
-          data,
-          ordered = ordered
+      if(!is.null(data)){
+        pe <- lavaan::parameterEstimates(
+          lavaan::sem(
+            vcov.model,
+            estimator = var.cov.estimator,
+            se = "none",
+            data,
+            ordered = ordered
+          )
         )
-      )
-      pe <- pe[pe$op == "~~", , drop = FALSE]
-      v.coefficients        <- pe[,"est"]
-      names(v.coefficients) <- paste0(pe$lhs,"~~",pe$rhs)
-      v.coefficients
+        pe <- pe[pe$op == "~~", , drop = FALSE]
+        v.coefficients        <- pe[,"est"]
+        names(v.coefficients) <- paste0(pe$lhs,"~~",pe$rhs)
+        v.coefficients
+      } else {
+        pe <- lavaan::parameterEstimates(
+          lavaan::sem(
+            vcov.model,
+            estimator = var.cov.estimator,
+            se = "none",
+            sample.cov  = g$sample.cov,
+            sample.mean = g$sample.mean,
+            sample.nobs = g$sample.nobs,
+            ordered = ordered
+          )
+        )
+        pe <- pe[pe$op == "~~", , drop = FALSE]
+        v.coefficients        <- pe[,"est"]
+        names(v.coefficients) <- paste0(pe$lhs,"~~",pe$rhs)
+        v.coefficients
+      }
     },
     error = function(cond) 
       { 

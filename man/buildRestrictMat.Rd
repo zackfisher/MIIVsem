@@ -2,7 +2,7 @@
 % Please edit documentation in R/buildRestrictMat.R
 \name{buildRestrictMat}
 \alias{buildRestrictMat}
-\title{Build the restriction matrix}
+\title{build the restriction matrix}
 \usage{
 buildRestrictMat(d)
 }
@@ -17,10 +17,5 @@ restrictions. If no cross-coefficient restrictions are present
 \code{R} is set to \code{NULL}. The vector \code{q} contains
 a vector of lagrangean multipliers. The vector \code{constrained} 
 gives the constrained coefficients in convenient form.
-}
-\details{
-If an equation contains any categorical variables or variables
-with missing values in addition to a restricted coefficient,
-an error is thrown.
 }
 \keyword{internal}

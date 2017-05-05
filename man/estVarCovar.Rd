@@ -2,11 +2,11 @@
 % Please edit documentation in R/estVarCovar.R
 \name{estVarCovar}
 \alias{estVarCovar}
-\title{Estimate the variance and covariance parameters}
+\title{estimate the variance and covariance parameters}
 \usage{
 estVarCovar(data, g, vcov.model, ordered, var.cov.estimator)
 }
 \description{
-Estimate the variance and covariance parameters
+estimate the variance and covariance parameters
 }
 \keyword{internal}

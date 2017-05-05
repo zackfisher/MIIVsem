@@ -9,9 +9,9 @@
 bollen1989a
 }
 \description{
-A dataset from Bollen (1989) containing measures of political democracy and
-industrialization for 75 developing countries in 1960 
-and 1965. The variables are as follows:
+A dataset from Bollen (1989) containing measures of political 
+democracy and industrialization for 75 developing countries 
+in 1960 and 1965. The variables are as follows:
 }
 \details{
 \itemize{
@@ -29,6 +29,7 @@ and 1965. The variables are as follows:
 }
 }
 \references{
-Bollen, K. A. (1989). Structural equation models. New York: Wiley-Interscience.
+Bollen, K. A. (1989). Structural equation models. 
+  New York: Wiley-Interscience.
 }
 \keyword{datasets}

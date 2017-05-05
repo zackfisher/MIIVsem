@@ -18,8 +18,6 @@ addFields <- function(d, factorNames){
     d <- lapply(d, function(eq){ eq$categorical <- FALSE; eq })
   } # add categorical label end
   
-  
-  
   labs_i <- do.call("rbind",(lapply(d, function(eq){
     cbind(eq$DVobs, eq$IVobs, eq$Label)
   })))

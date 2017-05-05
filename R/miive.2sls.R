@@ -1,8 +1,8 @@
-#' Two-stage least square estimator for a system of equations
+#' two-stage least square estimator for a system of equations
 #' 
 #' @param d a list containing equation information
 #' @param d.un a list containing underidentified equation information
-#' @param g a list containing data information
+#' @param g a list containing data matrices and characteristics
 #' @param r a list containing coefficient restrictions 
 #' @param est.only should we only calculate coefficient estimates
 #' 
@@ -59,27 +59,44 @@ miive.2sls <- function(d, d.un, g, r, est.only){
   })
   
   XX1 <- mapply(function(ZV,sVV){
+    
     ZV %*% sVV %*% t(ZV)
+    
   },ZV,sVV, SIMPLIFY = FALSE)
   
   XY1 <- mapply(function(ZV,sVV,VY){
+    
     ZV %*% sVV %*% VY
+    
   },ZV,sVV,VY, SIMPLIFY = FALSE)
   
-  if (is.null(r$R)){ 
+  
+  
+  if (is.null(r$R)){ # there are no restrictions present
     
     d <- mapply(function (d, XX1, XY1){
-      d$coefficients <- as.numeric(solve(XX1, XY1))
-      names(d$coefficients) <-  paste0(
-        d$DVlat,"~", if(d$categorical) d$IVlat else c("1",d$IVlat)
+      
+      d$coefficients <- as.numeric(
+        
+        solve(XX1, XY1)
+        
       )
+      
+      names(d$coefficients) <-  paste0(
+        
+        d$DVlat,"~", if(d$categorical) d$IVlat else c("1",d$IVlat)
+        
+      )
+      
       d
+      
     }, d, XX1, XY1, SIMPLIFY = FALSE)
+    
     
     coefficients <- unlist(lapply(d, "[[","coefficients"))
   
     
-  } else { 
+  } else { # there are restrictions present
     
     R0 <- matrix(0, nrow(r$R), nrow(r$R))
     
@@ -88,26 +105,34 @@ miive.2sls <- function(d, d.un, g, r, est.only){
        cbind(r$R, R0))) %*% rbind(cbind(unlist(XY1)), r$q))[1:ncol(r$R),]
     )
     
-    names(coefficients) <- unlist(lapply(d, function(eq) {
-      paste0(eq$DVlat,"~", if(eq$categorical) eq$IVlat else c("1",eq$IVlat))
-    }))
+    names(coefficients) <- unlist(
+      lapply(d, function(eq) { 
+        paste0(
+          eq$DVlat, "~",if(eq$categorical) eq$IVlat else c("1",eq$IVlat)
+        )
+      })
+    )
     
     # Add coefficients to equations list.
-    coefList <- split(coefficients, unlist(lapply(seq_along(d), function(x){
-      rep(x,(length(d[[x]]$IVobs) + ifelse(d[[x]]$categorical, 0, 1)))
-    })))
+    coefList <- split(
+      coefficients, 
+      unlist(lapply(seq_along(d), function(x){
+        rep(x,(length(d[[x]]$IVobs) + ifelse(d[[x]]$categorical, 0, 1)))
+      }))
+    )
     
     names(coefList) <- rep("coefficients", length(coefList))
-    d  <- lapply(seq_along(d), function(x){append(d[[x]],coefList[x])}) 
+    
+    d  <- lapply(seq_along(d), function(x){
+      append(d[[x]],coefList[x])
+    }) 
     
   } 
   
   residCov <- NULL
   coefCov  <- NULL
   
-  
-  
-  if(!est.only){
+  if(!est.only){ # if we also want ses and overid tests
 
     if (!is.null(g$sample.cov)){
 
@@ -115,9 +140,10 @@ miive.2sls <- function(d, d.un, g, r, est.only){
         if (eq$categorical){
           eq$sigma <- NA
         } else {
-          eq$sigma <- (g$sample.cov[eq$DVobs, eq$DVobs] + (t(eq$coefficients[-1]) %*%
-                       g$sample.cov[c(eq$IVobs), c(eq$IVobs)] %*% eq$coefficients[-1]) -
-                      (2 * g$sample.cov[eq$DVobs, c(eq$IVobs)] %*% eq$coefficients[-1]))
+          eq$sigma <- 
+            (g$sample.cov[eq$DVobs, eq$DVobs] + (t(eq$coefficients[-1]) %*%
+             g$sample.cov[c(eq$IVobs), c(eq$IVobs)] %*% eq$coefficients[-1]) -
+            (2 * g$sample.cov[eq$DVobs, c(eq$IVobs)] %*% eq$coefficients[-1]))
         }
         eq
       })
@@ -190,7 +216,8 @@ miive.2sls <- function(d, d.un, g, r, est.only){
     # B   <- diag(length(dvs))
     # colnames(B) <- rownames(B) <- dvs
     # idx <- do.call("rbind",lapply(d, function(eq){
-    #   cbind(eq$DVobs, eq$IVobs, if (any(eq$categorical)) eq$coefficients else eq$coefficients[-1] )
+    #   cbind(eq$DVobs, eq$IVobs, if (any(eq$categorical)) 
+    #   eq$coefficients else eq$coefficients[-1] )
     # }))
     # idx <- idx[idx[,2] %in% dvs, ,drop = FALSE]
     # B[idx[,2:1, drop = FALSE]] <- -1*as.numeric(idx[,3])
@@ -202,31 +229,34 @@ miive.2sls <- function(d, d.un, g, r, est.only){
     # rownames(residCov) <- colnames(residCov) <- unlist(lapply(d,"[","DVlat"))
 
     # Sargan's test (Hayashi, p. 228)
-    # what about restrictions?
     d <- lapply(d, function(eq) {
-      if (eq$categorical){
-        eq$sargan    <- NA
-        eq$sargan.df <- NA
-        eq$sargan.p  <- NA
-      } else {
-        eq$sargan.df <- length(eq$MIIVs) - length(eq$IVobs)
-        if (eq$sargan.df > 0 ){
-          eq$sargan <-
-            (t(g$sample.cov[eq$MIIVs,eq$DVobs, drop = FALSE] -
-                 g$sample.cov[eq$MIIVs,eq$IVobs, drop = FALSE] %*%
-                 eq$coefficients[-1]) %*%
-               solve(g$sample.cov[eq$MIIVs,eq$MIIVs]) %*%
-               (g$sample.cov[eq$MIIVs,eq$DVobs, drop = FALSE] -
-                  g$sample.cov[eq$MIIVs,eq$IVobs, drop = FALSE] %*%
-                  eq$coefficients[-1]) /  eq$sigma)*g$sample.nobs
-          
-          eq$sargan.p <- stats::pchisq(eq$sargan, eq$sargan.df, lower.tail = FALSE)
-        } else {
-          eq$sargan    <- NA
-          eq$sargan.df <- NA
-          eq$sargan.p  <- NA
-        }
+      
+      if (eq$categorical | (length(eq$MIIVs) - length(eq$IVobs)) < 1 ){
         
+        eq$sargan <- NA; eq$sargan.df <- NA; eq$sargan.p  <- NA
+        
+      } else {
+        
+        eq$sargan.df <- length(eq$MIIVs) - length(eq$IVobs)
+        
+        eq$sargan <-
+          ( 
+            t( g$sample.cov[eq$MIIVs,eq$DVobs, drop = FALSE] -
+               g$sample.cov[eq$MIIVs,eq$IVobs, drop = FALSE] %*%
+               eq$coefficients[-1]) %*%
+               solve(g$sample.cov[eq$MIIVs,eq$MIIVs] ) 
+            %*%
+             ( g$sample.cov[eq$MIIVs,eq$DVobs, drop = FALSE] -
+               g$sample.cov[eq$MIIVs,eq$IVobs, drop = FALSE] %*%
+               eq$coefficients[-1] ) 
+            /  eq$sigma 
+          ) * g$sample.nobs
+          
+          eq$sargan.p <- stats::pchisq(
+            
+            eq$sargan, eq$sargan.df, lower.tail = FALSE
+            
+          )
       }
       eq
      })

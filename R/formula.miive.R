@@ -13,6 +13,7 @@ formula.miive <- function(x, ...) {
   return(result)
 }
 
+#' @keywords internal
 formula.miive.equation <- function( x, ... ) {
    result <- stats::formula(x$terms)
    return(result)

@@ -1,7 +1,8 @@
-#' Parameter estimates.
-#' 
+#' return a dataframe of parameter estimates for a 
+#' fitted model.
 #' 
 #' @param x an object of class miive
+#' 
 #' @export
 estimatesTable <- function(x){
 

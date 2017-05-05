@@ -2,22 +2,45 @@
 #'
 #' Estimate SEM models using model-implied instrumental variables (MIIVs).
 #'
-#' @param model A model specified using lavaan model syntax or a \code{\link{miivs}} object. See the \code{model} argument within the \code{\link[lavaan]{lavaanify}} function for more information.
-#' @param data A data frame, list or environment or an object coercible by \code{as.data.frame} to data frame.
-#' @param instruments A user-supplied list of valid MIIVs for each equation. See Example 2 below. 
-#' @param sample.cov Numeric matrix. A sample variance-covariance matrix. The rownames and colnames must contain the observed variable names.
+#' @param model A model specified using lavaan model syntax or a
+#'        \code{\link{miivs}} object returned by the \code{\link{miivs}}
+#'        function. See details for more information about permissible
+#'        operators and example syntax.
+#' @param data A data frame, list or environment or an object coercible 
+#'        by \code{as.data.frame} to data frame.
+#' @param instruments A user-supplied list of instruments for each 
+#'        equation. See below and the \code{miivs.out} argument of 
+#'        \code{\link{miivs}} for more information on the correct 
+#'        input format. External (auxiliary) instruments can be 
+#'        supplied, however, the \code{miiv.check} argument must
+#'        be set to \code{FALSE}. 
+#' @param sample.cov Numeric matrix. A sample variance-covariance 
+#'        matrix. The rownames and colnames must contain each of
+#'        the observed variable names indicated in the model syntax.
 #' @param sample.mean A sample mean vector.
 #' @param sample.nobs Number of observations in the full data frame.
-#' @param sample.cov.rescale If \code{TRUE}, the sample covariance matrix provided by the user is internally rescaled by multiplying it with a factor (N-1)/N.
-#' @param estimator Options \code{"2SLS"} or \code{"GMM"} for estimating the model parameters. Default is \code{"2SLS"}.
+#' @param sample.cov.rescale If \code{TRUE}, the sample covariance matrix
+#'   provided by the user is internally rescaled by multiplying it with a factor
+#'   (N-1)/N.
+#' @param estimator Options \code{"2SLS"} or \code{"GMM"} for estimating the
+#'   model parameters. Default is \code{"2SLS"}. Currently, only \code{2SLS} is
+#'   supported.
 #' @param est.only If \code{TRUE}, only the coefficients are returned.
-#' @param var.cov If \code{TRUE}, variance and covariance parameters are estimated.
-#' @param var.cov.estimator The estimator to use for variance and covariance parameters.
-#' @param se If "standard", conventional closed form standard errors are computed. If "boot" or "bootstrap", bootstrap standard errors are computed using standard bootstrapping.
+#' @param var.cov If \code{TRUE}, variance and covariance parameters are
+#'   estimated.
+#' @param var.cov.estimator The estimator to use for variance and covariance
+#'   parameters.
+#' @param se If "standard", conventional closed form standard errors are
+#'   computed. If "boot" or "bootstrap", bootstrap standard errors are computed
+#'   using standard bootstrapping.
 #' @param bootstrap Number of bootstrap draws, if bootstrapping is used.
-#' @param missing If "listwise"... 
-#' @param miiv.check Options to turn off check for user-supplied instruments validity as MIIVs.
-#' @param ordered A vector of variable names to be treated as ordered factors in generating the polychoric correlation matrix.
+#' @param missing If "listwise"...
+#' @param miiv.check Options to turn off check for user-supplied instruments
+#'   validity as MIIVs.
+#' @param ordered A vector of variable names to be treated as ordered factors in
+#'   generating the polychoric correlation matrix.
+#'   
+#' 
 #' @details 
 #' 
 #' \itemize{
@@ -207,7 +230,11 @@
 #'   those described in Bollen (1996, 2001). If restrictions are present 
 #'   a restricted MIIV-2SLS estimator is implemented using methods 
 #'   similar to those described by Greene (2000) but adapted for 
-#'   covariance based estimation. If an equation contains ordered 
+#'   covariance based estimation. 2SLS coefficients and overidentifcation
+#'   tests are constructed using means and covariances only for 
+#'   increased computational efficiency. 
+#'   
+#'     If an equation contains ordered 
 #'   categorical variables, declared in the \code{ordered} argument,
 #'   the PIV estimator described by Bollen and Maydeu-Olivares (2007)
 #'   is implemented.
@@ -240,8 +267,8 @@
 #' Bollen, K. A. (1996).	An	Alternative	2SLS Estimator	for	Latent	
 #' Variable	Models.	\emph{Psychometrika}, 61, 109-121.
 #' 
-#' Bollen, K. A. (2001).	Two-stage	Least	Squares	and	Latent	Variable	Models:	
-#' Simultaneous	Estimation	and	Robustness	to	Misspecifications.
+#' Bollen, K. A. (2001).	Two-stage	Least	Squares	and	Latent	Variable	
+#' Models: Simultaneous	Estimation	and	Robustness	to	Misspecifications.
 #' In	R.	Cudeck,	S.	Du	Toit,	and	D.	Sorbom	(Eds.),	Structural	
 #' Equation	Modeling:	Present	and	Future,	A	Festschrift	in	Honor	of	Karl	
 #' Joreskog	(pp. 119-138).	Lincoln,	IL: Scientific	Software.
@@ -254,8 +281,11 @@
 #' in Stationary Linear Models. \emph{The Annals of Statistics}, 
 #' 12(3), 827–842. 
 #' 
-#' Greene, W. H. (2000). Econometric analysis. Upper Saddle River, 
-#' N.J: Prentice Hall.
+#' Greene, W. H. (2000). Econometric analysis. Upper Saddle River, N.J: 
+#' Prentice Hall.
+#' 
+#' Hayashi, F. (2000). Econometrics. Princeton, NJ: Princeton University 
+#' Press
 #'
 #' @example example/bollen1989-miive1.R
 #' @example example/bollen1989-miive2.R
@@ -266,12 +296,22 @@
 #' @keywords MIIV-2SLS MIIV PIV 2sls tsls instrument SEM two-stage least-squares
 #'  
 #' @export
-miive <- function(model = model, data = NULL,  instruments = NULL,
-                  sample.cov = NULL, sample.mean = NULL, sample.nobs = NULL, 
-                  sample.cov.rescale = TRUE, estimator = "2SLS", 
-                  se = "standard", bootstrap = 1000L, missing = "liswise",
-                  est.only = FALSE, var.cov = FALSE, var.cov.estimator = "ML",
-                  miiv.check = TRUE, ordered = NULL){
+miive <- function(model = model, 
+                  data = NULL,  
+                  instruments = NULL,
+                  sample.cov = NULL, 
+                  sample.mean = NULL, 
+                  sample.nobs = NULL, 
+                  sample.cov.rescale = TRUE, 
+                  estimator = "2SLS", 
+                  se = "standard", 
+                  bootstrap = 1000L, 
+                  missing = "liswise",
+                  est.only = FALSE, 
+                  var.cov = FALSE, 
+                  var.cov.estimator = "ML",
+                  miiv.check = TRUE, 
+                  ordered = NULL){
   
   #-------------------------------------------------------# 
   # A few basic sanity checks for user-supplied covariance 
@@ -281,24 +321,34 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
   if(is.null(data)){
     
     if (!is.null(ordered)){
-      stop(paste("miive: raw data required when declaring factor variables."))
+      stop(paste(
+        "miive: raw data required when declaring factor variables.")
+      )
     }
     
     if (!is.vector(sample.mean)){
-      stop(paste("miive: sample.mean must be a vector."))
+      stop(paste(
+        "miive: sample.mean must be a vector.")
+      )
     }
     
     if (is.null(names(sample.mean))){
       stop(paste("miive: sample.mean vector must have names."))
     }
     
-    if (!all.equal(names(sample.mean),colnames(sample.cov), check.attributes = FALSE)){
-      stop(paste("miive: names of sample.mean vector and sample.cov matrix must match."))
+    if (!all.equal( names(sample.mean),
+                    colnames(sample.cov), 
+                    check.attributes = FALSE )){
+      stop(paste(
+        "miive: names of sample.mean vector",
+        "and sample.cov matrix must match.")
+      )
     }
     
     if(sample.cov.rescale & !is.null(sample.cov)){
       sample.cov <- sample.cov * (sample.nobs-1)/sample.nobs
     }
+    
   }
   
   #-------------------------------------------------------#  
@@ -324,6 +374,7 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
   
   #-------------------------------------------------------# 
   # remove equations that are not identified
+  # TODO: these should be returned to user with note
   #-------------------------------------------------------#
   underid   <- sapply(d, function(eq) {
     length(eq$MIIVs) < length(eq$IVobs)
@@ -335,18 +386,25 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
   # syntax and preserve the original column ordering.
   #-------------------------------------------------------# 
   if(!is.null(data)){
-    data     <- data[,colnames(data) %in% unique(unlist(lapply(d, function(eq){
-      c(eq$DVobs,eq$IVobs,eq$MIIVs)
-    })))]
+    data <- data[,
+     colnames(data) %in% unique(unlist(
+       lapply(d, function(eq){
+         c(eq$DVobs, eq$IVobs, eq$MIIVs)
+       })
+      ))
+    ]
     data <- as.data.frame(data)
   }
-
 
   #-------------------------------------------------------# 
   # Process data. See documentation of processRawData. 
   #-------------------------------------------------------# 
-  g <- processData(data, sample.cov, sample.mean, sample.nobs, ordered, pt)
-  
+  g <- processData(data, 
+                   sample.cov, 
+                   sample.mean, 
+                   sample.nobs, 
+                   ordered, 
+                   pt )
   
   #-------------------------------------------------------#  
   # Build Restriction Matrices.
@@ -358,25 +416,51 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
   # cases prior to estimation.  
   #-------------------------------------------------------# 
   d <- lapply(d, function (eq) {
-    eq$missing <- ifelse(any(g$var.nobs[c(eq$DVobs, eq$IVobs, eq$MIIVs)] < g$sample.nobs), TRUE, FALSE)
-    eq$categorical <- ifelse(any(g$var.categorical[c(eq$DVobs, eq$IVobs, eq$MIIVs)]), TRUE, FALSE)
-    eq$exogenous   <- ifelse(any(g$var.exogenous[c(eq$DVobs, eq$IVobs, eq$MIIVs)]), TRUE, FALSE)
-    eq$restricted  <- ifelse(r$eq.restricted[eq$DVobs], TRUE, FALSE)
-    # For now throw an error if a categorical equatio contains an exogenous variable. 
+    
+    eq$missing <- ifelse(
+      any(g$var.nobs[c(eq$DVobs, eq$IVobs, eq$MIIVs)] < g$sample.nobs), 
+      TRUE, 
+      FALSE
+    )
+    
+    eq$categorical <- ifelse(
+      any(g$var.categorical[c(eq$DVobs, eq$IVobs, eq$MIIVs)]), 
+      TRUE, 
+      FALSE
+    )
+    
+    eq$exogenous   <- ifelse(
+      any(g$var.exogenous[c(eq$DVobs, eq$IVobs, eq$MIIVs)]), 
+      TRUE, 
+      FALSE
+    )
+    
+    eq$restricted  <- ifelse(
+      r$eq.restricted[eq$DVobs], 
+      TRUE, 
+      FALSE
+    )
+    
+    # For now throw an error if a categorical equation
+    # contains an exogenous variable. 
     if (eq$categorical & eq$exogenous){
+      
       stop(paste("miive: exogenous variables in",
-                 "equations containing categorical variables (including MIIVs)",
+                 "equations containing categorical",
+                 "variables (including MIIVs)",
                  "are not currently supported."))
     }
     # throw an error if a categorical equation includes restrictions
     # if (eq$categorical & eq$restricted){
     #   stop(paste("miive: Restrictions on coefficients in",
-    #              "equations containing categorical variables (including MIIVs)",
+    #              "equations containing categorical",
+    #              "variables (including MIIVs)",
     #              "is not currently supported."))
     # }
     # if (eq$missing & eq$restricted){
     #   stop(paste("miive: Restrictions on coefficients in",
-    #              "equations with missing values (including on the MIIVs)",
+    #              "equations with missing values",
+    #              "(including on the MIIVs)",
     #              "is not currently supported."))
     # }
     eq
@@ -390,7 +474,13 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
       "2SLS" = miive.2sls(d, d.un, g, r, est.only),
       # "GMM"  = miive.gmm(d, d.un, g, r, est.only), # Not implemented
       # In other cases, raise an error
-      stop(paste("Invalid estimator:", estimator, "Valid estimators are: 2SLS"))
+      stop(
+        paste(
+          "Invalid estimator:", 
+          estimator, 
+          "Valid estimators are: 2SLS"
+        )
+      )
   )
   
   #-------------------------------------------------------#
@@ -399,7 +489,12 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
   if (var.cov){
     
     vcov.model <- createModelSyntax(results$eqn, pt)
-    v <- estVarCovar(data, g, vcov.model, ordered,var.cov.estimator)
+    
+    v <- estVarCovar(data, 
+                     g, 
+                     vcov.model, 
+                     ordered,
+                     var.cov.estimator)
     
   } else {
     
@@ -408,7 +503,7 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
   }
 
   #-------------------------------------------------------#
-  # Boostrap and substitute closed form SEs with boostrap SEs
+  # Boostrap and substitute closed form SEs with boot SEs
   #-------------------------------------------------------#
   
   if(se == "boot" | se == "bootstrap"){
@@ -441,7 +536,8 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
       brep <- switch(
         estimator,
         "2SLS" = miive.2sls(d, d.un, g, r, est.only = TRUE),
-        #"GMM"  = miive.gmm(d, d.un, g, r, est.only = TRUE), # Not implemented
+        #"GMM"  = miive.gmm(d, d.un, g, r, est.only = TRUE), 
+        # Not implemented
         # In other cases, raise an error
         stop(paste(
           "Invalid estimator:", 
@@ -454,7 +550,13 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
         
         num.vcov   <- nrow(pt[pt$op == "~~",])
         vcov.model <- createModelSyntax(brep$eqn, pt)
-        vcov.coefs <- estVarCovar(bsample,vcov.model, ordered,var.cov.estimator)$coefficients
+        
+        vcov.coefs <- estVarCovar(
+          bsample,
+          vcov.model, 
+          ordered,
+          var.cov.estimator
+        )$coefficients
         
         c(brep$coefficients, vcov.coefs)
         
@@ -468,14 +570,21 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
     
     # Replace the estimated variances of estimates 
     # with the boostrap estimates
-    boot.mat       <- boot.results$t[stats::complete.cases(boot.results$t),]
+    boot.mat <- boot.results$t[
+      stats::complete.cases(boot.results$t),
+    ]
+    
     results$bootstrap.true <- nrow(boot.mat)
     
     # Need to determine which columns are constants
     if (results$bootstrap.true > 0){
+      
       nearZero <- apply(boot.mat , 2, stats::var, na.rm=TRUE) < 1e-16
+      
     } else {
+      
       nearZero <- FALSE
+      
     }
     
     coefCov <- stats::cov(boot.mat)
@@ -487,7 +596,8 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
     }
     
     rownames(coefCov) <- colnames(coefCov) <- c(
-      names(results$coefficients), if (var.cov) names(v$coefficients) else NULL
+      names(results$coefficients), 
+        if (var.cov) names(v$coefficients) else NULL
     )
     results$coefCov <- coefCov
 
@@ -513,9 +623,7 @@ miive <- function(model = model, data = NULL,  instruments = NULL,
 
     results$boot <- boot.results
   }
-  
 
-  
   # assemble return object
   results$eqn.unid       <- d.un
   results$estimator      <- estimator

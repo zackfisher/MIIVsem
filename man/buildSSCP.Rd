@@ -2,7 +2,7 @@
 % Please edit documentation in R/buildSSCP.R
 \name{buildSSCP}
 \alias{buildSSCP}
-\title{Build the sum of squares and cross products matrix}
+\title{build the sum of squares and cross products matrix}
 \usage{
 buildSSCP(sample.cov, sample.mean, sample.nobs)
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/miive.2sls.R
 \name{miive.2sls}
 \alias{miive.2sls}
-\title{Two-stage least square estimator for a system of equations}
+\title{two-stage least square estimator for a system of equations}
 \usage{
 miive.2sls(d, d.un, g, r, est.only)
 }
@@ -11,13 +11,13 @@ miive.2sls(d, d.un, g, r, est.only)
 
 \item{d.un}{a list containing underidentified equation information}
 
-\item{g}{a list containing data information}
+\item{g}{a list containing data matrices and characteristics}
 
 \item{r}{a list containing coefficient restrictions}
 
 \item{est.only}{should we only calculate coefficient estimates}
 }
 \description{
-Two-stage least square estimator for a system of equations
+two-stage least square estimator for a system of equations
 }
 \keyword{internal}

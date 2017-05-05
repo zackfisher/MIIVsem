@@ -1,4 +1,4 @@
-#' Build the sum of squares and cross products matrix
+#' build the sum of squares and cross products matrix
 #' 
 #' Build sum of squares and crossproducts matrix (SSCP).
 #' From the means, covariances, and n's you can recover the

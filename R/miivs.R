@@ -1,48 +1,155 @@
 #' Model-implied instrumental variable (MIIV) search 
 #'
-#' A key step in the MIIV-2SLS approach is to transform the SEM by replacing the 
-#' latent variables with their scaling indicators minus their errors.  Upon 
-#' substitution the SEM is transformed from a model with latent variables to 
-#' one containing observed variables with composite errors.  The miivs function 
-#' automatically makes this transformation.
+#' A key step in the MIIV-2SLS approach is to transform the SEM by 
+#' replacing the latent variables with their scaling indicators 
+#' minus their errors.  Upon substitution the SEM is transformed 
+#' from a model with latent variables to one containing observed 
+#' variables with composite errors. The miivs function 
+#' automatically makes this transformation. The miivs function
+#' will also identify equation-specific instrumental variables
+#' in simultaneous equation models. 
 #'
 #' @param model A model specified using lavaan model syntax. See the 
-#' \code{model} argument within the \code{\link[lavaan]{lavaanify}} function 
-#' for more information. See the documentation below for a description of how 
-#' to specify the scaling  indicator in latent variable models and impose 
-#' equality constraints on the parameter estimates. 
+#' \code{model} argument within the \code{\link[lavaan]{lavaanify}} 
+#' function for more information. See the documentation below for a 
+#' description of how to specify the scaling  indicator in latent 
+#' variable models and impose equality constraints on the parameter 
+#' estimates. 
 #' 
-#' @param miivs.out A logical indicating whether the instruments argument
-#' will be printed to the console. 
+#' @param miivs.out A logical indicating whether the model-implied 
+#' instrumental variables found for \code{model} should be printed
+#' to the console. This is a temporary convenience function to 
+#' provide an editable, baseline format, for the \code{instruments}
+#' argument of \code{\link{miive}}.
+#' 
+#' @param composite.disturbance A logical indicating whether the 
+#' equation-specific composite disturbance should be included in
+#' the output. 
 #'  
-#' @section Scaling Indicators:
-#' Following the \code{lavaan} model syntax, latent variables are defined 
-#' using the \code{"=~"} operator.  For first order factors, the scaling indicator 
-#' chosen is the first observed variable on the RHS of an equation. For the model 
-#' below \code{Z1} would be chosen as the scaling indicator for \code{L1} and  
-#' \code{Z4} would be chosen as the scaling indicator for \code{L2}.
-#' 
-#' \preformatted{model <- '
-#'     L1 =~ Z1 + Z2 + Z3
-#'     L2 =~ Z4 + Z5 + Z6
-#' '
-#' }
-#' 
-#' @section Higher-order Factor Models:
-#' For example, in the model below, the  scaling indicator for the higher-order 
-#' factor \code{H1} is taken to be \code{Z1}, the scaling indicator 
-#' that would have been assigned to the first lower-order factor \code{L1}.
-#' 
-#'
-#' \preformatted{model <- '
-#'     H1 =~ L1 + L2 
-#'     L1 =~ Z1 + Z2 + Z3
-#'     L2 =~ Z4 + Z5 + Z6
-#' '
-#' }
-#' 
-#' 
 #' @details 
+#' 
+#' \itemize{
+#' \item{\code{model}} {
+#' 
+#'   A model specified using a subset of the uses a subset of the model syntax 
+#'   employed by \pkg{lavaan} or a \code{miivs} object return by the 
+#'   \code{miivs} functions. See the \code{model} argumen within the 
+#'   \code{\link[lavaan]{lavaanify}} function for more information. 
+#'   The following model syntax operators are currently supported: \code{=~},
+#'   \code{~}, \code{~~} and \code{*}. See below for details 
+#'   on default behavior descriptions of how to specify the scaling 
+#'   indicator in latent variable models and impose equality constraints 
+#'   on the parameter estimates. 
+#'   
+#'   \strong{Example using Syntax Operators}
+#'   
+#'   In the model below, 'L1 \code{=~} Z1 + Z2 + Z3'  indicates the 
+#'   latent variable L1 is measured by 3 indicators, Z1, Z2, and Z3. Likewise,
+#'   L2 is measured by 3 indicators, Z4, Z5, and Z6. The statement
+#'   'L1 \code{~} L2' specifies latent  variable L1 is regressed on latent 
+#'   variable L2. 'Z1 \code{~~} Z2' specifies the error of indicator 
+#'   Z2 is allowed to covary with the error of indicator Z3. The label
+#'   L3 appended to Z3 and Z6 in the measurement model equations 
+#'   constrains the factor loadings for Z3 and Z6 to equality. Additional 
+#'   details on constraints see Equality Constraints  and Parameter 
+#'   Restrictions.
+#'   
+#'   \preformatted{model <- '
+#'      L1 =~ Z1 + Z2 + L3*Z3
+#'      L2 =~ Z4 + Z5 + L3*Z6
+#'      L1  ~ L2
+#'      Z2 ~~ Z3
+#'   '}
+#'  
+#'   \strong{Scaling Indicators}
+#'   
+#'   Following the \pkg{lavaan} model syntax, latent variables are defined 
+#'   using the \code{=~} operator.  For first order factors, the scaling 
+#'   indicator chosen is the first observed variable on the RHS of an 
+#'   equation. For the model  below \code{Z1} would be chosen as the 
+#'   scaling indicator for \code{L1} and \code{Z4} would be chosen as 
+#'   the scaling indicator for \code{L2}.
+#'   
+#'   \preformatted{model <- '
+#'      L1 =~ Z1 + Z2 + Z3
+#'      L2 =~ Z4 + Z5 + Z6
+#'   '}
+#'   
+#'   \strong{Higher-order Factor Models}
+#'   
+#'   For example, in the model below, the  scaling indicator for the 
+#'   higher-order factor \code{H1} is taken to be \code{Z1}, the scaling 
+#'   indicator that would have been assigned to the first lower-order 
+#'   factor \code{L1}.
+#'   
+#'   \preformatted{model <- '
+#'      H1 =~ L1 + L2 
+#'      L1 =~ Z1 + Z2 + Z3
+#'      L2 =~ Z4 + Z5 + Z6
+#'   '}
+#'   
+#'   \strong{Equality Constraints and Parameter Restrictions}
+#'   
+#'   Within- and across-equation equality constraints on the factor loading
+#'   and regression coefficients can be imposed directly in the model syntax. 
+#'   To specify equality constraints between different parameters equivalent
+#'   labels should be prepended to the variable name using the 
+#'   \code{*} operator. For example, we could constrain the factor 
+#'   loadings for two non-scaling indicators of latent factor \code{L1} to 
+#'   equality using the following  model syntax.
+#'   
+#'   \preformatted{model <- '
+#'      L1 =~ Z1 + B1*Z2 + B1*Z3
+#'      L2 =~ Z4 + Z5 + Z6
+#'   '}
+#'   
+#'   The factor loading and regression coefficients can also be constrained
+#'   to specific numeric values in a similar fashion. Below we constrain
+#'   the regression coefficient  of \code{L1} on \code{L2} to \code{1}.
+#'   
+#'   \preformatted{model <- '
+#'      L1 =~ Z1 + Z2 + Z3
+#'      L2 =~ Z4 + Z5 + Z6
+#'      L3 =~ Z7 + Z8 + Z9
+#'      L1  ~ 1*L2 + L3
+#'   '}
+#'   
+#'   \strong{Model Defaults}
+#'   
+#'   In addition to those relationships specified in the model syntax 
+#'   \pkg{MIIVsem} will automatically include the intercepts of any 
+#'   observed or latent variables. Covariances among exogenous latent
+#'   and observed  variables are included by default. 
+#'   Where appropriate the covariances of latent and observed dependent 
+#'   variables are also automatically included in the model specification.
+#'   These defaults correspond to those used by \pkg{lavaan} and 
+#'   \code{auto = TRUE}. 
+#'   
+#'   For example, in the model below the errors of Z1 and Z4 are allowed to 
+#'   covary, in addition to all pairs of exogenous variables.
+#'   
+#'   \preformatted{model <- '
+#'     Z1 ~ Z2 + Z3 
+#'     Z4 ~ Z5 + Z6
+#'   '}
+#'   
+#'   \strong{Invalid Specifications}
+#'   
+#'   Certain model specifications are not currently supported.  For example,
+#'   the scaling indicator of a latent variable is not permitted to
+#'   cross-load on another latent variable. For example, in the model below
+#'   \code{Z1}, the scaling indicator for L1, cross-loads on the latent 
+#'   variable \code{L2}. Executing a search on the model below will 
+#'   result in the warning: \emph{miivs: scaling indicators with a factor 
+#'   complexity greater than 1 are not currently supported}.
+#'   
+#'   \preformatted{model <- '
+#'     L1 =~ Z1 + Z2 + Z3
+#'     L2 =~ Z4 + Z5 + Z6 + Z1
+#'   '}
+#'   
+#'   }
+#' }
 #' 
 #' The \code{miivs} function displays a table containing the following 
 #' information for each equation in the system:
@@ -58,16 +165,20 @@
 #'
 #' @references 
 #' 
-#' Bollen, K. A. 1996.	An	Alternative	2SLS Estimator	for	Latent	
+#' Bollen, K. A. (1996).	An	Alternative	2SLS Estimator	for	Latent	
 #' Variable	Models.	\emph{Psychometrika}, 61, 109-121.
+#' 
+#' Bentler, P. M., and Weeks, D. G. (1980). Linear Structural 
+#' Equations with Latent Variables. \emph{Psychometrika}, 45, 289–308.                 
 #' 	
 #' @example example/bollen1989-miivs.R
 #'
 #' @seealso \code{\link{miive}}
 #' 
 #' @export
-
-miivs <- function(model, miivs.out = FALSE){
+miivs <- function(model, 
+                  miivs.out = FALSE, 
+                  composite.disturbance = FALSE){
 
   pt <- lavaan::lavaanify(model, auto = TRUE)
   
@@ -133,7 +244,10 @@ miivs <- function(model, miivs.out = FALSE){
   
   latVars <- unique(pt$lhs[pt$op == "=~"])
   
-  obsVars <- setdiff(unique(c(pt$lhs[pt$op != "=="], pt$rhs[pt$op != "=="])), latVars)
+  obsVars <- setdiff(
+    unique(c(pt$lhs[pt$op != "=="],pt$rhs[pt$op != "=="])), 
+    latVars
+  )
   
   # Indicators of latent variables and DVs in regressions
   endVars <- unique(c(pt$rhs[pt$op == "=~"], pt$lhs[pt$op == "~"]))  
@@ -141,7 +255,11 @@ miivs <- function(model, miivs.out = FALSE){
   errVars <- paste("e.",endVars,sep="")
   
   # Exogenous and error terms of endogenous variables
-  exoVars <- c(setdiff(unique(c(pt$rhs[pt$op!="=="], pt$lhs[pt$op!="=="])), endVars), errVars)
+  exoVars <- c(
+    setdiff(
+      unique(c(pt$rhs[pt$op!="=="], pt$lhs[pt$op!="=="])), 
+      endVars
+    ), errVars)
   
   allVars <- c(endVars,exoVars)
   
@@ -164,8 +282,11 @@ miivs <- function(model, miivs.out = FALSE){
   # Populate the matrices setting free parameters to NA and 
   # others to their fixed values. 
   # Edit:  here we only fix the scaling indicators for now.
-  paramValues <- ifelse(pt$free == 0 & is.na(pt$mlabel),pt$ustart,NA)
-  
+  paramValues <- ifelse(
+    pt$free == 0 & is.na(pt$mlabel),
+    pt$ustart,
+    NA
+  )
   
   # Fill gamma matrix
   for(i in which(pt$op == "=~" & pt$lhs %in% exoVars)){
@@ -198,8 +319,17 @@ miivs <- function(model, miivs.out = FALSE){
   
   # Covariances between endogenous LVs are actually 
   # covariances between error terms
-  lhs <- ifelse(pt$lhs %in% endVars,paste("e.",pt$lhs,sep=""),pt$lhs)
-  rhs <- ifelse(pt$rhs %in% endVars,paste("e.",pt$rhs,sep=""),pt$rhs)
+  lhs <- ifelse(
+    pt$lhs %in% endVars,
+    paste("e.",pt$lhs,sep=""),
+    pt$lhs
+  
+    )
+  rhs <- ifelse(
+    pt$rhs %in% endVars,
+    paste("e.",pt$rhs,sep=""),
+    pt$rhs
+  )
   
   for(i in which(pt$op == "~~")){
     
@@ -224,7 +354,10 @@ miivs <- function(model, miivs.out = FALSE){
   # a custom matrix operator. Normally, anything multiplied by NA 
   # (free parameters in our case) is NA. However we need 0*NA = 0. 
   `%naproduct%` <- function(x, y) {
-    as.matrix(Matrix::Matrix(x, sparse = T) %*% Matrix::Matrix(y, sparse = T))
+    as.matrix(
+      Matrix::Matrix(x, sparse = T) %*% 
+      Matrix::Matrix(y, sparse = T)
+    )
   }
   
   # Sigma depends on solve(I-Beta), which gives total effects between 
@@ -254,8 +387,8 @@ miivs <- function(model, miivs.out = FALSE){
   }
   BetaI[BetaNA != 0 & BetaI == 0] <- NA
   
-  Sigma <- BetaI %naproduct% Gamma %naproduct% Phi %naproduct% 
-           t(Gamma) %naproduct% t(BetaI)
+  Sigma <- BetaI %naproduct% Gamma %naproduct% 
+           Phi %naproduct% t(Gamma) %naproduct% t(BetaI)
   
   #------------------------------------------------------------------------#
   # Identify MIIVs for each equation in the system.                        #
@@ -293,14 +426,22 @@ miivs <- function(model, miivs.out = FALSE){
         
         # Choose the first indicator with loading fixed to 1
         marker <- rownames(gamBeta)[which(gamBeta[,var]==1)[1]]
-        compositeDisturbance <- c(compositeDisturbance,paste("e.",marker,sep=""))
+        
+        compositeDisturbance <- c(
+          compositeDisturbance,paste("e.",marker,sep="")
+        )
         
         # Deal with higher order factors
         while(marker %in% latVars){
           
           eq$EQmod <- "measurement"
+          
           marker <- rownames(gamBeta)[which(gamBeta[,marker]==1)[1]]
-          compositeDisturbance <- c(compositeDisturbance,paste("e.",marker,sep=""))
+          
+          compositeDisturbance <- c(
+            compositeDisturbance,
+            paste("e.",marker,sep="")
+          )
           
         }
         
@@ -368,20 +509,29 @@ miivs <- function(model, miivs.out = FALSE){
   #    Better to do this at the end in case of constraints among
   #    higher order factors. 
   #------------------------------------------------------------------------#
-  lhsi <- c(pt$rhs[pt$op == "=~" & duplicated(pt$lhs)],pt$lhs[pt$op == "~"])
-  rhsi <- c(pt$lhs[pt$op == "=~" & duplicated(pt$lhs)],pt$rhs[pt$op == "~"])
-  labi <- c(pt$mlabel[pt$op == "=~" & duplicated(pt$lhs)],pt$mlabel[pt$op == "~"])
   
-  for ( j in 1:length(eqns)){ # j <- 2
+  lhsi <- c(pt$rhs[pt$op == "=~" & duplicated(pt$lhs)],
+            pt$lhs[pt$op == "~"])
+  
+  rhsi <- c(pt$lhs[pt$op == "=~" & duplicated(pt$lhs)],
+            pt$rhs[pt$op == "~"])
+  
+  labi <- c(pt$mlabel[pt$op == "=~" & duplicated(pt$lhs)],
+            pt$mlabel[pt$op == "~"])
+  
+  for ( j in 1:length(eqns)){ 
     td <- eqns[[j]]$DVlat
     ti <- eqns[[j]]$IVlat
-    eqns[[j]]$Label <- labi[which(lhsi %in% td)][match(ti, rhsi[which(lhsi %in% td)])]
+    eqns[[j]]$Label <- labi[which(lhsi %in% td)][
+      match(ti, rhsi[which(lhsi %in% td)])
+    ]
   }
   
   res <- list(
     eqns = eqns, 
     pt = pt,
     miivs.out = miivs.out,
+    composite.disturbance = composite.disturbance,
     matrices = 
       list(
         Sigma = Sigma, 

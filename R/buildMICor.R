@@ -1,6 +1,6 @@
-#' Build model-implied correlation matrix
+#' build model-implied correlation matrix
 #' 
-#' @param d 
+#' @param eqns 
 #' @param pt 
 #' 
 #'@keywords internal
@@ -18,7 +18,5 @@ buildMICor <- function(eqns, pt){
     pt[pt$op == "~"  & pt$lhs %in% eq[1] & pt$rhs %in% eq[2], 
        c("free", "ustart")] <- c(0, as.numeric(eq[3]))
   }
-  
- 
 }
 

@@ -2,16 +2,16 @@
 % Please edit documentation in R/buildMICor.R
 \name{buildMICor}
 \alias{buildMICor}
-\title{Build model-implied correlation matrix}
+\title{build model-implied correlation matrix}
 \usage{
 buildMICor(eqns, pt)
 }
 \arguments{
-\item{pt}{}
+\item{eqns}{}
 
-\item{d}{}
+\item{pt}{}
 }
 \description{
-Build model-implied correlation matrix
+build model-implied correlation matrix
 }
 \keyword{internal}

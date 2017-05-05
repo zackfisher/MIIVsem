@@ -1,10 +1,4 @@
-#' Estimate the variance and covariance parameters
-#' 
-#' @param data
-#' @param g
-#' @param vcov.model
-#' @param ordered
-#' @param var.cov.estimator
+#' estimate the variance and covariance parameters
 #'@keywords internal
 estVarCovar <- function(data, 
                         g,

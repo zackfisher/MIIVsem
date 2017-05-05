@@ -1,8 +1,8 @@
 #' Industrialization-Democracy Data
 #'
-#' A dataset from Bollen (1989) containing measures of political democracy and
-#' industrialization for 75 developing countries in 1960 
-#' and 1965. The variables are as follows:
+#' A dataset from Bollen (1989) containing measures of political 
+#' democracy and industrialization for 75 developing countries 
+#' in 1960 and 1965. The variables are as follows:
 #'
 #' \itemize{
 #'   \item y1. freedom of the press, 1960 
@@ -23,5 +23,7 @@
 #' @name bollen1989a
 #' @usage bollen1989a
 #' @format A data frame with 75 rows and 9 variables
-#' @references Bollen, K. A. (1989). Structural equation models. New York: Wiley-Interscience.
+#' @references 
+#'   Bollen, K. A. (1989). Structural equation models. 
+#'   New York: Wiley-Interscience.
 NULL

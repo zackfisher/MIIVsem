@@ -2,7 +2,8 @@
 % Please edit documentation in R/estimatesTable.R
 \name{estimatesTable}
 \alias{estimatesTable}
-\title{Parameter estimates.}
+\title{return a dataframe of parameter estimates for a 
+fitted model.}
 \usage{
 estimatesTable(x)
 }
@@ -10,5 +11,6 @@ estimatesTable(x)
 \item{x}{an object of class miive}
 }
 \description{
-Parameter estimates.
+return a dataframe of parameter estimates for a 
+fitted model.
 }

@@ -2,16 +2,11 @@
 % Please edit documentation in R/fillParTable.R
 \name{fillParTable}
 \alias{fillParTable}
-\title{Fill the parameter table}
+\title{fill the parameter table}
 \usage{
 fillParTable(eqns, pt)
 }
-\arguments{
-\item{pt}{}
-
-\item{d}{}
-}
 \description{
-Fill the parameter table
+fill the parameter table
 }
 \keyword{internal}

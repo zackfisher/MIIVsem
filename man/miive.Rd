@@ -11,23 +11,40 @@ miive(model = model, data = NULL, instruments = NULL, sample.cov = NULL,
   var.cov.estimator = "ML", miiv.check = TRUE, ordered = NULL)
 }
 \arguments{
-\item{model}{A model specified using lavaan model syntax or a \code{\link{miivs}} object. See the \code{model} argument within the \code{\link[lavaan]{lavaanify}} function for more information.}
+\item{model}{A model specified using lavaan model syntax or a
+\code{\link{miivs}} object returned by the \code{\link{miivs}}
+function. See details for more information about permissible
+operators and example syntax.}
 
-\item{data}{A data frame, list or environment or an object coercible by \code{as.data.frame} to data frame.}
+\item{data}{A data frame, list or environment or an object coercible 
+by \code{as.data.frame} to data frame.}
 
-\item{instruments}{A user-supplied list of valid MIIVs for each equation. See Example 2 below.}
+\item{instruments}{A user-supplied list of instruments for each 
+equation. See below and the \code{miivs.out} argument of 
+\code{\link{miivs}} for more information on the correct 
+input format. External (auxiliary) instruments can be 
+supplied, however, the \code{miiv.check} argument must
+be set to \code{FALSE}.}
 
-\item{sample.cov}{Numeric matrix. A sample variance-covariance matrix. The rownames and colnames must contain the observed variable names.}
+\item{sample.cov}{Numeric matrix. A sample variance-covariance 
+matrix. The rownames and colnames must contain each of
+the observed variable names indicated in the model syntax.}
 
 \item{sample.mean}{A sample mean vector.}
 
 \item{sample.nobs}{Number of observations in the full data frame.}
 
-\item{sample.cov.rescale}{If \code{TRUE}, the sample covariance matrix provided by the user is internally rescaled by multiplying it with a factor (N-1)/N.}
+\item{sample.cov.rescale}{If \code{TRUE}, the sample covariance matrix
+provided by the user is internally rescaled by multiplying it with a factor
+(N-1)/N.}
 
-\item{estimator}{Options \code{"2SLS"} or \code{"GMM"} for estimating the model parameters. Default is \code{"2SLS"}.}
+\item{estimator}{Options \code{"2SLS"} or \code{"GMM"} for estimating the
+model parameters. Default is \code{"2SLS"}. Currently, only \code{2SLS} is
+supported.}
 
-\item{se}{If "standard", conventional closed form standard errors are computed. If "boot" or "bootstrap", bootstrap standard errors are computed using standard bootstrapping.}
+\item{se}{If "standard", conventional closed form standard errors are
+computed. If "boot" or "bootstrap", bootstrap standard errors are computed
+using standard bootstrapping.}
 
 \item{bootstrap}{Number of bootstrap draws, if bootstrapping is used.}
 
@@ -35,13 +52,17 @@ miive(model = model, data = NULL, instruments = NULL, sample.cov = NULL,
 
 \item{est.only}{If \code{TRUE}, only the coefficients are returned.}
 
-\item{var.cov}{If \code{TRUE}, variance and covariance parameters are estimated.}
+\item{var.cov}{If \code{TRUE}, variance and covariance parameters are
+estimated.}
 
-\item{var.cov.estimator}{The estimator to use for variance and covariance parameters.}
+\item{var.cov.estimator}{The estimator to use for variance and covariance
+parameters.}
 
-\item{miiv.check}{Options to turn off check for user-supplied instruments validity as MIIVs.}
+\item{miiv.check}{Options to turn off check for user-supplied instruments
+validity as MIIVs.}
 
-\item{ordered}{A vector of variable names to be treated as ordered factors in generating the polychoric correlation matrix.}
+\item{ordered}{A vector of variable names to be treated as ordered factors in
+generating the polychoric correlation matrix.}
 }
 \value{
 A list of class \code{miive} containing the following elements:
@@ -245,7 +266,11 @@ Estimate SEM models using model-implied instrumental variables (MIIVs).
   those described in Bollen (1996, 2001). If restrictions are present 
   a restricted MIIV-2SLS estimator is implemented using methods 
   similar to those described by Greene (2000) but adapted for 
-  covariance based estimation. If an equation contains ordered 
+  covariance based estimation. 2SLS coefficients and overidentifcation
+  tests are constructed using means and covariances only for 
+  increased computational efficiency. 
+  
+    If an equation contains ordered 
   categorical variables, declared in the \code{ordered} argument,
   the PIV estimator described by Bollen and Maydeu-Olivares (2007)
   is implemented.
@@ -349,8 +374,8 @@ miive(model = bollen1989a_model_r, data = bollen1989a)
 Bollen, K. A. (1996).	An	Alternative	2SLS Estimator	for	Latent	
 Variable	Models.	\emph{Psychometrika}, 61, 109-121.
 
-Bollen, K. A. (2001).	Two-stage	Least	Squares	and	Latent	Variable	Models:	
-Simultaneous	Estimation	and	Robustness	to	Misspecifications.
+Bollen, K. A. (2001).	Two-stage	Least	Squares	and	Latent	Variable	
+Models: Simultaneous	Estimation	and	Robustness	to	Misspecifications.
 In	R.	Cudeck,	S.	Du	Toit,	and	D.	Sorbom	(Eds.),	Structural	
 Equation	Modeling:	Present	and	Future,	A	Festschrift	in	Honor	of	Karl	
 Joreskog	(pp. 119-138).	Lincoln,	IL: Scientific	Software.
@@ -363,8 +388,11 @@ Freedman, D. (1984). On Bootstrapping Two-Stage Least-Squares Estimates
 in Stationary Linear Models. \emph{The Annals of Statistics}, 
 12(3), 827–842. 
 
-Greene, W. H. (2000). Econometric analysis. Upper Saddle River, 
-N.J: Prentice Hall.
+Greene, W. H. (2000). Econometric analysis. Upper Saddle River, N.J: 
+Prentice Hall.
+
+Hayashi, F. (2000). Econometrics. Princeton, NJ: Princeton University 
+Press
 }
 \seealso{
 \link{MIIVsem}{miivs}

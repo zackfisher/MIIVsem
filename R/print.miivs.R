@@ -14,11 +14,19 @@ print.miivs <- function(x,...){
     if (i >  1) {modeqns <- rbind(modeqns,modtemp) }
   }
   
-  modeqns$'Composite Disturbance' <- NULL
+  if (!x$composite.disturbance){
+    modeqns$'Composite Disturbance' <- NULL
+  }
   
   cat("Model Equation Information \n")
   cat("\n")
-  print(modeqns, quote = FALSE, right = FALSE, row.names = FALSE, print.gap=1)
+  print(
+    modeqns, 
+    quote = FALSE, 
+    right = FALSE, 
+    row.names = FALSE, 
+    print.gap=1
+  )
   cat("\n")
   cat("\n")
   
@@ -26,7 +34,13 @@ print.miivs <- function(x,...){
     cat("instruments <- '\n")
       invisible(lapply(z,function(eq){
         cat(
-          paste0("   ",eq$DVobs," ~ ",paste(eq$MIIVs, collapse = " + "),"\n")
+          paste0(
+            "   ",
+            eq$DVobs,
+            " ~ ",
+            paste(eq$MIIVs, collapse = " + "),
+            "\n"
+          )
         )
       }))
     cat("'")

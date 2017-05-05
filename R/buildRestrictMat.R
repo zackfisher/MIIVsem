@@ -1,4 +1,4 @@
-#' Build the restriction matrix
+#' build the restriction matrix
 #' 
 #' Function returns a list \code{r} with information regarding
 #' coefficient restrictions and estimation. The field \code{R} 
@@ -7,12 +7,9 @@
 #' \code{R} is set to \code{NULL}. The vector \code{q} contains
 #' a vector of lagrangean multipliers. The vector \code{constrained} 
 #' gives the constrained coefficients in convenient form.
-#' 
-#' If an equation contains any categorical variables or variables
-#' with missing values in addition to a restricted coefficient,
-#' an error is thrown. 
-#' 
+#'  
 #' @param d A list containing equation information.
+#' 
 #' @keywords internal
 buildRestrictMat <- function(d){
   

@@ -1,8 +1,4 @@
-#' Fill the parameter table
-#' 
-#' @param d 
-#' @param pt 
-#' 
+#' fill the parameter table
 #'@keywords internal
 fillParTable <- function(eqns, pt){ 
   
@@ -18,11 +14,7 @@ fillParTable <- function(eqns, pt){
     pt[pt$op == "~"  & pt$lhs %in% eq[1] & pt$rhs %in% eq[2], 
        c("free", "ustart")] <- c(0, as.numeric(eq[3]))
   }
-  
-  
-  
-  
-  
+
   return(pt)
 }
 

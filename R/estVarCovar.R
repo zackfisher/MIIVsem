@@ -1,11 +1,43 @@
 #' estimate the variance and covariance parameters
 #'@keywords internal
 estVarCovar <- function(data, 
-                        g,
-                        vcov.model, 
+                        g, 
+                        results, 
+                        pt, 
                         ordered, 
+                        se, 
+                        missing, 
                         var.cov.estimator){
   
+  
+  # if (!is.null(x$v)){
+  #   v <- x$v
+  #   vcov.names   <- names(v$coefficients)
+  #   vcov.coefCov <- x$coefCov[
+  #     colnames(x$coefCov) %in% vcov.names,
+  #     colnames(x$coefCov) %in% vcov.names
+  #     ]
+  #   
+  #   vcov.coef.mat <- data.frame(
+  #     "lhs" = do.call(rbind, strsplit(vcov.names, "~~"))[,1],
+  #     "op"  = "~~",
+  #     "rhs" = do.call(rbind, strsplit(vcov.names, "~~"))[,2],
+  #     "est" = v$coefficients,
+  #     "se"  = if(dim(vcov.coefCov)[1] == 0) NA else 
+  #       sqrt(diag(vcov.coefCov)),
+  #     "z" = if(dim(vcov.coefCov)[1] == 0) NA else 
+  #       v$coefficients/sqrt(diag(vcov.coefCov)),
+  #     "pvalue" = if(dim(vcov.coefCov)[1] == 0) NA else  
+  #       2*(stats::pnorm(abs(
+  #         v$coefficients/sqrt(diag(vcov.coefCov))), 
+  #         lower.tail=FALSE)),
+  #     "sarg" = NA,
+  #     "sarg.df" = NA, 
+  #     "sarg.p" = NA,
+  #     "eq" = NA,
+  #     stringsAsFactors = FALSE
+  #   )
+
   v <- list()
   
   # if there are categorical variables
@@ -14,6 +46,9 @@ estVarCovar <- function(data,
   if(!is.null(ordered) & var.cov.estimator == "ML"){
     var.cov.estimator <- "DWLS"
   }
+  
+  
+  
   
 
   v$coefficients  <- tryCatch(

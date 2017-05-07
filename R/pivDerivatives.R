@@ -114,3 +114,11 @@ buildDuplicator <- function(p){
   }
   D
 }
+
+buildDuplication <- function(x){
+  mat <- diag(x)
+  index <- seq(x*(x+1)/2)
+  mat[ lower.tri( mat , TRUE ) ] <- index
+  mat[ upper.tri( mat ) ] <- t( mat )[ upper.tri( mat ) ]
+  outer(c(mat), index , function( x , y ) ifelse(x==y, 1, 0 ) )
+}

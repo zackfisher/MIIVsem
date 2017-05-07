@@ -1,13 +1,12 @@
 #' two-stage least square estimator for a system of equations
 #' 
 #' @param d a list containing equation information
-#' @param d.un a list containing underidentified equation information
 #' @param g a list containing data matrices and characteristics
 #' @param r a list containing coefficient restrictions 
 #' @param est.only should we only calculate coefficient estimates
 #' 
 #'@keywords internal
-miive.2sls <- function(d, d.un, g, r, est.only){
+miive.2sls <- function(d, g, r, est.only){
     
   # Construct the following matrices:
   # XY1: A vector of crossproducts of fitted values from the first stage

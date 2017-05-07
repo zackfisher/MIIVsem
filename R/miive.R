@@ -39,7 +39,7 @@
 #'   validity as MIIVs.
 #' @param ordered A vector of variable names to be treated as ordered factors in
 #'   generating the polychoric correlation matrix.
-#'   
+#' @param control
 #' 
 #' @details 
 #' 
@@ -311,7 +311,8 @@ miive <- function(model = model,
                   var.cov = FALSE, 
                   var.cov.estimator = "ML",
                   miiv.check = TRUE, 
-                  ordered = NULL){
+                  ordered = NULL,
+                  control = miive.control( ... ),){
   
   #-------------------------------------------------------# 
   # A few basic sanity checks for user-supplied covariance 
@@ -395,6 +396,13 @@ miive <- function(model = model,
     ]
     data <- as.data.frame(data)
   }
+  
+  #-------------------------------------------------------# 
+  # If missing == "listwise"
+  #-------------------------------------------------------# 
+  if (missing == "listwise"){
+    data <- data[complete.cases(data),]
+  }
 
   #-------------------------------------------------------# 
   # Process data. See documentation of processRawData. 
@@ -404,6 +412,8 @@ miive <- function(model = model,
                    sample.mean, 
                    sample.nobs, 
                    ordered, 
+                   missing,
+                   se,
                    pt )
   
   #-------------------------------------------------------#  
@@ -471,7 +481,7 @@ miive <- function(model = model,
   #-------------------------------------------------------#
   results <- switch(
     estimator,
-      "2SLS" = miive.2sls(d, d.un, g, r, est.only),
+      "2SLS" = miive.2sls(d, g, r, est.only),
       # "GMM"  = miive.gmm(d, d.un, g, r, est.only), # Not implemented
       # In other cases, raise an error
       stop(
@@ -488,13 +498,17 @@ miive <- function(model = model,
   #-------------------------------------------------------#
   if (var.cov){
     
-    vcov.model <- createModelSyntax(results$eqn, pt)
-    
-    v <- estVarCovar(data, 
-                     g, 
-                     vcov.model, 
-                     ordered,
-                     var.cov.estimator)
+    #vcov.model <- createModelSyntax(results$eqn, pt)
+    v <- estVarCovar(
+      data, 
+      g, 
+      results, 
+      pt, 
+      ordered, 
+      se, 
+      missing, 
+      var.cov.estimator
+    )
     
   } else {
     
@@ -523,20 +537,22 @@ miive <- function(model = model,
       
       bsample <- origData[indices,]
       
-      g <- processData(
+      bg <- processData(
         data = bsample, 
         sample.cov = NULL, 
         sample.mean = NULL, 
         sample.nobs = NULL, 
         ordered = ordered, 
+        missing = missing,
+        se = se,
         pt = pt
       )
       
       
       brep <- switch(
         estimator,
-        "2SLS" = miive.2sls(d, d.un, g, r, est.only = TRUE),
-        #"GMM"  = miive.gmm(d, d.un, g, r, est.only = TRUE), 
+        "2SLS" = miive.2sls(d, bg, r, est.only = TRUE),
+        #"GMM"  = miive.gmm(d, g, r, est.only = TRUE), 
         # Not implemented
         # In other cases, raise an error
         stop(paste(
@@ -553,6 +569,7 @@ miive <- function(model = model,
         
         vcov.coefs <- estVarCovar(
           bsample,
+          g,
           vcov.model, 
           ordered,
           var.cov.estimator

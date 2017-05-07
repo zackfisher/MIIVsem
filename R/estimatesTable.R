@@ -72,11 +72,11 @@ estimatesTable <- function(x){
         c(eq$IVlat, eq$IVobs)
     }))), 1, function(x){
       data.frame(
-        "lhs"     = x[1],
-        "op"      = "=~",
-        "rhs"     = x[2],
-        "est"     = 1,
-        "se"      = 0,
+        "lhs"     = c(x[1],x[2]),
+        "op"      = c("=~","~1"),
+        "rhs"     = c(x[2],""),
+        "est"     = c(1,0),
+        "se"      = c(0,0),
         "z"       = NA,
         "pvalue"  = NA,
         "sarg"    = NA,
@@ -176,11 +176,12 @@ estimatesTable <- function(x){
     meas.coef.mat,
     vcov.coef.mat
   )
-  rownames(parTab) <- NULL
   
   parTab[is.infinite(parTab[,"z"]),c("se","z","pvalue")] <- NA
   
   parTab <- parTab[order(parTab$op, parTab$lhs),] 
+  
+  rownames(parTab) <- NULL
   
   return(parTab)
 }

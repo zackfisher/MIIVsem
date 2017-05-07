@@ -1,123 +1,43 @@
 #' Process data.
-#' 
-#' @param data A data frame containing only those variables specified in the model syntax.
-#' @param sample.cov Numeric matrix. A sample variance-covariance matrix. The rownames and colnames must contain the observed variable names.
-#' @param sample.mean A sample mean vector.
-#' @param sample.nobs Number of observations in the full data frame.
-#' @param ordered A user-supplied vector of variable names for any ordered categorical variables in \code{data}.
-#' 
-#' @details 
-#' The internal function \code{processData} returns a list \code{g} 
-#' which contains:
-#' \describe{
-#'  \item{\code{sample.cov} }{ 
-#'    When the raw data contains only continous variables \code{sample.cov}
-#'    is the sample covariance matrix for all variables indicated in the model
-#'    syntax. \code{sample.cov} is calculated  as 
-#'    \code{cov(data)*(nrow(data)-1)/nrow(data)}. When 
-#'    the raw data contains categorical variables, and these 
-#'    variables are also specified by the user in the 
-#'    \code{ordered} argument of the \code{miive} function, 
-#'    \code{sample.cov} is the sample covariance matrix for any
-#'    continous variables included in the model syntax. If there are no 
-#'    continuous variables in the \code{model} statement \code{sample.cov} is
-#'    set to \code{NULL}.  If the raw data matrix contains missing data for any
-#'    continous variables, the sample covariance matrix for the 
-#'    continuous variables \code{sample.cov} is estimated with
-#'    the \code{FIML} estimator. This covariance matrix is often
-#'    referred to as the EM covariance matrix. When the data is a mix of
-#'    continous and categorical variables, and missing
-#'    data is present in the continous variables, the EM covariance
-#'    matrix is estimated for the continous variables only.  
-#'    In coefficient estimation this EM  sample covariance matrix is only 
-#'    used if all variables in a given equation 
-#'    (e.g. depdent, explanatory and instruments) are continous and no
-#'    cross-equation restrictions are present. Otherwise the polychoric 
-#'    correlation matrix is used. 
-#'  }
-#'  \item{\code{sample.mean} }{ 
-#'    A vector of mean values for any continous variables in the dataset (in
-#'    column order). Mean values for any categorical variable are given as
-#'    \code{NA}. When missing values are present, the mean vector for any 
-#'    continous variables is estimated using the options described above.
-#'  }
-#'  \item{\code{sample.nobs} }{ 
-#'    The full number of rows contained in the user-supplied \code{data}, including
-#'    those with missing data.
-#'  }
-#'  \item{\code{sample.polychoric} }{ 
-#'    When the model syntax contains categorical variables the 
-#'    \code{sample.polychoric} matrix is estimated using lavaan's
-#'    \code{\link[lavaan]{lavCor}} function. If missing data is 
-#'    present in the raw data matrix the polychoric correlations are 
-#'    calculated using pairwise deletion. See the \code{\link[lavaan]{lavCor}} 
-#'    documention for additional information. The \code{piv.opts} input 
-#'    vector contains arguments that are passed to the 
-#'    \code{estimator} and \code{se} arguments of \code{\link[lavaan]{lavCor}}.
-#'    The default options for \code{piv.opts} are \code{estimator = "two.step"} 
-#'    and \code{se = "standard"}.
-#'  }
-#'  \item{\code{asymptotic.cov} }{ 
-#'    The asymptotic covariance matrix is estimated when either categorical
-#'    variables are included in the model or when there is missing data. 
-#'    Otherwise, \code{asymptotic.cov} is set to \code{NULL}. 
-#'  }
-#'  \item{\code{var.nobs} }{ 
-#'    A numeric vector containing the number of non-missing observations 
-#'    for each variable in \code{data}. If there are no missing observatuibs
-#'    \code{var.nobs} is set to \code{NULL}.
-#'  }
-#'  \item{\code{var.categorical} }{ 
-#'    A logical vector indicating which columns of \code{data} are categorical.
-#'    If there are no categorical variables \code{var.categorical} is 
-#'    set to \code{NULL}.
-#'  }
-#'  \item{\code{var.missing} }{ 
-#'    A logical vector indicating which columns of \code{data} contain missing
-#'    values.  If there are no variables with missing data
-#'    \code{var.missing} is \code{NULL}.
-#'  }
-#' }
-#' 
-#'   
 #'@keywords internal
 processData <- function(data = data, 
                         sample.cov = sample.cov,
                         sample.mean = sample.mean, 
                         sample.nobs = sample.nobs, 
                         ordered = ordered,
+                        missing = missing,
+                        se = se,
                         pt = pt){
   
+  # if the user supplied a covariance matrix.
   if (is.null(data)){
     
     if (!is.null(ordered)){
       stop(paste("miive: if categorical.vars are declared raw data is required."))
     }
     
-    sample.sscp <- buildSSCP(sample.cov, sample.mean, sample.nobs)
+    sample.sscp       <- buildSSCP(sample.cov, sample.mean, sample.nobs)
     sample.polychoric <- NULL
-    asymptotic.cov <- NULL
-    var.nobs <- NULL
-    var.categorical <- NULL
-    var.missing <- NULL
-    var.exogenous   <- colnames(data) %in% pt[ pt$exo == 1L & 
-                                               pt$op  == "~~" & 
-                                               pt$lhs == pt$rhs, "rhs" ]
-    names(var.exogenous) <- colnames(data)
-    
+    asymptotic.cov    <- NULL
+    var.nobs          <- NULL
+    var.categorical   <- NULL
+    var.missing       <- NULL
+    var.exogenous     <- NULL
+  
+  # the user supplied raw data
   } else {
     
-    piv.opts <- c(
-      estimator = "two.step", 
-      se = "standard"
-    )
-
-    missing.opts <- c(
-      missing = "FIML", 
-      estimator = "ML",         # se = std. implies m.v. normality
-      se = "standard",          # or "robust.huber.white".
-      information = "observed"  # or "expected"
-    )
+    # piv.opts <- c(
+    #   estimator = "two.step", 
+    #   se = "standard"
+    # )
+    # 
+    # missing.opts <- c(
+    #   missing = "FIML", 
+    #   estimator = "ML",         # se = std. implies m.v. normality
+    #   se = "standard",          # or "robust.huber.white".
+    #   information = "observed"  # or "expected"
+    # )
   
     # Data-level characteristics
     sample.nobs     <- nrow(data)
@@ -126,24 +46,32 @@ processData <- function(data = data,
     var.nobs        <- nrow(data) - colSums(is.na(data))
     var.missing     <- sapply(var.nobs, function(x) ifelse(x==sample.nobs, FALSE, TRUE))
     var.categorical <- vapply(data, is.factor, c(is.factor=FALSE))
-    var.exogenous   <- colnames(data) %in% pt[ pt$exo == 1L & 
-                                               pt$op  == "~~" & 
-                                               pt$lhs == pt$rhs, "rhs" ]
+    
+    
+    # Exogenous variables in the dataset
+    var.exogenous <- colnames(data) %in%
+      pt[ pt$exo == 1L & pt$op  == "~~" & pt$lhs == pt$rhs, "rhs" ]
     names(var.exogenous) <- colnames(data)
+    
+    #-------------------------------------------------------# 
+    # Ordered factors present in data
+    #-------------------------------------------------------# 
     
     if( any(var.categorical) | !is.null(ordered) ){ 
       
-      if (any(var.categorical)) { ## are there any factors in the data
+      # there are factors in the user-upplied data
+      if (any(var.categorical)) { 
+        
         ## if there are undeclared factors throw an error
         if (length(setdiff(colnames(data)[var.categorical],ordered)) > 0){
-          msg <- c("miive: the following undeclared factors were found in data: ", 
-                   paste0(
-                     setdiff(colnames(data)[var.categorical],ordered), 
-                   collapse = ", "
-                   ), 
-                   ". Use the ordered argument to specify categorical variables.")
-          
-          stop(paste0(msg))
+          und.factors <- setdiff(colnames(data)[var.categorical],ordered)
+          stop(paste0(
+            "miive: the following undeclared factors,",
+            "were found in data: ", 
+            paste(und.factors,collapse = ", "), 
+            ". Use the ordered argument to specify",
+            "categorical variables."
+          ))
         }
       }
       
@@ -154,70 +82,117 @@ processData <- function(data = data,
       data[,ordered]  <- lapply(data[,ordered, drop = FALSE], ordered)
       var.categorical <- vapply(data, is.factor, c(is.factor=FALSE))
       
+      if (any(var.categorical) & missing == "savalei") { 
+        stop(paste0(
+          "miive: missing = ", missing, 
+          " not supported in the presence of",
+          " categorical variables."
+        ))
+      }
+      
       fit <- lavaan::lavCor(
         data, 
         output = "fit", 
         missing = "listwise",
-        estimator = piv.opts["estimator"],
-        se = piv.opts["se"],
+        estimator = "two.step",
+        se = "standard",
         ov.names.x = ov.names.x,
         ordered = setdiff(ordered, ov.names.x)
       )
-      
       
       sample.sscp <- NULL
  
       # Polychoric correlation matrix. 
       sample.polychoric <- unclass(lavaan::inspect(fit, "cor.ov"))
       
-      # Asymptotic covariance matrix of polychoric correlations. 
-      asymptotic.cov  <- unclass(lavaan::inspect(fit, "vcov"))
+      # is polycor faster
+      # corS<-matrix(NA,12,12)
+      # for (i in 1:12){    
+      #   for (j in i:12) {
+      #     if(i==j){
+      #       corS[i,j] <- 1
+      #     } else {
+      #       corS[i,j] <- polycor::polychor(data[,i],data[,j],ML=F)
+      #       corS[j,i] <- corS[i,j]
+      #     }
+      #   }
+      # }
       
-      ordered.varnames <- apply(t(utils::combn(colnames(sample.polychoric), 2)), 1, function(x){
-        paste0(x[1], "~~", x[2])
-      })
       
-      # Reorder asymptotic covariance matrix.
-      asymptotic.cov  <- asymptotic.cov[ordered.varnames, ordered.varnames]
-
-    } else {
+      if(se == "boot" | se == "bootstrap"){
+        
+        asymptotic.cov <- NULL
+        
+      } else {
+        
+        # Asymptotic covariance matrix of polychoric correlations. 
+        asymptotic.cov  <- unclass(lavaan::inspect(fit, "vcov"))
+        
+        ordered.varnames <- apply(
+          t(utils::combn(colnames(sample.polychoric), 2)), 1, function(x){
+            paste0(x[1], "~~", x[2])
+          })
+        
+        # Reorder asymptotic covariance matrix.
+        asymptotic.cov  <- asymptotic.cov[
+          ordered.varnames, 
+          ordered.varnames
+        ]
+        
+      }
+     
+    } else { # there are no observed 
       
       sample.polychoric <- NULL
       
     }
     
-    continous.vars <- colnames(data)[!var.categorical]
+    continuous.vars <- colnames(data)[!var.categorical]
     
-    if (length(continous.vars) > 1){
+    if (length(continuous.vars) > 1){
       
       # Are there any missing observations
-      if (any(var.nobs[continous.vars] < sample.nobs)){ # begin missing data
+      any.miss <- any(var.nobs[continuous.vars] < sample.nobs)
+      
+      if (any.miss & missing == "savalei"){ # begin missing data
         
-        var.cov <- outer(continous.vars, continous.vars, function(x, y) paste(x, "~~", y))
-        model.saturated <- c(var.cov[lower.tri(var.cov, diag = TRUE)],paste(continous.vars, "~ 1"))
+        var.cov <- outer(
+          continuous.vars, continuous.vars, 
+          function(x, y) {
+            paste(x, "~~", y)
+          }
+        )
         
-        fit <- lavaan::lavaan(
-          model = model.saturated, 
-          data = data[,continous.vars], 
+        saturated.model <- c(
+          var.cov[lower.tri(var.cov, diag = TRUE)],
+          paste(continuous.vars, "~ 1")
+        )
+        
+        saturated.fit <- lavaan::lavaan(
+          model = saturated.model, 
+          data = data[,continuous.vars], 
           meanstructure = TRUE, 
           conditional.x = FALSE, 
           fixed.x = FALSE,
-          missing = missing.opts["missing"], 
-          estimator = missing.opts["estimator"], 
-          se = missing.opts["se"], 
-          information = missing.opts["information"]
+          missing = "FIML", 
+          estimator = "ML", 
+          se = "robust.huber.white", 
+          information = "observed"
         )
-  
-        # 2-step sample covariance matrix and mean vector.
-        sample.cov  <- unclass(lavaan::lavInspect(fit, "cov.ov"))
-        sample.mean[continous.vars] <- unclass(lavaan::lavInspect(fit, "mean.ov"))
-       
-        # Asymptotic covariance matrix of polychoric correlations. 
-        asymptotic.cov  <- unclass(lavaan::inspect(fit, "vcov"))
         
+        sample.cov  <- unclass(inspect(saturated.fit, "cov.ov"))
+        sample.mean <- unclass(lavaan::lavInspect(saturated.fit, "mean.ov"))
+        sample.nobs <- lavaan::lavInspect(saturated.fit, "nobs") 
         sample.sscp <- buildSSCP(sample.cov, sample.mean, sample.nobs)
         
+        if(se == "boot" | se == "bootstrap"){
+          asymptotic.cov  <- NULL
+        } else {
+          asymptotic.cov  <- NULL
+        }
+        
         # Remove covariances among means?
+        # asymptotic.cov  <- unclass(lavaan::inspect(fit, "vcov"))
          # asymptotic.cov  <- asymptotic.cov[
          #   c(((1/2*nrow(sample.cov)*(nrow(sample.cov)+1))+1):nrow(asymptotic.cov),
          #     1:(1/2*nrow(sample.cov)*(nrow(sample.cov)+1))),
@@ -229,9 +204,15 @@ processData <- function(data = data,
    
       
       } else { # end missing data
-        sample.cov  <- stats::cov(data[,continous.vars])*(nrow(data[,continous.vars])-1)/nrow(data[,continous.vars])
-        sample.mean <- colMeans(data[,continous.vars])
+        
+        sample.cov  <- stats::cov(data[,continuous.vars])*
+          (nrow(data[,continuous.vars])-1) / 
+          nrow(data[,continuous.vars])
+        
+        sample.mean <- colMeans(data[,continuous.vars])
+        
         sample.sscp <- buildSSCP(sample.cov, sample.mean, sample.nobs)
+        
         if( is.null(ordered) ){ asymptotic.cov <- NULL }
       }
     } 

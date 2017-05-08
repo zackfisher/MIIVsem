@@ -4,7 +4,7 @@
 \alias{miive.2sls}
 \title{two-stage least square estimator for a system of equations}
 \usage{
-miive.2sls(d, g, r, est.only)
+miive.2sls(d, g, r, est.only, se)
 }
 \arguments{
 \item{d}{a list containing equation information}
@@ -14,6 +14,8 @@ miive.2sls(d, g, r, est.only)
 \item{r}{a list containing coefficient restrictions}
 
 \item{est.only}{should we only calculate coefficient estimates}
+
+\item{est.only}{se estimation}
 }
 \description{
 two-stage least square estimator for a system of equations

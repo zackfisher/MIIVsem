@@ -4,7 +4,7 @@
 \alias{fillParTable}
 \title{fill the parameter table}
 \usage{
-fillParTable(eqns, pt)
+fillParTable(eqns, pt, v = NULL)
 }
 \description{
 fill the parameter table

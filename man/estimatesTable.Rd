@@ -5,7 +5,7 @@
 \title{return a dataframe of parameter estimates for a 
 fitted model.}
 \usage{
-estimatesTable(x)
+estimatesTable(x, v = NULL)
 }
 \arguments{
 \item{x}{an object of class miive}

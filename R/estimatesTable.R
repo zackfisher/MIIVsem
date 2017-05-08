@@ -4,8 +4,10 @@
 #' @param x an object of class miive
 #' 
 #' @export
-estimatesTable <- function(x){
-
+estimatesTable <- function(x, v = NULL){
+  
+  #if(class(x) == "miive") { e <- x$eqn; v <- x$v } else { e <- x; }
+  
   # measurement equations
   meas.eqns <-  unlist(lapply(x$eqn, function(eq){
     ifelse(eq$EQmod == "measurement", TRUE, FALSE)
@@ -66,29 +68,38 @@ estimatesTable <- function(x){
   # add a scaling indicator for each latent variable
   
   if(any(meas.eqns)){
-    meas.coef.mat <- 
-    rbind(do.call("rbind", apply(unique(do.call("rbind",
-      lapply(x$eqn[meas.eqns], function(eq){
-        c(eq$IVlat, eq$IVobs)
-    }))), 1, function(x){
-      data.frame(
-        "lhs"     = c(x[1],x[2]),
-        "op"      = c("=~","~1"),
-        "rhs"     = c(x[2],""),
-        "est"     = c(1,0),
-        "se"      = c(0,0),
-        "z"       = NA,
-        "pvalue"  = NA,
-        "sarg"    = NA,
-        "sarg.df" = NA,
-        "sarg.p"  = NA, 
-        "eq"      = NA, 
-        stringsAsFactors = FALSE
+    
+    tmp <- unique(
+      do.call("rbind",
+              lapply(x$eqn[meas.eqns], function(eq){
+                if(!eq$categorical){
+                     c(eq$IVlat, eq$IVobs)
+                }
+              })
       )
-    })), meas.coef.mat)
+    )
+    
+    if (!is.null(tmp)){
+      meas.coef.mat <- 
+        rbind(do.call("rbind", apply(tmp, 1, function(x){
+          data.frame(
+            "lhs"     = c(x[1],x[2]),
+            "op"      = c("=~","~1"),
+            "rhs"     = c(x[2],""),
+            "est"     = c(1,0),
+            "se"      = c(0,0),
+            "z"       = NA,
+            "pvalue"  = NA,
+            "sarg"    = NA,
+            "sarg.df" = NA,
+            "sarg.p"  = NA, 
+            "eq"      = NA, 
+            stringsAsFactors = FALSE
+          )
+        })), meas.coef.mat)
+    }
   }
   
-
   str.coef.mat <- data.frame(
     "lhs" = unlist(lapply(x$eqn[str.eqns], function(eq){
       rep(eq$DVlat, length(eq$coefficients))})

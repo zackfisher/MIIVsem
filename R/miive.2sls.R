@@ -4,9 +4,10 @@
 #' @param g a list containing data matrices and characteristics
 #' @param r a list containing coefficient restrictions 
 #' @param est.only should we only calculate coefficient estimates
+#' @param est.only se estimation
 #' 
 #'@keywords internal
-miive.2sls <- function(d, g, r, est.only){
+miive.2sls <- function(d, g, r, est.only, se){
     
   # Construct the following matrices:
   # XY1: A vector of crossproducts of fitted values from the first stage
@@ -193,17 +194,19 @@ miive.2sls <- function(d, g, r, est.only){
     
     if (!is.null(g$sample.polychoric)){
       
-      d <- lapply(d, function(eq){
-        if(eq$categorical) { # eq <- d[[4]]; mat <- g$sample.polychoric
-          K <- buildCategoricalK(eq, g$sample.polychoric)
-          eq$coefCov <-  K %*% g$asymptotic.cov %*% t(K)
-          rownames(eq$coefCov) <- colnames(eq$coefCov) <- names(eq$coefficients)
-        }
-        eq
-      })
-      
-      coefCov <- lavaan::lav_matrix_bdiag(lapply(d,"[[","coefCov"))
-      rownames(coefCov) <- colnames(coefCov) <- names(coefficients)
+      if (se == "standard"){
+        d <- lapply(d, function(eq){
+          if(eq$categorical) { # eq <- d[[4]]; mat <- g$sample.polychoric
+            K <- buildCategoricalK(eq, g$sample.polychoric)
+            eq$coefCov <-  K %*% g$asymptotic.cov %*% t(K)
+            rownames(eq$coefCov) <- colnames(eq$coefCov) <- names(eq$coefficients)
+          }
+          eq
+        })
+        
+        coefCov <- lavaan::lav_matrix_bdiag(lapply(d,"[[","coefCov"))
+        rownames(coefCov) <- colnames(coefCov) <- names(coefficients)
+      }
       
     }
     

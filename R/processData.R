@@ -16,29 +16,21 @@ processData <- function(data = data,
       stop(paste("miive: if categorical.vars are declared raw data is required."))
     }
     
-    sample.sscp       <- buildSSCP(sample.cov, sample.mean, sample.nobs)
-    sample.polychoric <- NULL
-    asymptotic.cov    <- NULL
-    var.nobs          <- NULL
-    var.categorical   <- NULL
-    var.missing       <- NULL
-    var.exogenous     <- NULL
+    sample.sscp        <- buildSSCP(sample.cov, sample.mean, sample.nobs)
+    sample.polychoric  <- NULL
+    asymptotic.cov     <- NULL
+    asymptotic.cov.sat <- NULL
+    var.nobs           <- NULL
+    var.categorical    <- NULL
+    var.missing        <- NULL
+    var.exogenous      <- NULL
   
   # the user supplied raw data
   } else {
     
-    # piv.opts <- c(
-    #   estimator = "two.step", 
-    #   se = "standard"
-    # )
-    # 
-    # missing.opts <- c(
-    #   missing = "FIML", 
-    #   estimator = "ML",         # se = std. implies m.v. normality
-    #   se = "standard",          # or "robust.huber.white".
-    #   information = "observed"  # or "expected"
-    # )
-  
+    asymptotic.cov     <- NULL
+    asymptotic.cov.sat <- NULL
+    
     # Data-level characteristics
     sample.nobs     <- nrow(data)
     
@@ -51,6 +43,7 @@ processData <- function(data = data,
     # Exogenous variables in the dataset
     var.exogenous <- colnames(data) %in%
       pt[ pt$exo == 1L & pt$op  == "~~" & pt$lhs == pt$rhs, "rhs" ]
+    
     names(var.exogenous) <- colnames(data)
     
     #-------------------------------------------------------# 
@@ -78,17 +71,16 @@ processData <- function(data = data,
       # For now we don't do anything about ov.exogenous variables.
       ov.names.x <- NULL
       
-      # convert any variables listed in ordered to categorical
-      data[,ordered]  <- lapply(data[,ordered, drop = FALSE], ordered)
       var.categorical <- vapply(data, is.factor, c(is.factor=FALSE))
       
-      if (any(var.categorical) & missing == "savalei") { 
+      if (any(var.categorical) & missing != "listwise") { 
         stop(paste0(
           "miive: missing = ", missing, 
           " not supported in the presence of",
           " categorical variables."
         ))
       }
+      
       
       fit <- lavaan::lavCor(
         data, 
@@ -141,7 +133,7 @@ processData <- function(data = data,
         
       }
      
-    } else { # there are no observed 
+    } else { # there are no categorical variables
       
       sample.polychoric <- NULL
       
@@ -184,24 +176,8 @@ processData <- function(data = data,
         sample.mean <- unclass(lavaan::lavInspect(saturated.fit, "mean.ov"))
         sample.nobs <- lavaan::lavInspect(saturated.fit, "nobs") 
         sample.sscp <- buildSSCP(sample.cov, sample.mean, sample.nobs)
+        asymptotic.cov.sat <- unclass(lavaan::vcov(saturated.fit))
         
-        if(se == "boot" | se == "bootstrap"){
-          asymptotic.cov  <- NULL
-        } else {
-          asymptotic.cov  <- NULL
-        }
-        
-        # Remove covariances among means?
-        # asymptotic.cov  <- unclass(lavaan::inspect(fit, "vcov"))
-         # asymptotic.cov  <- asymptotic.cov[
-         #   c(((1/2*nrow(sample.cov)*(nrow(sample.cov)+1))+1):nrow(asymptotic.cov),
-         #     1:(1/2*nrow(sample.cov)*(nrow(sample.cov)+1))),
-         #   c(((1/2*nrow(sample.cov)*(nrow(sample.cov)+1))+1):nrow(asymptotic.cov),
-         #     1:(1/2*nrow(sample.cov)*(nrow(sample.cov)+1)))
-         # ]
-         # 
-         # asymptotic.cov  <- rbind("1~1" = sample.nobs, cbind("1~1" = sample.nobs, asymptotic.cov))
-   
       
       } else { # end missing data
         
@@ -212,8 +188,7 @@ processData <- function(data = data,
         sample.mean <- colMeans(data[,continuous.vars])
         
         sample.sscp <- buildSSCP(sample.cov, sample.mean, sample.nobs)
-        
-        if( is.null(ordered) ){ asymptotic.cov <- NULL }
+      
       }
     } 
   
@@ -227,6 +202,7 @@ processData <- function(data = data,
     sample.polychoric = sample.polychoric,
     sample.sscp = sample.sscp,
     asymptotic.cov = asymptotic.cov,
+    asymptotic.cov.sat = asymptotic.cov.sat,
     var.nobs = var.nobs,
     var.categorical = var.categorical,
     var.missing = var.missing,

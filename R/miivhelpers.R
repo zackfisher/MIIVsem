@@ -89,3 +89,36 @@ makeName <- function(names, prefix = NULL) {
   char.format <- paste("%3s%-", W, "s", sep = "")
   sprintf(char.format, prefix, names)
 }
+
+vecp <- function( x ){return( t( t( x[lower.tri(x)] ) ) )}
+
+vec  <- function( x ){ return( t( t( as.vector( x ) ) ) )}
+
+buildDuplicator <- function(p){
+  D <- matrix(0, nrow = p^2, ncol = .5*(p*(p-1)))
+  I <- diag(rep(1, p))
+  for (i in 1:p) {
+    for (j in 1:p) {  
+      if (i > j){
+        
+        vij <- rep(0, times = .5*(p*(p-1)))
+        vij[(j-1)*p + i - .5*(j*(j+1))] <- 1
+        
+        eij <-  I[i, ] %o% I[j, ]
+        eji <-  I[j, ] %o% I[i, ]
+        tij <-  vec(eij + eji)
+        
+        D <- D + (tij %*% vij)
+      }
+    }
+  }
+  D
+}
+
+buildDuplication <- function(x){
+  mat <- diag(x)
+  index <- seq(x*(x+1)/2)
+  mat[ lower.tri( mat , TRUE ) ] <- index
+  mat[ upper.tri( mat ) ] <- t( mat )[ upper.tri( mat ) ]
+  outer(c(mat), index , function( x , y ) ifelse(x==y, 1, 0 ) )
+}

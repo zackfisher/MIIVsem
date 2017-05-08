@@ -218,11 +218,10 @@ miivs <- function(model,
     pt[condNum,]$mlabel <- pt[condNum,]$ustart
   }
   
-  # Remove any scaling indicators
+
   tmpMarkers <- pt[pt$op == "=~",]$rhs[
     which(!duplicated(pt[pt$op == "=~",]$lhs))
   ]
-  
   
   
   # For now, throw an error if the scaling indicator cross loads

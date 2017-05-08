@@ -306,13 +306,13 @@ miive <- function(model = model,
                   estimator = "2SLS", 
                   se = "standard", 
                   bootstrap = 1000L, 
-                  missing = "liswise",
+                  missing = "listwise",
                   est.only = FALSE, 
                   var.cov = FALSE, 
                   var.cov.estimator = "ML",
                   miiv.check = TRUE, 
                   ordered = NULL,
-                  control = miive.control( ... ),){
+                  control = miive.control( ... )){
   
   #-------------------------------------------------------# 
   # A few basic sanity checks for user-supplied covariance 
@@ -395,6 +395,12 @@ miive <- function(model = model,
       ))
     ]
     data <- as.data.frame(data)
+    
+    # convert any variables listed in 
+    # ordered to categorical
+    data[,ordered]  <- lapply(
+      data[,ordered, drop = FALSE], ordered
+    )
   }
   
   #-------------------------------------------------------# 
@@ -416,10 +422,7 @@ miive <- function(model = model,
                    se,
                    pt )
   
-  #-------------------------------------------------------#  
-  # Build Restriction Matrices.
-  #-------------------------------------------------------#  
-  r <- buildRestrictMat(d)
+  #data[,ordered]  <- lapply(data[,ordered, drop = FALSE], ordered)
   
   #-------------------------------------------------------# 
   # Add some fields to d and check for any problematic
@@ -476,13 +479,28 @@ miive <- function(model = model,
     eq
   })
   
+  #-------------------------------------------------------#  
+  # Build Restriction Matrices.
+  #-------------------------------------------------------#  
+  r <- buildRestrictMat(d)
+  
+  d <- lapply(d, function (eq) {
+    
+    eq$restricted  <- ifelse(
+      r$eq.restricted[eq$DVobs], 
+      TRUE, 
+      FALSE
+    )
+    eq
+  })
+  
   #-------------------------------------------------------#
   # Generate results object.
   #-------------------------------------------------------#
   results <- switch(
     estimator,
-      "2SLS" = miive.2sls(d, g, r, est.only),
-      # "GMM"  = miive.gmm(d, d.un, g, r, est.only), # Not implemented
+      "2SLS" = miive.2sls(d, g, r, est.only, se),
+      # "GMM"  = miive.gmm(d, d.un, g, r, est.only, se), # Not implemented
       # In other cases, raise an error
       stop(
         paste(
@@ -493,29 +511,6 @@ miive <- function(model = model,
       )
   )
   
-  #-------------------------------------------------------#
-  # Estimate variance and covariance point
-  #-------------------------------------------------------#
-  if (var.cov){
-    
-    #vcov.model <- createModelSyntax(results$eqn, pt)
-    v <- estVarCovar(
-      data, 
-      g, 
-      results, 
-      pt, 
-      ordered, 
-      se, 
-      missing, 
-      var.cov.estimator
-    )
-    
-  } else {
-    
-    v <- NULL
-    
-  }
-
   #-------------------------------------------------------#
   # Boostrap and substitute closed form SEs with boot SEs
   #-------------------------------------------------------#
@@ -531,13 +526,21 @@ miive <- function(model = model,
                    "equations."))
       }
       
+      v <- estVarCovar( data,
+                        g,
+                        results$eqn, 
+                        pt, 
+                        ordered, 
+                        se, 
+                        missing )
+      
     }
     
     boot.results <- boot::boot(data, function(origData, indices){
       
       bsample <- origData[indices,]
       
-      bg <- processData(
+      g.b <- processData(
         data = bsample, 
         sample.cov = NULL, 
         sample.mean = NULL, 
@@ -551,7 +554,7 @@ miive <- function(model = model,
       
       brep <- switch(
         estimator,
-        "2SLS" = miive.2sls(d, bg, r, est.only = TRUE),
+        "2SLS" = miive.2sls(d, g.b, r, est.only = TRUE, se),
         #"GMM"  = miive.gmm(d, g, r, est.only = TRUE), 
         # Not implemented
         # In other cases, raise an error
@@ -564,18 +567,15 @@ miive <- function(model = model,
       
       if (var.cov){
         
-        num.vcov   <- nrow(pt[pt$op == "~~",])
-        vcov.model <- createModelSyntax(brep$eqn, pt)
+        v.b <- estVarCovar( bsample,
+                            g.b,
+                            brep$eqn, 
+                            pt, 
+                            ordered, 
+                            se, 
+                            missing )
         
-        vcov.coefs <- estVarCovar(
-          bsample,
-          g,
-          vcov.model, 
-          ordered,
-          var.cov.estimator
-        )$coefficients
-        
-        c(brep$coefficients, vcov.coefs)
+        c(brep$coefficients, v.b$coefficients)
         
       } else {
         
@@ -616,30 +616,51 @@ miive <- function(model = model,
       names(results$coefficients), 
         if (var.cov) names(v$coefficients) else NULL
     )
-    results$coefCov <- coefCov
-
     # Store the boot object as a part of the result object. 
     # This is useful for calculating CIs or
     # other bootstrap postestimation.
     results$eqn <- lapply(results$eqn, function(eq) {
       if (eq$categorical) {
         eq$coefCov <- coefCov[
-            paste0(eq$DVlat,"~",c(eq$IVlat)),
-            paste0(eq$DVlat,"~",c(eq$IVlat)), 
-            drop = FALSE
+          paste0(eq$DVlat,"~",c(eq$IVlat)),
+          paste0(eq$DVlat,"~",c(eq$IVlat)), 
+          drop = FALSE
           ]
       } else {
         eq$coefCov <- coefCov[
-            paste0(eq$DVlat,"~",c("1", eq$IVlat)),
-            paste0(eq$DVlat,"~",c("1", eq$IVlat)), 
-            drop = FALSE
+          paste0(eq$DVlat,"~",c("1", eq$IVlat)),
+          paste0(eq$DVlat,"~",c("1", eq$IVlat)), 
+          drop = FALSE
           ]
       }
       eq
     })
-
+    
     results$boot <- boot.results
+    results$coefCov <- coefCov
+
+  } else if (se == "standard" & var.cov){
+    
+    v <- estVarCovar( data,
+                      g,
+                      results$eqn, 
+                      pt, 
+                      ordered, 
+                      se, 
+                      missing )
+    
+    results$coefCov <-lavaan::lav_matrix_bdiag(
+      results$coefCov, v$coefCov
+    )
+    
+  } else {
+
+    v <- NULL
+    
   }
+    
+
+
 
   # assemble return object
   results$eqn.unid       <- d.un

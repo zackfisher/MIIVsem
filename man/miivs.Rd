@@ -4,7 +4,7 @@
 \alias{miivs}
 \title{Model-implied instrumental variable (MIIV) search}
 \usage{
-miivs(model, miivs.out = FALSE, composite.disturbance = FALSE)
+miivs(model, miivs.out = FALSE, eq.info = FALSE)
 }
 \arguments{
 \item{model}{A model specified using lavaan model syntax. See the 
@@ -20,9 +20,9 @@ to the console. This is a temporary convenience function to
 provide an editable, baseline format, for the \code{instruments}
 argument of \code{\link{miive}}.}
 
-\item{composite.disturbance}{A logical indicating whether the 
-equation-specific composite disturbance should be included in
-the output.}
+\item{eq.info}{A logical indicating whether the 
+equation-specific information should be printed. Useful in models
+with a large number of variables.}
 }
 \value{
 A list of model equations.

@@ -2,8 +2,6 @@
 #'@keywords internal
 fillParTable <- function(eqns, pt, v = NULL){
   
-  if (is.null(v)){
-    
     r <- unlist(lapply(eqns,"[[", c("coefficients")))
     z <- cbind(do.call(rbind, strsplit(names(r), "~")), r)
     
@@ -50,7 +48,7 @@ fillParTable <- function(eqns, pt, v = NULL){
            ],  c("mlabel")
        ] <- NA
   
-  } else {
+  if(!is.null(v)){
     
     z.v <- cbind(
       do.call("rbind", strsplit(names(v$coefficients), "~")), 

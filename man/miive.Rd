@@ -294,7 +294,7 @@ Estimate SEM models using model-implied instrumental variables (MIIVs).
 \examples{
 # Example 1
 
-bollen1989a_model <- '
+model <- '
 
     Eta1 =~ y1 + y2  + y3  + y4  
     Eta2 =~ y5 + y6  + y7  + y8    
@@ -313,7 +313,7 @@ bollen1989a_model <- '
 
   '
 
-miive(model = bollen1989a_model, data = bollen1989a)
+
 # Example 2
 
 bollen1989a_model <- '

@@ -4,7 +4,7 @@
 #' @param g a list containing data matrices and characteristics
 #' @param r a list containing coefficient restrictions 
 #' @param est.only should we only calculate coefficient estimates
-#' @param est.only se estimation
+#' @param se se estimation
 #' 
 #'@keywords internal
 miive.2sls <- function(d, g, r, est.only, se){
@@ -132,7 +132,7 @@ miive.2sls <- function(d, g, r, est.only, se){
   residCov <- NULL
   coefCov  <- NULL
   
-  if(!est.only){ # if we also want ses and overid tests
+  if(!est.only){ 
 
     if (!is.null(g$sample.cov)){
 
@@ -165,15 +165,34 @@ miive.2sls <- function(d, g, r, est.only, se){
         
       } else {
         
+        # we dont calculate these quantities for categorical equations
+        # and restrictions in categorical equations are not
+        # currently allowed for se = 'standard'
+        
         sig  <- diag(unlist(lapply(d, function(eq){
-          rep(eq$sigma, length(eq$coefficients))
+            if(!eq$categorical){
+              rep(eq$sigma, length(eq$coefficients))
+            }
         })))
         
-        XX1F <- lavaan::lav_matrix_bdiag(XX1)
         
-        coefCov <- solve(rbind(cbind((XX1F %*% t(solve(sig))), t(r$R)),
-                               cbind(r$R, R0)))[1:nrow(XX1F), 1:nrow(XX1F)]
-        rownames(coefCov) <- colnames(coefCov) <- names(coefficients)
+        XX1F <- lavaan::lav_matrix_bdiag(
+          mapply(function (d, XX1){
+            if(!d$categorical){
+              XX1
+            } else {
+              matrix(0,0,0)
+            }
+          }, d, XX1, SIMPLIFY = FALSE)
+        )
+        
+        not.cat <- unlist(lapply(d, function(eq){
+          rep(!eq$categorical, length(eq$coefficients))
+        }))
+        
+        coefCov <- solve(rbind(cbind((XX1F %*% t(solve(sig))), t(r$R[,not.cat,drop=FALSE])),
+                               cbind(r$R[,not.cat,drop=FALSE], R0)))[1:nrow(XX1F), 1:nrow(XX1F)]
+        rownames(coefCov) <- colnames(coefCov) <- names(coefficients)[not.cat]
         
         d <- lapply(d, function(eq) {
           if (eq$categorical) {

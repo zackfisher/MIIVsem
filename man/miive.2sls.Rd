@@ -15,7 +15,7 @@ miive.2sls(d, g, r, est.only, se)
 
 \item{est.only}{should we only calculate coefficient estimates}
 
-\item{est.only}{se estimation}
+\item{se}{se estimation}
 }
 \description{
 two-stage least square estimator for a system of equations

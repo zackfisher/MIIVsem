@@ -2,7 +2,13 @@
 #' @export
 miive.control <- function(){
   
-  result <- list()
+  #result <- list()
+  
+  
+  #if(missing == "twostage") {
+  #  results$
+  #}
+  #result$y <- y
   
   # piv.opts <- c(
   #   estimator = "two.step", 
@@ -28,5 +34,5 @@ miive.control <- function(){
    #}
    #result$z <- z
 
-   return( result )
+   #return( result )
 }

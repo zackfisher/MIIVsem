@@ -22,9 +22,10 @@
 #' provide an editable, baseline format, for the \code{instruments}
 #' argument of \code{\link{miive}}.
 #' 
-#' @param composite.disturbance A logical indicating whether the 
-#' equation-specific composite disturbance should be included in
-#' the output. 
+#' 
+#' @param eq.info A logical indicating whether the 
+#' equation-specific information should be printed. Useful in models
+#' with a large number of variables.
 #'  
 #' @details 
 #' 
@@ -178,19 +179,19 @@
 #' @export
 miivs <- function(model, 
                   miivs.out = FALSE, 
-                  composite.disturbance = FALSE){
+                  eq.info = FALSE){
 
-  pt <- lavaan::lavaanify(model, auto = TRUE)
+  pt <- lavaan::lavaanify(model, auto = TRUE, meanstructure=TRUE)
   
   # Remove any covariance or variance constrained to zero
-  var.covar.zero <- which(
-    pt$op     == "~~" & 
-    pt$ustart == 0
-  )
-  
-  if (length(var.covar.zero) > 1){
-    pt <- pt[-var.covar.zero, , drop = FALSE]
-  }
+  # var.covar.zero <- which(
+  #   pt$op     == "~~" & 
+  #   pt$ustart == 0
+  # )
+  # 
+  # if (length(var.covar.zero) > 1){
+  #   pt <- pt[-var.covar.zero, , drop = FALSE]
+  # }
 
   #------------------------------------------------------------------------#
   # Parse parTable and add any equality or numeric constraints .           
@@ -213,7 +214,8 @@ miivs <- function(model,
   
   # Numeric contraints eneterd using '*' op. in the model syntax should
   # also be added to the mlabel column
-  condNum <- !(pt$op == "=~" & !duplicated(pt$lhs)) & !is.na(pt$ustart)
+  condNum <- !(pt$op == "=~" & !duplicated(pt$lhs)) & 
+             (!is.na(pt$ustart) & pt$free == 0)
   if (length(pt$ustart[condNum]) > 0){
     pt[condNum,]$mlabel <- pt[condNum,]$ustart
   }
@@ -491,7 +493,7 @@ miivs <- function(model,
     
     # Add equation type: we did this for higher order factors above. 
     eq$EQmod <- if(is.na(eq$EQmod)){
-      if ( (eq$IVlat != eq$IVobs) && (eq$DVlat == eq$DVobs) ){
+      if (eq$DVlat %in% pt$rhs[pt$op =="=~"] ){
         "measurement"
       } else {
         "structural"
@@ -530,7 +532,7 @@ miivs <- function(model,
     eqns = eqns, 
     pt = pt,
     miivs.out = miivs.out,
-    composite.disturbance = composite.disturbance,
+    eq.info = eq.info,
     matrices = 
       list(
         Sigma = Sigma, 

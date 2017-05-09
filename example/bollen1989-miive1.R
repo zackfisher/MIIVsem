@@ -19,4 +19,4 @@ bollen1989a_model <- '
 
   '
 
-miive(model = bollen1989a_model, data = bollen1989a)
+

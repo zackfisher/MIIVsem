@@ -1,5 +1,7 @@
 library("MIIVsem")
 
+ #obj <- readRDS("~/Documents/pkgs/MIIVsem/MIIVsem/tests/testthat/rds/ex02_polr_coefcov.rds")
+
   model <- '
     Eta1 =~ y1 + l1*y2  + l2*y3  + l3*y4
     Eta2 =~ y5 + l1*y6  + l2*y7  + l3*y8

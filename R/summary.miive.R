@@ -76,7 +76,7 @@ summary.miive <- function(object, eq.info = FALSE,...){
             if(lat != obs){ 
               paste0(lat,"(",obs,")")
             } else { 
-              paste0(eq$DVobs)
+              paste0(obs)
             }
           }, lat = eq$IVlat, obs = eq$IVobs, SIMPLIFY = TRUE)
           

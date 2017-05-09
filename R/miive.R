@@ -406,8 +406,11 @@ miive <- function(model = model,
   #-------------------------------------------------------# 
   # If missing == "listwise"
   #-------------------------------------------------------# 
-  if (missing == "listwise"){
+  if (!is.null(data) & missing == "listwise"){
     data <- data[complete.cases(data),]
+  } else if (missing == "twostage"){
+    # we will estimate the variance and covariance params
+    var.cov <- TRUE
   }
 
   #-------------------------------------------------------# 
@@ -421,8 +424,6 @@ miive <- function(model = model,
                    missing,
                    se,
                    pt )
-  
-  #data[,ordered]  <- lapply(data[,ordered, drop = FALSE], ordered)
   
   #-------------------------------------------------------# 
   # Add some fields to d and check for any problematic
@@ -448,12 +449,6 @@ miive <- function(model = model,
       FALSE
     )
     
-    eq$restricted  <- ifelse(
-      r$eq.restricted[eq$DVobs], 
-      TRUE, 
-      FALSE
-    )
-    
     # For now throw an error if a categorical equation
     # contains an exogenous variable. 
     if (eq$categorical & eq$exogenous){
@@ -463,13 +458,6 @@ miive <- function(model = model,
                  "variables (including MIIVs)",
                  "are not currently supported."))
     }
-    # throw an error if a categorical equation includes restrictions
-    # if (eq$categorical & eq$restricted){
-    #   stop(paste("miive: Restrictions on coefficients in",
-    #              "equations containing categorical",
-    #              "variables (including MIIVs)",
-    #              "is not currently supported."))
-    # }
     # if (eq$missing & eq$restricted){
     #   stop(paste("miive: Restrictions on coefficients in",
     #              "equations with missing values",
@@ -485,12 +473,21 @@ miive <- function(model = model,
   r <- buildRestrictMat(d)
   
   d <- lapply(d, function (eq) {
-    
+
     eq$restricted  <- ifelse(
-      r$eq.restricted[eq$DVobs], 
-      TRUE, 
+      r$eq.restricted[eq$DVobs],
+      TRUE,
       FALSE
     )
+    # throw an error if a categorical equation 
+    # includes restrictions
+    if ((eq$categorical & eq$restricted) & se == "standard"){
+      stop(paste("miive: When SE = 'standard', restrictions",
+                 "on coefficients in equations containing",
+                 "categorical variables (including MIIVs)",
+                 "are not allowed. Remove restrictions or",
+                 "use se = 'bootstrap'."))
+    }
     eq
   })
   
@@ -512,30 +509,34 @@ miive <- function(model = model,
   )
   
   #-------------------------------------------------------#
+  # Point estimates for variance and covariance params
+  #-------------------------------------------------------#
+  if (var.cov){
+    
+    if(length(d.un) > 0){
+      stop(paste("MIIVsem: variance covariance esimtation not",
+                 "allowed in the presence of underidentified",
+                 "equations."))
+    }
+    
+    v <- list()
+    v$coefficients <- estVarCovarCoefs(data, g, results$eqn, pt, ordered)
+    
+  } else {
+    
+    v <- NULL
+    
+  }
+  
+
+  #-------------------------------------------------------#
   # Boostrap and substitute closed form SEs with boot SEs
   #-------------------------------------------------------#
   
   if(se == "boot" | se == "bootstrap"){
     
     # Do this outside of the bootstrap loop
-    if (var.cov){
-      
-      if(length(d.un) > 0){
-        stop(paste("MIIVsem: variance covariance esimtation not",
-                   "allowed in the presence of underidentified",
-                   "equations."))
-      }
-      
-      v <- estVarCovar( data,
-                        g,
-                        results$eqn, 
-                        pt, 
-                        ordered, 
-                        se, 
-                        missing )
-      
-    }
-    
+
     boot.results <- boot::boot(data, function(origData, indices){
       
       bsample <- origData[indices,]
@@ -614,11 +615,28 @@ miive <- function(model = model,
     
     rownames(coefCov) <- colnames(coefCov) <- c(
       names(results$coefficients), 
-        if (var.cov) names(v$coefficients) else NULL
+      if (var.cov) names(v$coefficients) else NULL
     )
+    
+    coefCov <- coefCov
+    
     # Store the boot object as a part of the result object. 
     # This is useful for calculating CIs or
     # other bootstrap postestimation.
+    results$boot <- boot.results
+
+  } # end bootstrap
+  
+
+  if (missing == "twostage" & se == "standard"){
+    
+    coefCov <- estTwoStageML(g,v,results$eqn,pt)
+    
+  }
+  
+  
+  if (se == "boot" | se == "bootstrap" | missing == "twostage"){
+    
     results$eqn <- lapply(results$eqn, function(eq) {
       if (eq$categorical) {
         eq$coefCov <- coefCov[
@@ -636,32 +654,19 @@ miive <- function(model = model,
       eq
     })
     
-    results$boot <- boot.results
+    if (var.cov){
+      v$coefcov <- coefCov[
+        names(v$coefficients), 
+        names(v$coefficients), 
+        drop = FALSE
+      ]
+    }
+    
     results$coefCov <- coefCov
-
-  } else if (se == "standard" & var.cov){
-    
-    v <- estVarCovar( data,
-                      g,
-                      results$eqn, 
-                      pt, 
-                      ordered, 
-                      se, 
-                      missing )
-    
-    results$coefCov <-lavaan::lav_matrix_bdiag(
-      results$coefCov, v$coefCov
-    )
-    
-  } else {
-
-    v <- NULL
     
   }
-    
-
-
-
+  
+  
   # assemble return object
   results$eqn.unid       <- d.un
   results$estimator      <- estimator

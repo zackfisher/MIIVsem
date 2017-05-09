@@ -146,7 +146,7 @@ processData <- function(data = data,
       # Are there any missing observations
       any.miss <- any(var.nobs[continuous.vars] < sample.nobs)
       
-      if (any.miss & missing == "savalei"){ # begin missing data
+      if (any.miss & missing == "twostage"){ # begin missing data
         
         var.cov <- outer(
           continuous.vars, continuous.vars, 
@@ -176,7 +176,12 @@ processData <- function(data = data,
         sample.mean <- unclass(lavaan::lavInspect(saturated.fit, "mean.ov"))
         sample.nobs <- lavaan::lavInspect(saturated.fit, "nobs") 
         sample.sscp <- buildSSCP(sample.cov, sample.mean, sample.nobs)
-        asymptotic.cov.sat <- unclass(lavaan::vcov(saturated.fit))
+        
+        if (se == "standard"){
+          asymptotic.cov.sat <- unclass(lavaan::vcov(saturated.fit))
+        } else {
+          asymptotic.cov.sat <- NULL
+        }
         
       
       } else { # end missing data

@@ -57,5 +57,24 @@ library("MIIVsem")
   
   expect_error(miive(model, data, instruments, ordered = c("V1","V2","V3","V4")), NA)
 
+  #-------------------------------------------------------# 
+  context("ex04: scaling indicator cross loads - error")
+  #-------------------------------------------------------# 
+  model <- ' 
+  L1 =~ V1 + V2 + V3 + V4 + V5
+  L2 =~ V5 + V6 + V7 + V8
+  ' 
+
+  expect_error(miive(model, data), "miivs:", fixed=TRUE)
+  
+  #-------------------------------------------------------# 
+  context("ex05: scaling indicator receives path - error")
+  #-------------------------------------------------------# 
+  model <- ' 
+  L1 =~ V5 + V6 + V7 + V8
+  V5 ~ V6
+  ' 
+  
+  expect_error(miive(model, data), "miivs:", fixed=TRUE)
   
  

@@ -4,8 +4,10 @@
 #  set of estimating equations and (2) if the instruments provided by the user are valid MIIVs.
 #' 
 #' @param d A list containing equation information
-#' @param instruments A list of user-supplied instruments. By defaults, \code{instruments} is set to \code{NULL} 
-#' @param miiv.check Logical indicating whether the validity of MIIVs should be checked
+#' @param instruments A list of user-supplied instruments. By defaults, 
+#'        \code{instruments} is set to \code{NULL} 
+#' @param miiv.check Logical indicating whether the validity of MIIVs 
+#'        should be checked
 #' 
 #' @details 
 #' \describe{

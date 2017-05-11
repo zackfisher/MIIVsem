@@ -7,7 +7,7 @@
 #' @param se se estimation
 #' 
 #'@keywords internal
-miive.2sls <- function(d, g, r, est.only, se){
+miive.2sls <- function(d, g, r, est.only, se, missing, var.cov){
     
   # Construct the following matrices:
   # XY1: A vector of crossproducts of fitted values from the first stage
@@ -71,53 +71,51 @@ miive.2sls <- function(d, g, r, est.only, se){
   },ZV,sVV,VY, SIMPLIFY = FALSE)
   
   
+  ## coefficient names
+  coef.names <- lapply(d, function(eq) { 
+    paste0(eq$DVlat, "~",if(eq$categorical) eq$IVlat else c("1",eq$IVlat))
+  })
   
-  if (is.null(r$R)){ # there are no restrictions present
+  
+  #------------------------------------------------------------------------#
+  # MIIV-2SLS point estimates: unrestricted
+  #------------------------------------------------------------------------#
+  if (is.null(r$R)){ 
     
-    d <- mapply(function (d, XX1, XY1){
-      
-      d$coefficients <- as.numeric(
-        
-        solve(XX1, XY1)
-        
-      )
-      
-      names(d$coefficients) <-  paste0(
-        
-        d$DVlat,"~", if(d$categorical) d$IVlat else c("1",d$IVlat)
-        
-      )
-      
-      d
-      
-    }, d, XX1, XY1, SIMPLIFY = FALSE)
     
+    d <- mapply(function (d, XX1, XY1, coef.names){
+      
+           d$coefficients <- as.numeric(solve(XX1, XY1))
+           
+           names(d$coefficients) <-  coef.names; d
+           
+    }, d, XX1, XY1, coef.names, SIMPLIFY = FALSE)
     
     coefficients <- unlist(lapply(d, "[[","coefficients"))
   
+  #------------------------------------------------------------------------#
+  # MIIV-2SLS point estimates: restricted
+  #------------------------------------------------------------------------#
+  } else { 
     
-  } else { # there are restrictions present
+    R0   <- matrix(0, nrow(r$R), nrow(r$R))
     
-    R0 <- matrix(0, nrow(r$R), nrow(r$R))
+    XX1F <- lavaan::lav_matrix_bdiag(XX1)
     
-    coefficients <- as.numeric(
-      (solve(rbind(cbind(lavaan::lav_matrix_bdiag(XX1), t(r$R)), 
-       cbind(r$R, R0))) %*% rbind(cbind(unlist(XY1)), r$q))[1:ncol(r$R),]
-    )
+    M1   <- rbind(cbind(XX1F, t(r$R) ), 
+                  cbind(r$R,     R0  ))
     
-    names(coefficients) <- unlist(
-      lapply(d, function(eq) { 
-        paste0(
-          eq$DVlat, "~",if(eq$categorical) eq$IVlat else c("1",eq$IVlat)
-        )
-      })
-    )
+    M2   <- rbind(cbind(unlist(XY1)), 
+                  r$q              )
+    
+    coefficients <- as.numeric(solve(M1,M2)[1:ncol(r$R),])
+    names(coefficients) <- unlist(coef.names)
     
     # Add coefficients to equations list.
     coefList <- split(
       coefficients, 
       unlist(lapply(seq_along(d), function(x){
-        rep(x,(length(d[[x]]$IVobs) + ifelse(d[[x]]$categorical, 0, 1)))
+        rep(x,length(coef.names[[x]]))
       }))
     )
     
@@ -132,75 +130,139 @@ miive.2sls <- function(d, g, r, est.only, se){
   residCov <- NULL
   coefCov  <- NULL
   
+  #------------------------------------------------------------------------#
+  # MIIV-2SLS se and overidentification tests
+  # Not run during bootstrap resampling
+  #------------------------------------------------------------------------#
   if(!est.only){ 
 
+    #----------------------------------------------------------------------#
+    # If there are any continous DV equations
+    #----------------------------------------------------------------------#
     if (!is.null(g$sample.cov)){
+      
+        not.cat <- unlist(lapply(d, function(eq){
+            rep(!eq$categorical, length(eq$coefficients))
+        }))
 
       d <- lapply(d, function(eq) {
         if (eq$categorical){
           eq$sigma <- NA
         } else {
           eq$sigma <- 
-            (g$sample.cov[eq$DVobs, eq$DVobs] + (t(eq$coefficients[-1]) %*%
-             g$sample.cov[c(eq$IVobs), c(eq$IVobs)] %*% eq$coefficients[-1]) -
-            (2 * g$sample.cov[eq$DVobs, c(eq$IVobs)] %*% eq$coefficients[-1]))
+            (g$sample.cov[eq$DVobs, eq$DVobs] + 
+               (t(eq$coefficients[-1]) %*%
+             g$sample.cov[c(eq$IVobs), c(eq$IVobs)] %*% 
+               eq$coefficients[-1]) -
+            (2 * g$sample.cov[eq$DVobs, c(eq$IVobs)] %*% 
+               eq$coefficients[-1]))
         }
         eq
       })
-
-      if (is.null(r$R)){
-
-        d <- mapply(function (d, XX1){
-          if(is.na(d$sigma)){
-            d$coefCov <- NA
-          } else {
-            d$coefCov <-solve(XX1 %*% t(solve(diag(rep(d$sigma, length(d$coefficients))))))
-            rownames(d$coefCov) <- colnames(d$coefCov) <- names(d$coefficients)
-          }
-        d
-        }, d, XX1, SIMPLIFY = FALSE)
-        
-        coefCov <- lavaan::lav_matrix_bdiag(lapply(d,"[[","coefCov"))
-        rownames(coefCov) <- colnames(coefCov) <- names(coefficients)
-        
-      } else {
-        
-        # we dont calculate these quantities for categorical equations
-        # and restrictions in categorical equations are not
-        # currently allowed for se = 'standard'
-        
-        sig  <- diag(unlist(lapply(d, function(eq){
-            if(!eq$categorical){
-              rep(eq$sigma, length(eq$coefficients))
-            }
-        })))
-        
-        
-        XX1F <- lavaan::lav_matrix_bdiag(
-          mapply(function (d, XX1){
-            if(!d$categorical){
-              XX1
+    
+      #--------------------------------------------------------------------#
+      # missing == "listwise"
+      #--------------------------------------------------------------------#
+      if (missing == "listwise"){
+        #------------------------------------------------------------------#
+        # MIIV-2SLS SEs: unrestricted
+        #------------------------------------------------------------------#
+        if (is.null(r$R)){
+          d <- mapply(function (d, XX1,coef.names){
+            if(is.na(d$sigma)){
+              d$coefCov <- NA
             } else {
-              matrix(0,0,0)
+              d$coefCov <-solve(
+                XX1 %*% t(
+                  solve(diag(rep(d$sigma, length(d$coefficients))))
+                )
+              )
+              rownames(d$coefCov) <- colnames(d$coefCov) <- coef.names
             }
-          }, d, XX1, SIMPLIFY = FALSE)
-        )
+          d
+          }, d, XX1,coef.names, SIMPLIFY = FALSE)
+          
+          coefCov <- lavaan::lav_matrix_bdiag(lapply(d,"[[","coefCov"))
+          rownames(coefCov) <- colnames(coefCov) <- unlist(coef.names)
         
-        not.cat <- unlist(lapply(d, function(eq){
-          rep(!eq$categorical, length(eq$coefficients))
-        }))
+        #------------------------------------------------------------------#
+        # MIIV-2SLS SEs: restricted
+        #------------------------------------------------------------------#
+        } else {
         
-        coefCov <- solve(rbind(cbind((XX1F %*% t(solve(sig))), t(r$R[,not.cat,drop=FALSE])),
-                               cbind(r$R[,not.cat,drop=FALSE], R0)))[1:nrow(XX1F), 1:nrow(XX1F)]
-        rownames(coefCov) <- colnames(coefCov) <- names(coefficients)[not.cat]
+          sig  <- diag(unlist(lapply(d, function(eq){
+              if(!eq$categorical){
+                rep(eq$sigma, length(eq$coefficients))
+              }
+          })))
+          
+          
+          XX1F <- lavaan::lav_matrix_bdiag(
+            mapply(function (d, XX1){
+              if(!d$categorical){
+                XX1
+              } else {
+                matrix(0,0,0)
+              }
+            }, d, XX1, SIMPLIFY = FALSE)
+          )
+          
+          R1 <- r$R[,not.cat,drop=FALSE]
+          
+          coefCov <- solve(
+            rbind( cbind(XX1F %*% t(solve(sig)), t(R1)),
+                   cbind(R1,                     R0   )
+            )
+          )[1:nrow(XX1F), 1:nrow(XX1F)]
+          
+          
+          rownames(coefCov) <- colnames(coefCov) <- unlist(coef.names)[not.cat]
+          
+          d <- lapply(d, function(eq) {
+            if (eq$categorical) {
+              eq$coefCov <- NA
+            } else {
+              eq$coefCov <- coefCov[
+                names(eq$coefficients),
+                names(eq$coefficients),
+                drop = FALSE
+              ]
+            }
+            eq
+          })
+        }
         
+      #--------------------------------------------------------------------#
+      # missing == "twostage" and var.cov == FALSE
+      #--------------------------------------------------------------------#        
+      } else if (missing == "twostage" & var.cov == FALSE) {
+        
+        acov.names <- colnames(g$asymptotic.cov.sat)
+        K <- buildDeltaK(d, g$sample.cov, g$sample.mean, acov.names)
+        coefCov <- K %*% g$asymptotic.cov.sat %*% t(K)
+
+        
+        if (!is.null(r$R)){
+          
+          R1 <- r$R[,not.cat,drop=FALSE]
+          
+          coefCov <- rbind( 
+            cbind(coefCov,                t(R1)),
+            cbind(R1,                     R0   )
+          )[1:nrow(coefCov), 1:nrow(coefCov)]
+          
+          
+        }
+          
+        rownames(coefCov) <- colnames(coefCov) <- unlist(coef.names)[not.cat]
+          
         d <- lapply(d, function(eq) {
           if (eq$categorical) {
             eq$coefCov <- NA
           } else {
             eq$coefCov <- coefCov[
-              paste0(eq$DVlat,"~",c("1", eq$IVlat)),
-              paste0(eq$DVlat,"~",c("1", eq$IVlat)), 
+              names(eq$coefficients),
+              names(eq$coefficients),
               drop = FALSE
             ]
           }
@@ -208,47 +270,34 @@ miive.2sls <- function(d, g, r, est.only, se){
         })
         
       }
-      
+        
     }
     
     if (!is.null(g$sample.polychoric)){
       
       if (se == "standard"){
+        
         d <- lapply(d, function(eq){
-          if(eq$categorical) { # eq <- d[[4]]; mat <- g$sample.polychoric
+          
+          if(eq$categorical) { 
+            
             K <- buildCategoricalK(eq, g$sample.polychoric)
+            
             eq$coefCov <-  K %*% g$asymptotic.cov %*% t(K)
-            rownames(eq$coefCov) <- colnames(eq$coefCov) <- names(eq$coefficients)
+            
+            rownames(eq$coefCov) <- colnames(eq$coefCov) <- 
+            names(eq$coefficients)
+            
           }
           eq
         })
         
         coefCov <- lavaan::lav_matrix_bdiag(lapply(d,"[[","coefCov"))
-        rownames(coefCov) <- colnames(coefCov) <- names(coefficients)
+        rownames(coefCov) <- colnames(coefCov) <- unlist(coef.names)
       }
       
     }
     
-
-    # Calculate the residual covariance matrix for the full system of
-    # equations based on covariance matrix input.
-
-    # dvs <- unlist(lapply(d, "[[", "DVobs"))
-    # B   <- diag(length(dvs))
-    # colnames(B) <- rownames(B) <- dvs
-    # idx <- do.call("rbind",lapply(d, function(eq){
-    #   cbind(eq$DVobs, eq$IVobs, if (any(eq$categorical)) 
-    #   eq$coefficients else eq$coefficients[-1] )
-    # }))
-    # idx <- idx[idx[,2] %in% dvs, ,drop = FALSE]
-    # B[idx[,2:1, drop = FALSE]] <- -1*as.numeric(idx[,3])
-    # 
-    # if (!is.null(g$sample.cov)){
-    #   residCov <- t(B) %*% g$sample.cov[dvs,dvs] %*% B
-    # }
-    # 
-    # rownames(residCov) <- colnames(residCov) <- unlist(lapply(d,"[","DVlat"))
-
     # Sargan's test (Hayashi, p. 228)
     d <- lapply(d, function(eq) {
       

@@ -36,16 +36,16 @@ the observed variable names indicated in the model syntax.}
 \item{sample.nobs}{Number of observations in the full data frame.}
 
 \item{sample.cov.rescale}{If \code{TRUE}, the sample covariance matrix
-provided by the user is internally rescaled by multiplying it with a factor
-(N-1)/N.}
+provided by the user is internally rescaled by multiplying 
+it with a factor (N-1)/N.}
 
 \item{estimator}{Options \code{"2SLS"} or \code{"GMM"} for estimating the
-model parameters. Default is \code{"2SLS"}. Currently, only \code{2SLS} is
-supported.}
+model parameters. Default is \code{"2SLS"}. Currently, only 
+\code{2SLS} is supported.}
 
 \item{se}{If "standard", conventional closed form standard errors are
-computed. If "boot" or "bootstrap", bootstrap standard errors are computed
-using standard bootstrapping.}
+computed. If "boot" or "bootstrap", bootstrap standard errors 
+are computed using standard bootstrapping.}
 
 \item{bootstrap}{Number of bootstrap draws, if bootstrapping is used.}
 
@@ -59,11 +59,11 @@ estimated.}
 \item{var.cov.estimator}{The estimator to use for variance and covariance
 parameters.}
 
-\item{miiv.check}{Options to turn off check for user-supplied instruments
-validity as MIIVs.}
+\item{miiv.check}{Options to turn off check for user-supplied 
+instruments validity as MIIVs.}
 
-\item{ordered}{A vector of variable names to be treated as ordered factors in
-generating the polychoric correlation matrix.}
+\item{ordered}{A vector of variable names to be treated as ordered factors
+in generating the polychoric correlation matrix.}
 
 \item{control}{}
 }
@@ -286,15 +286,19 @@ Estimate SEM models using model-implied instrumental variables (MIIVs).
   bootstrap replications. The \code{z-value} and \code{P(>|z|)} assume 
   the ratio of the coefficient estimate to the bootstrap standard 
   deviation approximates a normal  distribution.  Note, the Sargan 
-  test statistic is calculated from the  original sample and is not 
-  a bootstrap-based estimate.
+  test statistic is calculated from the original sample and is not 
+  a bootstrap-based estimate. When \code{se} is set to \code{standard}
+  and \code{mising} is \code{listwise} standard errors for the 
+  MIIV-2SLS coefficients are calculated using analytic expressions.
+  For equations with categorical endogenous variables, standard
+  errors of the MIIV-2SLS coefficients are calculated using the ADD MORE.........
   }
 }
 }
 \examples{
 # Example 1
 
-model <- '
+bollen1989a_model <- '
 
     Eta1 =~ y1 + y2  + y3  + y4  
     Eta2 =~ y5 + y6  + y7  + y8    

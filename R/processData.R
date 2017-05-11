@@ -35,11 +35,12 @@ processData <- function(data = data,
     sample.nobs     <- nrow(data)
     
     # Variable level characteristics
-    var.nobs        <- nrow(data) - colSums(is.na(data))
-    var.missing     <- sapply(var.nobs, function(x) ifelse(x==sample.nobs, FALSE, TRUE))
     var.categorical <- vapply(data, is.factor, c(is.factor=FALSE))
-    
-    
+    var.nobs        <- nrow(data) - colSums(is.na(data))
+    var.missing     <- sapply(var.nobs, function(x) {
+      ifelse(x==sample.nobs, FALSE, TRUE)
+    })
+ 
     # Exogenous variables in the dataset
     var.exogenous <- colnames(data) %in%
       pt[ pt$exo == 1L & pt$op  == "~~" & pt$lhs == pt$rhs, "rhs" ]
@@ -144,9 +145,9 @@ processData <- function(data = data,
     if (length(continuous.vars) > 1){
       
       # Are there any missing observations
-      any.miss <- any(var.nobs[continuous.vars] < sample.nobs)
+      # any.miss <- any(var.nobs[continuous.vars] < sample.nobs)
       
-      if (any.miss & missing == "twostage"){ # begin missing data
+      if (missing == "twostage"){ # begin missing data
         
         var.cov <- outer(
           continuous.vars, continuous.vars, 
@@ -178,9 +179,13 @@ processData <- function(data = data,
         sample.sscp <- buildSSCP(sample.cov, sample.mean, sample.nobs)
         
         if (se == "standard"){
+          
           asymptotic.cov.sat <- unclass(lavaan::vcov(saturated.fit))
+          
         } else {
+          
           asymptotic.cov.sat <- NULL
+          
         }
         
       

@@ -100,14 +100,11 @@ buildDuplicator <- function(p){
   for (i in 1:p) {
     for (j in 1:p) {  
       if (i > j){
-        
         vij <- rep(0, times = .5*(p*(p-1)))
         vij[(j-1)*p + i - .5*(j*(j+1))] <- 1
-        
         eij <-  I[i, ] %o% I[j, ]
         eji <-  I[j, ] %o% I[i, ]
         tij <-  vec(eij + eji)
-        
         D <- D + (tij %*% vij)
       }
     }
@@ -121,4 +118,16 @@ buildDuplication <- function(x){
   mat[ lower.tri( mat , TRUE ) ] <- index
   mat[ upper.tri( mat ) ] <- t( mat )[ upper.tri( mat ) ]
   outer(c(mat), index , function( x , y ) ifelse(x==y, 1, 0 ) )
+}
+
+revVech <- function (x, nrow = NULL){
+  dim(x) <- NULL
+  if (is.null(nrow)) 
+    nrow <- (-1 + sqrt(1 + 8 * length(x)))/2
+  output <- matrix(0, nrow, nrow)
+  output[lower.tri(output, diag = TRUE)] <- x
+  hold <- output
+  hold[upper.tri(hold, diag = TRUE)] <- 0
+  output <- output + t(hold)
+  return(output)
 }

@@ -177,21 +177,12 @@
 #' @seealso \code{\link{miive}}
 #' 
 #' @export
-miivs <- function(model, 
-                  miivs.out = FALSE, 
-                  eq.info = FALSE){
+miivs <- function(model, miivs.out = FALSE, eq.info = FALSE){
 
-  pt <- lavaan::lavaanify(model, auto = TRUE, meanstructure=TRUE)
+  pt <- lavaan::lavaanify( model, 
+                           auto = TRUE, 
+                           meanstructure = TRUE )
   
-  # Remove any covariance or variance constrained to zero
-  # var.covar.zero <- which(
-  #   pt$op     == "~~" & 
-  #   pt$ustart == 0
-  # )
-  # 
-  # if (length(var.covar.zero) > 1){
-  #   pt <- pt[-var.covar.zero, , drop = FALSE]
-  # }
 
   #------------------------------------------------------------------------#
   # Parse parTable and add any equality or numeric constraints .           
@@ -232,6 +223,10 @@ miivs <- function(model,
       if(length(pt[pt$op == "=~" & pt$rhs == tmpMarkers[i],"lhs"]) > 1){
         stop(paste("miivs: scaling indicators with a factor complexity", 
                    "greater than 1 are not currently supported."))
+      }
+      if(length(pt[pt$op == "~" & pt$lhs == tmpMarkers[i],"lhs"]) > 0){
+        stop(paste("miivs: scaling indicators cannot be depdendent", 
+                   "variables in regression equations."))
       }
     }
     pt[pt$op == "=~" & pt$rhs %in% tmpMarkers,]$mlabel <- NA
@@ -399,7 +394,7 @@ miivs <- function(model,
   gamBeta <- cbind(gamma,beta)
   
   # Build the MIIV models:Loop over all variables that receive a path 
-  eqns <- list(); cntr <- 1;
+  eqns <- list()
   
   for(dv in unique(rownames(gamBeta)[which(apply(is.na(gamBeta),1,any))])){
     
@@ -409,7 +404,7 @@ miivs <- function(model,
     vars <- c(dv,colnames(gamBeta)[c(which(gamBeta[dv,]!=0), which(is.na(gamBeta[dv,])))])
     
     # Add DVs and IVs before potential scaling indicator substitution. 
-    eq$EQnum <- cntr
+    eq$EQnum <- NA
     eq$EQmod <- NA
     eq$DVlat <- dv
     eq$IVlat <- setdiff(vars[-1], errVars)
@@ -456,12 +451,67 @@ miivs <- function(model,
     eq$DVobs <- vars[1]
     eq$IVobs <- setdiff(vars[-1], errVars)
     eq$CDist <- compositeDisturbance
+    eq$markers <- eq$markers
+    eq$MIIVs   <- NA
+    eq$VRtyp   <- NA
+    eqns <- c(eqns,list(eq))
     
+  }
+  
+  # FIXME: 
+  ## are there any scaling indicators listed as separate DVs
+  # dups  <- duplicated(lapply(eqns,"[[","DVobs"))
+  # 
+  # if (any(dups)){
+  #   
+  #   cond   <- unlist(lapply(eqns,function(x){x$DVobs %in% x$IVobs}))
+  #   eqns.x <- eqns[ cond] # regression relationships
+  #   eqns   <- eqns[!cond] # measurement relationships
+  # 
+  #   
+  #   dup.dvs <- unlist(lapply(eqns.x,"[[","DVobs"))
+  #   
+  #   eqns <- lapply(eqns, function(eq) {
+  #     
+  #     idx <- which(dup.dvs %in% eq$DVobs)
+  #     
+  #     if (length(idx) > 0){
+  #       
+  #       if (length(intersect(eq$IVlat, eqns.x[[idx]]$IVlat))>0){
+  #         stop("miivs: miivs cannot parse this model syntax.")
+  #       }
+  #       
+  #       non.dup.obs <- eqns.x[[idx]]$IVobs[
+  #         !eqns.x[[idx]]$IVobs %in% eqns.x[[idx]]$DVobs  
+  #       ]
+  #       
+  #       non.dup.lat <- eqns.x[[idx]]$IVlat[
+  #         !eqns.x[[idx]]$IVobs %in% eqns.x[[idx]]$DVobs 
+  #       ]
+  #       
+  #       eq$EQmod <- "mixed"
+  #       eq$VRtyp <- c(rep(T,length(eq$IVlat)), rep(F,length(non.dup.obs)))
+  #       eq$IVlat <- c(eq$IVlat, non.dup.lat)
+  #       eq$IVobs <- c(eq$IVobs, non.dup.obs)
+  #       eq$CDist <- unique(c(eq$CDist, eqns.x[[idx]]$CDist))
+  # 
+  #     }
+  #     
+  #     eq
+  #     
+  #   })
+  #   
+  # }
+  
+    
+  for (j in 1:length(eqns)){
+    
+    eqns[[j]]$EQnum <- j
     # 2) Take a submatrix Sigma_e, choosing n columns of S that correspond 
     #    to the error term of the dependent variable and error terms of the 
     #    marker indicators and rows that correspond to k observed variables 
 
-    Sigma_e <- Sigma[,compositeDisturbance, drop = FALSE]
+    Sigma_e <- Sigma[,eqns[[j]]$CDist, drop = FALSE]
     
     # 3) Collapse matrix Sigma_e as k vector where an element receives 1 if all 
     #    elements of  Sigma_e are zero on a corresponding row. This vector 
@@ -474,7 +524,7 @@ miivs <- function(model,
     #    to the marker indicators and rows that correspond to k observed 
     #    variables.
     
-    Sigma_i <- Sigma[,markers, drop = FALSE]
+    Sigma_i <- Sigma[,eqns[[j]]$markers, drop = FALSE]
     
     # 5) Collapse matrix Sigma_i as k vector where an element receives 1 if 
     #    any elements of  Sigma_e is nonzero on a corresponding row. This 
@@ -489,21 +539,22 @@ miivs <- function(model,
     #    correlation with the marker indicators and thus contains the indices 
     #    of all valid instruments.
     
-    eq$MIIVs <- names(which((e&i)[obsVars]))
+    eqns[[j]]$MIIVs <- names(which((e&i)[obsVars]))
     
     # Add equation type: we did this for higher order factors above. 
-    eq$EQmod <- if(is.na(eq$EQmod)){
-      if (eq$DVlat %in% pt$rhs[pt$op =="=~"] ){
+    eqns[[j]]$EQmod <- if(is.na(eqns[[j]]$EQmod)){
+      if (eqns[[j]]$DVlat %in% pt$rhs[pt$op =="=~"] ){
         "measurement"
       } else {
-        "structural"
+        "regression"
       }
+    } else {
+      eqns[[j]]$EQmod 
     }
     
-    cntr <- cntr + 1
-    
-    eqns <- c(eqns,list(eq))
   }
+  
+  eqns <- lapply(eqns,function(eq){eq$markers <- NULL; eq})
   
   #------------------------------------------------------------------------#
   # Add the labels

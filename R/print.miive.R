@@ -35,7 +35,8 @@ print.miive <- function(x,...){
       c("Estimator", disp.estimator),
       c("Standard Errors", ifelse(
         any(x$se %in% c("boot", "bootstrap")), "bootstrap", x$se
-      ))
+      )),
+      c("Missing", x$missing)
     )
   )
   for(i in 1:nrow(head.txt)){

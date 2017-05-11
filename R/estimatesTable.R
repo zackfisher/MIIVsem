@@ -15,7 +15,7 @@ estimatesTable <- function(x, v = NULL){
   
   # structural equations
   str.eqns <-  unlist(lapply(x$eqn, function(eq){
-    ifelse(eq$EQmod == "structural", TRUE, FALSE)
+    ifelse(eq$EQmod == "regression", TRUE, FALSE)
   }))
     
   meas.coef.mat <- data.frame(

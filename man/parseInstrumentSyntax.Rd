@@ -9,9 +9,11 @@ parseInstrumentSyntax(d, instruments, miiv.check)
 \arguments{
 \item{d}{A list containing equation information}
 
-\item{instruments}{A list of user-supplied instruments. By defaults, \code{instruments} is set to \code{NULL}}
+\item{instruments}{A list of user-supplied instruments. By defaults, 
+\code{instruments} is set to \code{NULL}}
 
-\item{miiv.check}{Logical indicating whether the validity of MIIVs should be checked}
+\item{miiv.check}{Logical indicating whether the validity of MIIVs 
+should be checked}
 }
 \description{
 Check to determine if (1) the user-supplied dependent variables exist in the

@@ -20,25 +20,25 @@
 #' @param sample.mean A sample mean vector.
 #' @param sample.nobs Number of observations in the full data frame.
 #' @param sample.cov.rescale If \code{TRUE}, the sample covariance matrix
-#'   provided by the user is internally rescaled by multiplying it with a factor
-#'   (N-1)/N.
+#'        provided by the user is internally rescaled by multiplying 
+#'        it with a factor (N-1)/N.
 #' @param estimator Options \code{"2SLS"} or \code{"GMM"} for estimating the
-#'   model parameters. Default is \code{"2SLS"}. Currently, only \code{2SLS} is
-#'   supported.
+#'        model parameters. Default is \code{"2SLS"}. Currently, only 
+#'        \code{2SLS} is supported.
 #' @param est.only If \code{TRUE}, only the coefficients are returned.
 #' @param var.cov If \code{TRUE}, variance and covariance parameters are
-#'   estimated.
+#'        estimated.
 #' @param var.cov.estimator The estimator to use for variance and covariance
-#'   parameters.
+#'        parameters.
 #' @param se If "standard", conventional closed form standard errors are
-#'   computed. If "boot" or "bootstrap", bootstrap standard errors are computed
-#'   using standard bootstrapping.
+#'        computed. If "boot" or "bootstrap", bootstrap standard errors 
+#'        are computed using standard bootstrapping.
 #' @param bootstrap Number of bootstrap draws, if bootstrapping is used.
 #' @param missing If "listwise"...
-#' @param miiv.check Options to turn off check for user-supplied instruments
-#'   validity as MIIVs.
-#' @param ordered A vector of variable names to be treated as ordered factors in
-#'   generating the polychoric correlation matrix.
+#' @param miiv.check Options to turn off check for user-supplied 
+#'        instruments validity as MIIVs.
+#' @param ordered A vector of variable names to be treated as ordered factors
+#'        in generating the polychoric correlation matrix.
 #' @param control
 #' 
 #' @details 
@@ -247,8 +247,12 @@
 #'   bootstrap replications. The \code{z-value} and \code{P(>|z|)} assume 
 #'   the ratio of the coefficient estimate to the bootstrap standard 
 #'   deviation approximates a normal  distribution.  Note, the Sargan 
-#'   test statistic is calculated from the  original sample and is not 
-#'   a bootstrap-based estimate.
+#'   test statistic is calculated from the original sample and is not 
+#'   a bootstrap-based estimate. When \code{se} is set to \code{standard}
+#'   and \code{mising} is \code{listwise} standard errors for the 
+#'   MIIV-2SLS coefficients are calculated using analytic expressions.
+#'   For equations with categorical endogenous variables, standard
+#'   errors of the MIIV-2SLS coefficients are calculated using the ADD MORE.........
 #'   }
 #' }
 #'
@@ -374,26 +378,28 @@ miive <- function(model = model,
   d  <- parseInstrumentSyntax(d, instruments, miiv.check)
   
   #-------------------------------------------------------# 
-  # remove equations that are not identified
-  # TODO: these should be returned to user with note
+  # remove equations where there are not sufficient MIIVs
   #-------------------------------------------------------#
-  underid   <- sapply(d, function(eq) {
+  underid   <- unlist(lapply(d, function(eq) {
     length(eq$MIIVs) < length(eq$IVobs)
-  })
-  d.un <- d[ underid]; d   <- d[!underid]
+  }))
+  d.un <- d[underid]; d   <- d[!underid]
   
   #-------------------------------------------------------# 
   # Remove variables from data that are not in model 
   # syntax and preserve the original column ordering.
   #-------------------------------------------------------# 
   if(!is.null(data)){
-    data <- data[,
-     colnames(data) %in% unique(unlist(
-       lapply(d, function(eq){
-         c(eq$DVobs, eq$IVobs, eq$MIIVs)
-       })
-      ))
-    ]
+    
+    vk <- unique(unlist(lapply(d,"[", c("DVobs", "IVobs", "MIIVs"))))
+    
+    if (any(!vk %in% colnames(data))){
+      stop(paste(
+        "miive: model syntax contains variables not in data.")
+      )
+    }
+    
+    data <- data[,colnames(data) %in% vk]
     data <- as.data.frame(data)
     
     # convert any variables listed in 
@@ -407,11 +413,10 @@ miive <- function(model = model,
   # If missing == "listwise"
   #-------------------------------------------------------# 
   if (!is.null(data) & missing == "listwise"){
+    
     data <- data[complete.cases(data),]
-  } else if (missing == "twostage"){
-    # we will estimate the variance and covariance params
-    var.cov <- TRUE
-  }
+    
+  } 
 
   #-------------------------------------------------------# 
   # Process data. See documentation of processRawData. 
@@ -496,7 +501,7 @@ miive <- function(model = model,
   #-------------------------------------------------------#
   results <- switch(
     estimator,
-      "2SLS" = miive.2sls(d, g, r, est.only, se),
+      "2SLS" = miive.2sls(d, g, r, est.only, se, missing, var.cov),
       # "GMM"  = miive.gmm(d, d.un, g, r, est.only, se), # Not implemented
       # In other cases, raise an error
       stop(
@@ -555,7 +560,7 @@ miive <- function(model = model,
       
       brep <- switch(
         estimator,
-        "2SLS" = miive.2sls(d, g.b, r, est.only = TRUE, se),
+        "2SLS" = miive.2sls(d, g.b, r, est.only = TRUE, se, missing, var.cov),
         #"GMM"  = miive.gmm(d, g, r, est.only = TRUE), 
         # Not implemented
         # In other cases, raise an error
@@ -618,8 +623,16 @@ miive <- function(model = model,
       if (var.cov) names(v$coefficients) else NULL
     )
     
-    coefCov <- coefCov
+    results$eqn <- lapply(results$eqn, function(eq) {
+      eq$coefCov <- coefCov[
+          names(eq$coefficients),
+          names(eq$coefficients),
+          drop = FALSE
+      ]
+      eq
+    })
     
+    results$coefCov <- coefCov
     # Store the boot object as a part of the result object. 
     # This is useful for calculating CIs or
     # other bootstrap postestimation.
@@ -628,54 +641,38 @@ miive <- function(model = model,
   } # end bootstrap
   
 
-  if (missing == "twostage" & se == "standard"){
+  if (missing == "twostage" & se == "standard" & var.cov == TRUE){
     
     coefCov <- estTwoStageML(g,v,results$eqn,pt)
     
-  }
-  
-  
-  if (se == "boot" | se == "bootstrap" | missing == "twostage"){
-    
     results$eqn <- lapply(results$eqn, function(eq) {
-      if (eq$categorical) {
-        eq$coefCov <- coefCov[
-          paste0(eq$DVlat,"~",c(eq$IVlat)),
-          paste0(eq$DVlat,"~",c(eq$IVlat)), 
+      eq$coefCov <- coefCov[
+          names(eq$coefficients),
+          names(eq$coefficients),
           drop = FALSE
-          ]
-      } else {
-        eq$coefCov <- coefCov[
-          paste0(eq$DVlat,"~",c("1", eq$IVlat)),
-          paste0(eq$DVlat,"~",c("1", eq$IVlat)), 
-          drop = FALSE
-          ]
-      }
+      ]
       eq
     })
     
-    if (var.cov){
-      v$coefcov <- coefCov[
-        names(v$coefficients), 
-        names(v$coefficients), 
-        drop = FALSE
-      ]
-    }
-    
     results$coefCov <- coefCov
-    
+    v$coefcov <- coefCov[
+         names(v$coefficients), 
+         names(v$coefficients), 
+         drop = FALSE
+    ]
   }
-  
   
   # assemble return object
   results$eqn.unid       <- d.un
   results$estimator      <- estimator
   results$se             <- se
+  results$missing        <- missing
   results$bootstrap      <- bootstrap
   results$call           <- match.call()
   results$ordered        <- ordered
   results$r              <- r
   results$v              <- v
+
   
   class(results)  <- "miive"
   

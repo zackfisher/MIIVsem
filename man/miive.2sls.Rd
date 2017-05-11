@@ -4,7 +4,7 @@
 \alias{miive.2sls}
 \title{two-stage least square estimator for a system of equations}
 \usage{
-miive.2sls(d, g, r, est.only, se)
+miive.2sls(d, g, r, est.only, se, missing, var.cov)
 }
 \arguments{
 \item{d}{a list containing equation information}

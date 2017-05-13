@@ -116,28 +116,19 @@ processData <- function(data = data,
       #   }
       # }
       
-      
-      if(se == "boot" | se == "bootstrap"){
+      # Asymptotic covariance matrix of polychoric correlations. 
+      asymptotic.cov  <- unclass(lavaan::inspect(fit, "vcov"))
         
-        asymptotic.cov <- NULL
-        
-      } else {
-        
-        # Asymptotic covariance matrix of polychoric correlations. 
-        asymptotic.cov  <- unclass(lavaan::inspect(fit, "vcov"))
-        
-        ordered.varnames <- apply(
-          t(utils::combn(colnames(sample.polychoric), 2)), 1, function(x){
-            paste0(x[1], "~~", x[2])
-          })
+      ordered.varnames <- apply(
+        t(utils::combn(colnames(sample.polychoric), 2)), 1, function(x){
+          paste0(x[1], "~~", x[2])
+      })
         
         # Reorder asymptotic covariance matrix.
-        asymptotic.cov  <- asymptotic.cov[
-          ordered.varnames, 
-          ordered.varnames
-        ]
-        
-      }
+      asymptotic.cov  <- asymptotic.cov[
+        ordered.varnames, 
+        ordered.varnames
+      ]
      
     } else { # there are no categorical variables
       

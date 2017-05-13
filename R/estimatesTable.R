@@ -116,8 +116,8 @@ estimatesTable <- function(x, v = NULL){
     }
   }
   
-  if(all(x$sample.mean == 0)){
-    meas.coef.mat[meas.coef.mat$op == "=~","se"] <- 0
+  if(all(!is.null(x$sample.cov) & x$sample.mean == 0)){
+    meas.coef.mat[meas.coef.mat$op == "~1","se"] <- 0
       meas.coef.mat[
         meas.coef.mat$op == "~1", 
         c("se","z","pvalue","sarg", "sarg.p")

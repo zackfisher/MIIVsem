@@ -2,11 +2,14 @@
 % Please edit documentation in R/wald.R
 \name{wald}
 \alias{wald}
-\title{wald test given a model with restrictions}
+\title{wald test of set of linear restrictions}
 \usage{
 wald(x)
 }
+\arguments{
+\item{x}{A fitted miive object contraining restricted coefficients}
+}
 \description{
-wald test given a model with restrictions
+wald test of set of linear restrictions
 }
 \keyword{internal}

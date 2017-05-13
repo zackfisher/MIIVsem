@@ -614,7 +614,7 @@ miive <- function(model = model,
     
     rownames(coefCov) <- colnames(coefCov) <- c(
       names(results$coefficients), 
-      if (var.cov) names(v$coefficients) else NULL
+      if (var.cov) { paste0(names(v$coefficients))} else { NULL }
     )
     
     results$eqn <- lapply(results$eqn, function(eq) {
@@ -649,6 +649,7 @@ miive <- function(model = model,
     })
     
     results$coefCov <- coefCov
+    
     v$coefcov <- coefCov[
          names(v$coefficients), 
          names(v$coefficients), 

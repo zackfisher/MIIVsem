@@ -15,7 +15,10 @@ estimatesTable <- function(x, v = NULL){
   str.eqns <-  unlist(lapply(x$eqn, function(eq){
     ifelse(eq$EQmod == "regression", TRUE, FALSE)
   }))
-    
+  
+  # vector of named SEs
+  se.diag <- sqrt(diag(x$coefCov))
+  
   meas.coef.mat <- data.frame(
     "lhs" = unlist(lapply(x$eqn[meas.eqns], function(eq){
       if(eq$categorical){
@@ -40,13 +43,17 @@ estimatesTable <- function(x, v = NULL){
     })),
     "est" = unlist(lapply(x$eqn[meas.eqns], "[[", "coefficients")),
     "se" = unlist(lapply(x$eqn[meas.eqns], function(eq){
-      sqrt(diag(eq$coefCov))})
+        se.diag[names(eq$coefficients)]
+      })
     ),
     "z" = unlist(lapply(x$eqn[meas.eqns], function(eq){
-      eq$coefficients/sqrt(diag(eq$coefCov))})
+        eq$coefficients/se.diag[names(eq$coefficients)]
+      })
     ),
     "pvalue" = unlist(lapply(x$eqn[meas.eqns], function(eq){
-      2*(stats::pnorm(abs(eq$coefficients/sqrt(diag(eq$coefCov))), lower.tail=FALSE))})
+      2*(stats::pnorm(abs(
+        eq$coefficients/se.diag[names(eq$coefficients)]
+      ), lower.tail=FALSE))})
     ),
     "sarg" = unlist(lapply(x$eqn[meas.eqns], function(eq){
       rep(eq$sargan, length(eq$coefficients))})
@@ -109,6 +116,14 @@ estimatesTable <- function(x, v = NULL){
     }
   }
   
+  if(all(x$sample.mean == 0)){
+    meas.coef.mat[meas.coef.mat$op == "=~","se"] <- 0
+      meas.coef.mat[
+        meas.coef.mat$op == "~1", 
+        c("se","z","pvalue","sarg", "sarg.p")
+      ] <- NA
+  }
+  
   str.coef.mat <- data.frame(
     "lhs" = unlist(lapply(x$eqn[str.eqns], function(eq){
       rep(eq$DVlat, length(eq$coefficients))})
@@ -131,25 +146,26 @@ estimatesTable <- function(x, v = NULL){
       lapply(x$eqn[str.eqns], "[[", "coefficients")
     ),
     "se" = unlist(lapply(x$eqn[str.eqns], function(eq){
-      sqrt(diag(eq$coefCov))})
+        se.diag[names(eq$coefficients)]
+      })
     ),
     "z" = unlist(lapply(x$eqn[str.eqns], function(eq){
-      eq$coefficients/sqrt(diag(eq$coefCov))})
+      eq$coefficients/se.diag[names(eq$coefficients)]
+      })
     ),
     "pvalue" = unlist(lapply(x$eqn[str.eqns], function(eq){
-      2*(stats::pnorm(abs(eq$coefficients/sqrt(diag(eq$coefCov))), lower.tail=FALSE))})
+      2*(stats::pnorm(abs(
+        eq$coefficients/se.diag[names(eq$coefficients)]
+      ), lower.tail=FALSE))})
     ),
     "sarg" = unlist(lapply(x$eqn[str.eqns], function(eq){
       rep(eq$sargan, length(eq$coefficients))})
-      #c(eq$sargan, rep(NA, length(eq$coefficients)-1))})
     ),
     "sarg.df" = unlist(lapply(x$eqn[str.eqns], function(eq){
       rep(eq$sargan.df, length(eq$coefficients))})
-      #c(eq$sargan.df, rep(NA, length(eq$coefficients)-1))})
     ),
     "sarg.p" = unlist(lapply(x$eqn[str.eqns], function(eq){
       rep(eq$sargan.p, length(eq$coefficients))})
-      #c(eq$sargan.p, rep(NA, length(eq$coefficients)-1))})
     ), 
     "eq" = unlist(lapply(x$eqn[str.eqns], function(eq){
       rep(eq$EQnum, length(eq$coefficients))})

@@ -406,6 +406,8 @@ miivs <- function(model, miivs.out = FALSE, eq.info = FALSE){
     # Add DVs and IVs before potential scaling indicator substitution. 
     eq$EQnum <- NA
     eq$EQmod <- NA
+    eq$DVobs <- NA
+    eq$IVobs <- NA
     eq$DVlat <- dv
     eq$IVlat <- setdiff(vars[-1], errVars)
 
@@ -448,12 +450,11 @@ miivs <- function(model, miivs.out = FALSE, eq.info = FALSE){
       
     }
     
-    eq$DVobs <- vars[1]
-    eq$IVobs <- setdiff(vars[-1], errVars)
-    eq$CDist <- compositeDisturbance
-    eq$markers <- eq$markers
+    eq$DVobs   <- vars[1]
+    eq$IVobs   <- setdiff(vars[-1], errVars)
+    eq$CDist   <- compositeDisturbance
     eq$MIIVs   <- NA
-    eq$VRtyp   <- NA
+    eq$markers <- eq$markers
     eqns <- c(eqns,list(eq))
     
   }

@@ -9,8 +9,15 @@ processData <- function(data = data,
                         se = se,
                         pt = pt){
   
+  
+  
   # if the user supplied a covariance matrix.
   if (is.null(data)){
+    
+    if (is.null(sample.mean) ){
+      sample.mean <- rep(0L, ncol(sample.cov))
+      names(sample.mean) <- colnames(sample.cov)
+    }
     
     if (!is.null(ordered)){
       stop(paste("miive: if categorical.vars are declared raw data is required."))

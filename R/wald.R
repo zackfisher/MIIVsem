@@ -1,4 +1,7 @@
-#' wald test given a model with restrictions
+#' wald test of set of linear restrictions
+#' 
+#'
+#' @param x A fitted miive object contraining restricted coefficients
 #'@keywords internal
 wald <- function(x){
   

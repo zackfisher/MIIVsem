@@ -332,23 +332,22 @@ miive <- function(model = model,
       )
     }
     
-    if (!is.vector(sample.mean)){
-      stop(paste(
-        "miive: sample.mean must be a vector.")
-      )
-    }
-    
-    if (is.null(names(sample.mean))){
-      stop(paste("miive: sample.mean vector must have names."))
-    }
-    
-    if (!all.equal( names(sample.mean),
-                    colnames(sample.cov), 
+    if(!is.null(sample.mean)){
+      
+      if (!is.null(sample.mean) & !is.vector(sample.mean)){
+        stop(paste(
+          "miive: sample.mean must be a vector.")
+        )
+      }
+      
+      if (!all.equal( names(sample.mean), colnames(sample.cov), 
                     check.attributes = FALSE )){
-      stop(paste(
-        "miive: names of sample.mean vector",
-        "and sample.cov matrix must match.")
-      )
+        stop(paste(
+          "miive: names of sample.mean vector",
+          "and sample.cov matrix must match.")
+        )
+      }
+      
     }
     
     if(sample.cov.rescale & !is.null(sample.cov)){

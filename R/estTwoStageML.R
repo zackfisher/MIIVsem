@@ -26,9 +26,9 @@ estTwoStageML <- function(g,v,eqns,pt){
       DA <- unclass(lavaan::lavInspect(var.cov.se.fit, "delta"))
       DA <- DA[c(grep("~~", rownames(DA)),grep("~1", rownames(DA))), ]
       
-      mi.cov   <- inspect(var.cov.se.fit, "cov.ov")
+      mi.cov   <- lavaan::inspect(var.cov.se.fit, "cov.ov")
       mi.cov   <- mi.cov[rownames(g$sample.cov), colnames(g$sample.cov)]
-      mi.mean  <- inspect(var.cov.se.fit, "mean.ov")
+      mi.mean  <- lavaan::inspect(var.cov.se.fit, "mean.ov")
       mi.mean  <- mi.mean[names(g$sample.mean)]
       
       D        <- buildDuplication(length(g$sample.mean))

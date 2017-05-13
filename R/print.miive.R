@@ -285,5 +285,10 @@ print.miive <- function(x,...){
       }
     }
   } 
+  
+  if (x$wald){
+    
+    
+  }
 
 }

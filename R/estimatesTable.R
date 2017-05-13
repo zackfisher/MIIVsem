@@ -6,8 +6,6 @@
 #' @export
 estimatesTable <- function(x, v = NULL){
   
-  #if(class(x) == "miive") { e <- x$eqn; v <- x$v } else { e <- x; }
-  
   # measurement equations
   meas.eqns <-  unlist(lapply(x$eqn, function(eq){
     ifelse(eq$EQmod == "measurement", TRUE, FALSE)
@@ -65,37 +63,48 @@ estimatesTable <- function(x, v = NULL){
     stringsAsFactors = FALSE
   )
   
+  if  (length(meas.eqns) > 0){
   # add a scaling indicator for each latent variable
-  
-  if(any(meas.eqns)){
+    lv.si <- unique(do.call("rbind",
+      lapply(x$eqn[meas.eqns], function(eq){
+        c(eq$IVlat, eq$IVobs, eq$categorical)
+      })
+    ))
     
-    tmp <- unique(
-      do.call("rbind",
-              lapply(x$eqn[meas.eqns], function(eq){
-                if(!eq$categorical){
-                     c(eq$IVlat, eq$IVobs)
-                }
-              })
-      )
-    )
-    
-    if (!is.null(tmp)){
+    if (!is.null(lv.si)){
       meas.coef.mat <- 
-        rbind(do.call("rbind", apply(tmp, 1, function(x){
-          data.frame(
-            "lhs"     = c(x[1],x[2]),
-            "op"      = c("=~","~1"),
-            "rhs"     = c(x[2],""),
-            "est"     = c(1,0),
-            "se"      = c(0,0),
-            "z"       = NA,
-            "pvalue"  = NA,
-            "sarg"    = NA,
-            "sarg.df" = NA,
-            "sarg.p"  = NA, 
-            "eq"      = NA, 
-            stringsAsFactors = FALSE
-          )
+        rbind(do.call("rbind", apply(lv.si, 1, function(x){
+          if (x[3]){
+            data.frame(
+              "lhs"     = x[1],
+              "op"      = "=~",
+              "rhs"     = x[2],
+              "est"     = 1,
+              "se"      = 0,
+              "z"       = NA,
+              "pvalue"  = NA,
+              "sarg"    = NA,
+              "sarg.df" = NA,
+              "sarg.p"  = NA, 
+              "eq"      = NA, 
+              stringsAsFactors = FALSE
+            )
+          } else {
+            data.frame(
+              "lhs"     = c(x[1],x[2]),
+              "op"      = c("=~","~1"),
+              "rhs"     = c(x[2],""),
+              "est"     = c(1,0),
+              "se"      = c(0,0),
+              "z"       = NA,
+              "pvalue"  = NA,
+              "sarg"    = NA,
+              "sarg.df" = NA,
+              "sarg.p"  = NA, 
+              "eq"      = NA, 
+              stringsAsFactors = FALSE
+            )
+          }
         })), meas.coef.mat)
     }
   }

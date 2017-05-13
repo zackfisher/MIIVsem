@@ -17,6 +17,7 @@ Imports:
     utils,
     methods,
     lavaan,
+    numDeriv,
     Matrix,
     car,
     boot

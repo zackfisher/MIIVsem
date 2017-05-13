@@ -91,3 +91,39 @@ library("MIIVsem")
   )
 
   
+  #-------------------------------------------------------#  
+  context("ex02: poldemo (r) wald stat correct")
+  #-------------------------------------------------------# 
+  
+  wald.fit <- MIIVsem:::wald(fit)
+
+  wald <- wald.fit$wald
+  
+  expect_equal_to_reference(
+    wald, 
+    "rds/ex02_polr_wald.rds"
+  )
+  
+  #-------------------------------------------------------#  
+  context("ex02: poldemo (r) wald df correct")
+  #-------------------------------------------------------# 
+  
+  walddf <- wald.fit$wald.df
+  
+  expect_equal_to_reference(
+    walddf, 
+    "rds/ex02_polr_walddf.rds"
+  )
+  
+  #-------------------------------------------------------#  
+  context("ex02: poldemo (r) wald p correct")
+  #-------------------------------------------------------# 
+  
+  waldp <- as.numeric(wald.fit$wald.p)
+  
+  expect_equal_to_reference(
+    waldp, 
+    "rds/ex02_polr_waldp.rds"
+  )
+
+  

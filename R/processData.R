@@ -72,8 +72,6 @@ processData <- function(data = data,
       # For now we don't do anything about ov.exogenous variables.
       ov.names.x <- NULL
       
-      var.categorical <- vapply(data, is.factor, c(is.factor=FALSE))
-      
       if (any(var.categorical) & missing != "listwise") { 
         stop(paste0(
           "miive: missing = ", missing, 
@@ -177,18 +175,8 @@ processData <- function(data = data,
         sample.mean <- unclass(lavaan::lavInspect(saturated.fit, "mean.ov"))
         sample.nobs <- lavaan::lavInspect(saturated.fit, "nobs") 
         sample.sscp <- buildSSCP(sample.cov, sample.mean, sample.nobs)
-        
-        if (se == "standard"){
-          
-          asymptotic.cov.sat <- unclass(lavaan::vcov(saturated.fit))
-          
-        } else {
-          
-          asymptotic.cov.sat <- NULL
-          
-        }
-        
-      
+        asymptotic.cov.sat <- unclass(lavaan::vcov(saturated.fit))
+
       } else { # end missing data
         
         sample.cov  <- stats::cov(data[,continuous.vars])*

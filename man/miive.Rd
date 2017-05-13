@@ -9,7 +9,7 @@ miive(model = model, data = NULL, instruments = NULL, sample.cov = NULL,
   estimator = "2SLS", se = "standard", bootstrap = 1000L,
   missing = "listwise", est.only = FALSE, var.cov = FALSE,
   var.cov.estimator = "ML", miiv.check = TRUE, ordered = NULL,
-  control = miive.control(...))
+  wald = FALSE)
 }
 \arguments{
 \item{model}{A model specified using lavaan model syntax or a
@@ -65,7 +65,8 @@ instruments validity as MIIVs.}
 \item{ordered}{A vector of variable names to be treated as ordered factors
 in generating the polychoric correlation matrix.}
 
-\item{control}{}
+\item{wald}{Logical indicating whether or not to perform a wald test on any
+linear restrictions.}
 }
 \value{
 A list of class \code{miive} containing the following elements:

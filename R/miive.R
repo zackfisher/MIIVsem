@@ -39,7 +39,8 @@
 #'        instruments validity as MIIVs.
 #' @param ordered A vector of variable names to be treated as ordered factors
 #'        in generating the polychoric correlation matrix.
-#' @param control
+#' @param wald Logical indicating whether or not to perform a wald test on any
+#'        linear restrictions.
 #' 
 #' @details 
 #' 
@@ -315,8 +316,8 @@ miive <- function(model = model,
                   var.cov = FALSE, 
                   var.cov.estimator = "ML",
                   miiv.check = TRUE, 
-                  ordered = NULL,
-                  control = miive.control( ... )){
+                  ordered = NULL, 
+                  wald = FALSE){
   
   #-------------------------------------------------------# 
   # A few basic sanity checks for user-supplied covariance 
@@ -391,15 +392,15 @@ miive <- function(model = model,
   #-------------------------------------------------------# 
   if(!is.null(data)){
     
-    vk <- unique(unlist(lapply(d,"[", c("DVobs", "IVobs", "MIIVs"))))
+    obs.vars <- unique(unlist(lapply(d,"[", c("DVobs", "IVobs", "MIIVs"))))
     
-    if (any(!vk %in% colnames(data))){
-      stop(paste(
-        "miive: model syntax contains variables not in data.")
-      )
+    if (any(!obs.vars %in% colnames(data))){
+     stop(paste(
+       "miive: model syntax contains variables not in data.")
+     )
     }
     
-    data <- data[,colnames(data) %in% vk]
+    data <- data[,colnames(data) %in% obs.vars]
     data <- as.data.frame(data)
     
     # convert any variables listed in 
@@ -414,7 +415,7 @@ miive <- function(model = model,
   #-------------------------------------------------------# 
   if (!is.null(data) & missing == "listwise"){
     
-    data <- data[complete.cases(data),]
+    data <- data[stats::complete.cases(data),]
     
   } 
 
@@ -573,15 +574,9 @@ miive <- function(model = model,
       
       if (var.cov){
         
-        v.b <- estVarCovar( bsample,
-                            g.b,
-                            brep$eqn, 
-                            pt, 
-                            ordered, 
-                            se, 
-                            missing )
+        v.b <- estVarCovarCoefs(bsample, g.b, brep$eqn, pt, ordered)
         
-        c(brep$coefficients, v.b$coefficients)
+        c(brep$coefficients, v.b)
         
       } else {
         
@@ -663,13 +658,15 @@ miive <- function(model = model,
   }
   
   # assemble return object
-  results$eqn.unid       <- d.un
+  results$model          <- model
   results$estimator      <- estimator
   results$se             <- se
   results$missing        <- missing
   results$bootstrap      <- bootstrap
   results$call           <- match.call()
   results$ordered        <- ordered
+  results$wald           <- wald
+  results$eqn.unid       <- d.un
   results$r              <- r
   results$v              <- v
 

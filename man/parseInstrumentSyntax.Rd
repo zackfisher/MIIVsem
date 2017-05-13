@@ -2,38 +2,40 @@
 % Please edit documentation in R/parseInstrumentSyntax.R
 \name{parseInstrumentSyntax}
 \alias{parseInstrumentSyntax}
-\title{Parse the instrument information}
+\title{parse user-implied instrumental variables}
 \usage{
 parseInstrumentSyntax(d, instruments, miiv.check)
 }
 \arguments{
 \item{d}{A list containing equation information}
 
-\item{instruments}{A list of user-supplied instruments. By defaults, 
+\item{instruments}{A list of user-supplied instruments. By default, 
 \code{instruments} is set to \code{NULL}}
 
-\item{miiv.check}{Logical indicating whether the validity of MIIVs 
-should be checked}
+\item{miiv.check}{Logical. Should the validity of MIIVs be checked}
 }
 \description{
 Check to determine if (1) the user-supplied dependent variables exist in the
+are valid MIIVs.
 }
 \details{
 \describe{
   \item{\code{instruments}}{ 
-    Using the \code{instruments} option you can specify the MIIVs directly 
-    for each equation in the model. To utilize this option you must first 
-    define a list of instruments using the syntax displayed below. After 
-    the list is defined, set the \code{instruments} argument equal to the 
-    name of the list of MIIVs. Note, \code{instruments} are specified for 
-    an equation, and not for a specific endogenous variable. Also, the
-    \code{instruments} argument can be used to prune the estimated model.
-    For example, if the \code{instruments} argument is provided only those
-    equationss whose dependent variable is specified will be estimated.
+    Using the \code{instruments} option you can specify the instruments
+    directly for each equation in the model. To utilize this option you
+    must first define a list of instruments using the syntax displayed 
+    below. See the \code{\link[MIIVsem]{miive}} documentation for more
+    information. Note, \code{instruments} are specified for 
+    an equation, and not for specific endogenous variables. The
+    \code{instruments} argument can also be used to prune a larger model
+    to a specific set of estimating equation, only those
+    equations whose dependent variable is specified in \code{instruments}
+    will be estimated.
   }
   \item{\code{miiv.check}}{ 
     The default is true.\code{miiv.check} can be used to turn off MIIV 
-    validity cehcks, for example, if instruments are not in model.
+    validity cehcks. This is useful if one wishes to use auxiliary 
+    instruments, external to the modeled variables. 
   }
 }
 }

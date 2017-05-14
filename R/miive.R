@@ -39,8 +39,6 @@
 #'        instruments validity as MIIVs.
 #' @param ordered A vector of variable names to be treated as ordered factors
 #'        in generating the polychoric correlation matrix.
-#' @param wald Logical indicating whether or not to perform a wald test on any
-#'        linear restrictions.
 #' 
 #' @details 
 #' 
@@ -316,8 +314,7 @@ miive <- function(model = model,
                   var.cov = FALSE, 
                   var.cov.estimator = "ML",
                   miiv.check = TRUE, 
-                  ordered = NULL, 
-                  wald = FALSE){
+                  ordered = NULL){
   
   #-------------------------------------------------------# 
   # A few basic sanity checks for user-supplied covariance 

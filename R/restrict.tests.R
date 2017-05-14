@@ -7,30 +7,32 @@
 #'        syntax. 
 #' 
 #' @details 
+#' The internal restrict.tests function provides two test 
+#' statistics for a large-sample wald test of any linaer 
+#' restrictions imposed on the MIIV-2SLS coefficient matrix.
+#' The first statistic is an approximate F and  the second 
+#' is Chi-square. Assumptions and  additional details for each
+#' test are given by Greene (2003, p. 346-347).
 #' 
 #' 
 #' @return A list containing the following elements:
 #'
 #' \tabular{ll}{
-#' \code{wald.test}\tab Wald test statistic\cr
-#' \code{wald.df}\tab Degrees of freedom for wald test\cr
-#' \code{wald.p}\tab P-value associated with Wald test.\cr
 #' \code{f.test}\tab Wald test statistic\cr
 #' \code{f.df}\tab Degrees of freedom for wald test\cr
 #' \code{f.p}\tab \cr
+#' \code{wald.test}\tab Wald test statistic\cr
+#' \code{wald.df}\tab Degrees of freedom for wald test\cr
+#' \code{wald.p}\tab P-value associated with Wald test.\cr
 #'}
 #' 
 #' 
 #' 
 #' @references 
 #' 
-#' #' Greene, W. H. (2000). Econometric analysis. Upper Saddle River, N.J: 
+#' Greene, W. H. (2000). Econometric analysis. Upper Saddle River, N.J: 
 #' Prentice Hall.
 #' 
-#'
-#' @example example/bollen1989-miive1.R
-#' @example example/bollen1989-miive2.R
-#' @example example/bollen1989-miive3.R
 #' 
 #' @seealso \link{MIIVsem}{miivs}
 #' 
@@ -38,9 +40,7 @@
 #'  
 #' @export
 #'@keywords internal
-wald <- function(x){
-  
-    # Greene, 2004 p. 347
+restrict.tests <- function(x){
   
     # unrestricted coefficients
     d.unr <- est2SLSCoef(
@@ -72,10 +72,17 @@ wald <- function(x){
       r           = r.un
     )
     
-    W <- t(R %*% B - q) %*% solve(R %*% coefCov %*% t(R)) %*% (R %*% B - q)
+    wald.test <- t(R %*% B - q) %*% solve(R %*% coefCov %*% t(R)) %*% (R %*% B - q)
+    wald.df   <- nrow(x$r$R)
+    wald.p    <- stats::pchisq(wald.test, wald.df, lower.tail = FALSE)
     
-    wald.df <- nrow(x$r$R)
-    wald.p  <- stats::pchisq(W, wald.df, lower.tail = FALSE)
+    f.test  <- wald.test / nrow(x$r$R)
+    f.df1   <- nrow(x$r$R)
+    f.df2   <- length(x$eqn)*x$sample.nobs - length(unlist(lapply(x$eqn, "[[","coefficients")))
+    f.p     <- stats::pf(f.test, f.df1, f.df2, lower.tail = FALSE)
 
-    return(list(wald.test = W, wald.df = wald.df, wald.p = wald.p))
+    return(list(
+      wald.test = wald.test, wald.df = wald.df, wald.p = wald.p,
+      f.test = f.test, f.df1 = f.df1, f.df2 =f.df2, f.p = f.p)
+    )
 }

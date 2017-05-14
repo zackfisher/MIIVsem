@@ -1,5 +1,6 @@
 #' @export
-summary.miive <- function(object, eq.info = FALSE,...){
+summary.miive <- function(object, eq.info = FALSE,
+                          restrict.tests = FALSE,...){
   
   fUp <- function(x) {
     substr(x, 1, 1) <- toupper(substr(x, 1, 1)); x
@@ -123,4 +124,45 @@ summary.miive <- function(object, eq.info = FALSE,...){
   }
   
 
+  if(restrict.tests){
+    
+    r.tests <- restrict.tests(object)
+    
+    cat("\n\nLINEAR HYPOTHESIS TESTS:\n\n")
+    
+    r.rests <- rownames(object$r$R)
+    for (i in 1:length(r.rests)){
+      cat(paste0("   ",r.rests[i], "\n"))
+    }
+
+    cat("\n")
+     
+    m1 <- paste0("   ","Wald Test (Chi^2)",": ")
+    m2 <- paste0(round(r.tests$wald.test,4))
+    cat(sprintf("%-*s %*s\n", w1, m1, w2, m2));
+    # Degrees of Freedom
+    m1 <- paste0("   ","Degrees of freedom",": ")
+    m2 <- paste0(r.tests$wald.df)
+    cat(sprintf("%-*s %*s\n", w1, m1, w2, m2));
+    # P-value
+    m1 <- paste0("   ","Pr(>Chi^2) ",": ")
+    m2 <- paste0(round(r.tests$wald.p,4))
+    cat(sprintf("%-*s %*s\n", w1, m1, w2, m2));
+    
+    
+    cat("\n")
+     
+    m1 <- paste0("   ","Wald Test (F)",": ")
+    m2 <- paste0(round(r.tests$f.test,4))
+    cat(sprintf("%-*s %*s\n", w1, m1, w2, m2));
+    # Degrees of Freedom
+    m1 <- paste0("   ","Degrees of freedom",": ")
+    m2 <- paste0(paste(c(r.tests$f.df1,r.tests$f.df1), collapse=", "))
+    cat(sprintf("%-*s %*s\n", w1, m1, w2, m2));
+    # P-value
+    m1 <- paste0("   ","Pr(>F) ",": ")
+    m2 <- paste0(round(r.tests$f.p,4))
+    cat(sprintf("%-*s %*s\n", w1, m1, w2, m2));
+    
+  }
 }

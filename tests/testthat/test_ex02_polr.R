@@ -1,6 +1,6 @@
 library("MIIVsem")
 
- #obj <- readRDS("~/Documents/pkgs/MIIVsem/MIIVsem/tests/testthat/rds/ex02_polr_coefcov.rds")
+ #obj <- readRDS("~/Documents/pkgs/MIIVsem/MIIVsem/tests/testthat/rds/ex02_polr_wald.rds")
 
   model <- '
     Eta1 =~ y1 + l1*y2  + l2*y3  + l3*y4
@@ -95,20 +95,23 @@ library("MIIVsem")
   context("ex02: poldemo (r) wald stat correct")
   #-------------------------------------------------------# 
   
-  wald.fit <- MIIVsem:::wald(fit)
+  restrict.fit <- MIIVsem:::restrict.tests(fit)
 
-  wald <- wald.fit$wald
+  wald <- as.numeric(restrict.fit$wald.test)
   
   expect_equal_to_reference(
     wald, 
     "rds/ex02_polr_wald.rds"
   )
   
+   #obj <- readRDS("~/Documents/pkgs/MIIVsem/MIIVsem/tests/testthat/rds/ex02_polr_wald.rds")
+
+  
   #-------------------------------------------------------#  
   context("ex02: poldemo (r) wald df correct")
   #-------------------------------------------------------# 
   
-  walddf <- wald.fit$wald.df
+  walddf <- restrict.fit$wald.df
   
   expect_equal_to_reference(
     walddf, 
@@ -119,11 +122,56 @@ library("MIIVsem")
   context("ex02: poldemo (r) wald p correct")
   #-------------------------------------------------------# 
   
-  waldp <- as.numeric(wald.fit$wald.p)
+  waldp <- as.numeric(restrict.fit$wald.p)
   
   expect_equal_to_reference(
     waldp, 
     "rds/ex02_polr_waldp.rds"
   )
 
+   #-------------------------------------------------------#  
+  context("ex02: poldemo (r) f stat correct")
+  #-------------------------------------------------------# 
+
+  f <- as.numeric(restrict.fit$f.test)
+  
+  expect_equal_to_reference(
+    f, 
+    "rds/ex02_polr_f.rds"
+  )
+  
+  #-------------------------------------------------------#  
+  context("ex02: poldemo (r) f df1 correct")
+  #-------------------------------------------------------# 
+  
+  fdf1 <- restrict.fit$f.df1
+  
+  expect_equal_to_reference(
+    fdf1, 
+    "rds/ex02_polr_fdf1.rds"
+  )
+  
+  #-------------------------------------------------------#  
+  context("ex02: poldemo (r) f df2 correct")
+  #-------------------------------------------------------# 
+  
+  fdf2 <- restrict.fit$f.df2
+  
+  expect_equal_to_reference(
+    fdf2, 
+    "rds/ex02_polr_fdf2.rds"
+  )
+  
+  #-------------------------------------------------------#  
+  context("ex02: poldemo (r) f p correct")
+  #-------------------------------------------------------# 
+  
+  fp <- as.numeric(restrict.fit$f.p)
+  
+  expect_equal_to_reference(
+    fp, 
+    "rds/ex02_polr_fp.rds"
+  )
+
+  
   

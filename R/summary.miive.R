@@ -1,3 +1,27 @@
+#' Summary information for a MIIV estimation object
+#'
+#' @param object An object of class \code{miive}
+#' @param eq.info A logical indicating whether the 
+#'        equation-specific information should be printed. 
+#'        Useful in models with large numbers of variables.
+#' @param restrict.tests A logical indicating whether two 
+#'        test statistics for a large-sample wald test of 
+#'        linaer hypotheses imposed on the MIIV-2SLS coefficient 
+#'        matrix should be provided. The first statistic is 
+#'        an approximate F and  the second is Chi-square. 
+#'        Assumptions and additional details for each test 
+#'        are given by Greene (2003, p. 346-347) and Henningsen 
+#'        and Hamman (2007).
+#' 
+#' @references 
+#' 
+#' Greene, W. H. (2000). Econometric analysis. Upper Saddle River, N.J: 
+#' Prentice Hall.
+#' 
+#' Henningsen, A., and Hamann, J.D. (2007). systemfit: A Package for 
+#' Estimating Systems of Simultaneous Equations in R. Journal of Statistical 
+#' Software 23(4), 1-40. 
+#' 
 #' @export
 summary.miive <- function(object, eq.info = FALSE,
                           restrict.tests = FALSE,...){
@@ -124,11 +148,11 @@ summary.miive <- function(object, eq.info = FALSE,
   }
   
 
-  if(restrict.tests){
+  if(restrict.tests & !is.null(object$r$R)){
     
     r.tests <- restrict.tests(object)
     
-    cat("\n\nLINEAR HYPOTHESIS TESTS:\n\n")
+    cat("\n\nMIIV-2SLS LINEAR HYPOTHESIS TESTS:\n\n")
     
     r.rests <- rownames(object$r$R)
     for (i in 1:length(r.rests)){

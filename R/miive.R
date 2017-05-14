@@ -10,7 +10,7 @@
 #'        by \code{as.data.frame} to data frame.
 #' @param instruments A user-supplied list of instruments for each 
 #'        equation. See below and the \code{miivs.out} argument of 
-#'        \code{\link{miivs}} for more information on the correct 
+#'        \code{\link{summary.miivs}} for more information on the correct 
 #'        input format. External (auxiliary) instruments can be 
 #'        supplied, however, the \code{miiv.check} argument must
 #'        be set to \code{FALSE}. 
@@ -662,12 +662,10 @@ miive <- function(model = model,
   results$bootstrap      <- bootstrap
   results$call           <- match.call()
   results$ordered        <- ordered
-  results$wald           <- wald
   results$eqn.unid       <- d.un
   results$r              <- r
   results$v              <- v
 
-  
   class(results)  <- "miive"
   
   results

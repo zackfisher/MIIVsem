@@ -9,8 +9,6 @@ processData <- function(data = data,
                         se = se,
                         pt = pt){
   
-  
-  
   # if the user supplied a covariance matrix.
   if (is.null(data)){
     
@@ -169,7 +167,7 @@ processData <- function(data = data,
           information = "observed"
         )
         
-        sample.cov  <- unclass(inspect(saturated.fit, "cov.ov"))
+        sample.cov  <- unclass(lavaan::inspect(saturated.fit, "cov.ov"))
         sample.mean <- unclass(lavaan::lavInspect(saturated.fit, "mean.ov"))
         sample.nobs <- lavaan::lavInspect(saturated.fit, "nobs") 
         sample.sscp <- buildSSCP(sample.cov, sample.mean, sample.nobs)

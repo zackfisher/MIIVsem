@@ -4,7 +4,7 @@
 \alias{miivs}
 \title{Model-implied instrumental variable (MIIV) search}
 \usage{
-miivs(model, miivs.out = FALSE, eq.info = FALSE)
+miivs(model)
 }
 \arguments{
 \item{model}{A model specified using lavaan model syntax. See the 
@@ -13,16 +13,6 @@ function for more information. See the documentation below for a
 description of how to specify the scaling  indicator in latent 
 variable models and impose equality constraints on the parameter 
 estimates.}
-
-\item{miivs.out}{A logical indicating whether the model-implied 
-instrumental variables found for \code{model} should be printed
-to the console. This is a temporary convenience function to 
-provide an editable, baseline format, for the \code{instruments}
-argument of \code{\link{miive}}.}
-
-\item{eq.info}{A logical indicating whether the 
-equation-specific information should be printed. Useful in models
-with a large number of variables.}
 }
 \value{
 A list of model equations.
@@ -34,22 +24,22 @@ minus their errors.  Upon substitution the SEM is transformed
 from a model with latent variables to one containing observed 
 variables with composite errors. The miivs function 
 automatically makes this transformation. The miivs function
-will also identify equation-specific instrumental variables
-in simultaneous equation models.
+will can also identify equation-specific model-implied 
+instrumental variables in simultaneous equation models
+without latent variables.
 }
 \details{
 \itemize{
 \item{\code{model}} {
 
-  A model specified using a subset of the uses a subset of the model syntax 
-  employed by \pkg{lavaan} or a \code{miivs} object return by the 
-  \code{miivs} functions. See the \code{model} argumen within the 
+  A model specified using a subset of the model syntax 
+  employed by \pkg{lavaan}. See the \code{model} argumen within the 
   \code{\link[lavaan]{lavaanify}} function for more information. 
   The following model syntax operators are currently supported: \code{=~},
   \code{~}, \code{~~} and \code{*}. See below for details 
-  on default behavior descriptions of how to specify the scaling 
+  on default behavior, how to specify the scaling 
   indicator in latent variable models and impose equality constraints 
-  on the parameter estimates. 
+  on parameter estimates. 
   
   \strong{Example using Syntax Operators}
   
@@ -60,7 +50,7 @@ in simultaneous equation models.
   variable L2. 'Z1 \code{~~} Z2' specifies the error of indicator 
   Z2 is allowed to covary with the error of indicator Z3. The label
   L3 appended to Z3 and Z6 in the measurement model equations 
-  constrains the factor loadings for Z3 and Z6 to equality. Additional 
+  constrains the factor loadings for Z3 and Z6 to equality. For additional 
   details on constraints see Equality Constraints  and Parameter 
   Restrictions.
   
@@ -167,7 +157,6 @@ information for each equation in the system:
 \itemize{
  \item \code{LHS} The "dependent" variable.
  \item \code{RHS} The right hand side variables of the transformed equation.
- \item \code{Composite Disturbance}  Elements of the composite errors in the transformed equation.
  \item \code{MIIVs} The model-implied instrumental variables for each equation.
 }
 }

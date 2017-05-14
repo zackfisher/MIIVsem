@@ -21,7 +21,7 @@ by \code{as.data.frame} to data frame.}
 
 \item{instruments}{A user-supplied list of instruments for each 
 equation. See below and the \code{miivs.out} argument of 
-\code{\link{miivs}} for more information on the correct 
+\code{\link{summary.miivs}} for more information on the correct 
 input format. External (auxiliary) instruments can be 
 supplied, however, the \code{miiv.check} argument must
 be set to \code{FALSE}.}

@@ -97,7 +97,7 @@ library("MIIVsem")
   
   restrict.fit <- MIIVsem:::restrict.tests(fit)
 
-  wald <- as.numeric(restrict.fit$wald.test)
+  wald <- as.numeric(restrict.fit$chi.test)
   
   expect_equal_to_reference(
     wald, 
@@ -111,7 +111,7 @@ library("MIIVsem")
   context("ex02: poldemo (r) wald df correct")
   #-------------------------------------------------------# 
   
-  walddf <- restrict.fit$wald.df
+  walddf <- restrict.fit$chi.df
   
   expect_equal_to_reference(
     walddf, 
@@ -122,7 +122,7 @@ library("MIIVsem")
   context("ex02: poldemo (r) wald p correct")
   #-------------------------------------------------------# 
   
-  waldp <- as.numeric(restrict.fit$wald.p)
+  waldp <- as.numeric(restrict.fit$chi.p)
   
   expect_equal_to_reference(
     waldp, 

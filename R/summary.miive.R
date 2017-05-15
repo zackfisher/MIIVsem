@@ -15,6 +15,7 @@
 #' @param rsquare A logical indicating whether R-square values for
 #'        endogeneous variables are included in the output. Only
 #'        available when \code{var.cov} is \code{TRUE}.
+#' @param ... Optional arguments to summary.
 #' 
 #' @references 
 #' 
@@ -37,12 +38,12 @@ summary.miive <- function(object, eq.info = FALSE,
   # Print 
   print(object)
   
+  w1 <- 27 # width of column 1
+  w2 <- 26 # width of column 2
+  
   if (eq.info){
     
     cat("\n\nEQUATION INFORMATION:\n\n")
-    
-    w1 <- 27 # width of column 1
-    w2 <- 26 # width of column 2
     
     lbs <- c(
       "Equation Number",
@@ -217,15 +218,15 @@ summary.miive <- function(object, eq.info = FALSE,
     cat("\n")
      
     m1 <- paste0("   ","Wald Test (Chi^2)",": ")
-    m2 <- paste0(round(r.tests$wald.test,4))
+    m2 <- paste0(round(r.tests$chi.test,4))
     cat(sprintf("%-*s %*s\n", w1, m1, w2, m2));
     # Degrees of Freedom
     m1 <- paste0("   ","Degrees of freedom",": ")
-    m2 <- paste0(r.tests$wald.df)
+    m2 <- paste0(r.tests$chi.df)
     cat(sprintf("%-*s %*s\n", w1, m1, w2, m2));
     # P-value
     m1 <- paste0("   ","Pr(>Chi^2) ",": ")
-    m2 <- paste0(round(r.tests$wald.p,4))
+    m2 <- paste0(round(r.tests$chi.p,4))
     cat(sprintf("%-*s %*s\n", w1, m1, w2, m2));
     
     

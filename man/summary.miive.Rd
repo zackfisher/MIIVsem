@@ -26,6 +26,8 @@ and Hamman (2007).}
 \item{rsquare}{A logical indicating whether R-square values for
 endogeneous variables are included in the output. Only
 available when \code{var.cov} is \code{TRUE}.}
+
+\item{...}{Optional arguments to summary.}
 }
 \description{
 Summary information for a MIIV estimation object

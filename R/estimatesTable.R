@@ -1,8 +1,8 @@
-#' return a dataframe of parameter estimates for a 
-#' fitted model.
+#' return a dataframe of parameter estimates for a fitted model.
 #' 
 #' @param x an object of class miive
-#' 
+#' @param v a list containing variance snd covariance parameter information.
+#'  
 #' @export
 estimatesTable <- function(x, v = NULL){
   

@@ -1,4 +1,7 @@
 #' Print method for a MIIV estimation object
+#' 
+#' @param x a miive object
+#' @param ... Optional arguments to print
 #' @export
 print.miive <- function(x,...){
   

@@ -6,6 +6,11 @@
 \usage{
 \method{print}{miive}(x, ...)
 }
+\arguments{
+\item{x}{a miive object}
+
+\item{...}{Optional arguments to print}
+}
 \description{
 Print method for a MIIV estimation object
 }

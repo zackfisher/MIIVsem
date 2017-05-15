@@ -2,15 +2,15 @@
 % Please edit documentation in R/estimatesTable.R
 \name{estimatesTable}
 \alias{estimatesTable}
-\title{return a dataframe of parameter estimates for a 
-fitted model.}
+\title{return a dataframe of parameter estimates for a fitted model.}
 \usage{
 estimatesTable(x, v = NULL)
 }
 \arguments{
 \item{x}{an object of class miive}
+
+\item{v}{a list containing variance snd covariance parameter information.}
 }
 \description{
-return a dataframe of parameter estimates for a 
-fitted model.
+return a dataframe of parameter estimates for a fitted model.
 }

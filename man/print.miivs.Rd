@@ -6,6 +6,11 @@
 \usage{
 \method{print}{miivs}(x, ...)
 }
+\arguments{
+\item{x}{a miivs object}
+
+\item{...}{Optional arguments to print}
+}
 \description{
 Print method for a MIIV search object
 }

@@ -11,6 +11,7 @@ Authors@R: c(
  )
 Description: Functions for estimating structural equation models using model-
     implied instrumental variables.
+Depends: R (>= 2.10)
 Suggests: R.rsp
 Imports:
     stats,

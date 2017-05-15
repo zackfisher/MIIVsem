@@ -10,6 +10,7 @@
 #' @param eq.info A logical indicating whether the 
 #' equation-specific information should be printed. Useful in models
 #' with a large number of variables.
+#' @param ... Optional arguments to summary.
 #' @export
 summary.miivs <- function(object, miivs.out = FALSE, eq.info = FALSE,...){
   

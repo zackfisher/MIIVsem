@@ -21,7 +21,7 @@ est2SLSCoefCov <- function(d,
 
     acov.names <- colnames(acov.sat)
 
-    K <- buildDeltaK(d, acov.sat, mean.vec, acov.names)
+    K <- buildDeltaK(d, cov.mat, mean.vec, acov.names)
 
     coefCov <- K %*% acov.sat %*% t(K)
 

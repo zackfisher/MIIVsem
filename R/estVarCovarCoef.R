@@ -46,10 +46,12 @@ estVarCovarCoef <- function(data, g, eqns, pt, ordered,
         fit <- lavaan::lavaan(
                 var.cov.model,
                 estimator = vc.coef.estimator,
+                missing = vc.coef.missing,
                 se = "none",
                 sample.cov  = g$sample.cov,
                 sample.mean = g$sample.mean,
                 sample.nobs = g$sample.nobs,
+                sample.cov.rescale = FALSE,
                 ordered = ordered)
         rsq <- lavaan::inspect(fit, "rsquare")
         pe <- lavaan::parameterEstimates(fit)

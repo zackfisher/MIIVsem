@@ -204,7 +204,6 @@ miivs <- function(model){
     which(!duplicated(pt[pt$op == "=~",]$lhs))
   ]
   
-  
   # For now, throw an error if the scaling indicator cross loads
   if (length(tmpMarkers) > 0){
     for(i in 1:length(tmpMarkers)){

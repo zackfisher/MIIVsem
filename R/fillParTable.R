@@ -27,12 +27,20 @@ fillParTable <- function(eqns, pt, v = NULL){
       
     }
     
+    tmpMarkers <- pt[pt$op == "=~",]$rhs[which(!duplicated(pt[pt$op == "=~",]$lhs))]
+    
     # now fix scaling indicator intercepts to zero. 
-    pt[pt$op == "~1" & pt$lhs %in% 
-         pt[pt$op == "=~",]$rhs[
-           which(!duplicated(pt[pt$op == "=~",]$lhs))
-           ],  c("free","ustart")
-       ] <- c(0,0)
+    pt[pt$op == "~1" & pt$lhs %in% tmpMarkers,  c("free","ustart")] <- c(0,0)
+    
+    # lavvan fixes exogenous LV means to zero, we need to free them. 
+    latVars <- unique(pt$lhs[pt$op=="=~"])
+    latEndVars <- unique(c(
+      pt$rhs[pt$op == "=~" & pt$rhs %in% latVars], 
+      pt$lhs[pt$op == "~"  & pt$lhs %in% latVars]
+    )) 
+    latExoVars <- setdiff(latVars, latEndVars)
+    
+    pt[pt$op == "~1" & pt$lhs %in% latExoVars,  c("ustart")] <- NA
     
     # free any non-zero latent variable regression intercepts
     pt[pt$op == "~1" & !is.na(pt$ustart) & as.numeric(pt$ustart)!= 0 & 

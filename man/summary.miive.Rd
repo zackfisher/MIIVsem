@@ -5,7 +5,7 @@
 \title{Summary information for a MIIV estimation object}
 \usage{
 \method{summary}{miive}(object, eq.info = FALSE, restrict.tests = FALSE,
-  ...)
+  rsquare = FALSE, ...)
 }
 \arguments{
 \item{object}{An object of class \code{miive}}
@@ -22,6 +22,10 @@ an approximate F and  the second is Chi-square.
 Assumptions and additional details for each test 
 are given by Greene (2003, p. 346-347) and Henningsen 
 and Hamman (2007).}
+
+\item{rsquare}{A logical indicating whether R-square values for
+endogeneous variables are included in the output. Only
+available when \code{var.cov} is \code{TRUE}.}
 }
 \description{
 Summary information for a MIIV estimation object

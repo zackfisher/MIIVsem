@@ -176,9 +176,9 @@ estimatesTable <- function(x, v = NULL){
   if (!is.null(x$v)){
     v <- x$v
     vcov.names   <- names(v$coefficients)
-    vcov.coefCov <- x$coefCov[
-      colnames(x$coefCov) %in% vcov.names,
-      colnames(x$coefCov) %in% vcov.names
+    vcov.coefCov <- v$coefCov[
+      vcov.names,
+      vcov.names
     ]
 
     vcov.coef.mat <- data.frame(
@@ -186,11 +186,11 @@ estimatesTable <- function(x, v = NULL){
       "op"  = "~~",
       "rhs" = do.call(rbind, strsplit(vcov.names, "~~"))[,2],
       "est" = v$coefficients,
-      "se"  = if(dim(vcov.coefCov)[1] == 0) NA else 
+      "se"  = if(is.null(v$coefCov)) NA else 
         sqrt(diag(vcov.coefCov)),
-      "z" = if(dim(vcov.coefCov)[1] == 0) NA else 
+      "z" = if(is.null(v$coefCov)) NA else 
         v$coefficients/sqrt(diag(vcov.coefCov)),
-      "pvalue" = if(dim(vcov.coefCov)[1] == 0) NA else  
+      "pvalue" = if(is.null(v$coefCov)) NA else  
         2*(stats::pnorm(abs(
           v$coefficients/sqrt(diag(vcov.coefCov))), 
           lower.tail=FALSE)),

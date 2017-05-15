@@ -12,6 +12,9 @@
 #'        Assumptions and additional details for each test 
 #'        are given by Greene (2003, p. 346-347) and Henningsen 
 #'        and Hamman (2007).
+#' @param rsquare A logical indicating whether R-square values for
+#'        endogeneous variables are included in the output. Only
+#'        available when \code{var.cov} is \code{TRUE}.
 #' 
 #' @references 
 #' 
@@ -24,7 +27,8 @@
 #' 
 #' @export
 summary.miive <- function(object, eq.info = FALSE,
-                          restrict.tests = FALSE,...){
+                          restrict.tests = FALSE,
+                          rsquare = FALSE,...){
   
   fUp <- function(x) {
     substr(x, 1, 1) <- toupper(substr(x, 1, 1)); x
@@ -147,7 +151,58 @@ summary.miive <- function(object, eq.info = FALSE,
     
   }
   
+  if(rsquare & !is.null(object$v$rsquare) & object$var.cov){
+    
+    x   <- data.frame(
+      "lhs" = names(object$v$rsquare),
+      "op"  = "",
+      "rhs"  = "",
+      "est" = as.numeric(object$v$rsq),
+      stringsAsFactors = FALSE
+    )
+     
+ 
+    nd          <- 3L
+    num.format  <- paste("%", max(8, nd + 5), ".", nd, "f", sep = "")
+    char.format <- paste("%", max(8, nd + 5), "s", sep="") 
+    
+    y <- as.data.frame(
+      lapply(x, function(x) {
+        if(is.numeric(x)) {
+          sprintf(num.format, x)   
+        } else {
+          x
+        }
+      }),
+      stringsAsFactors = FALSE
+    )
+  
+    y$op <- y$rhs<- NULL
 
+    m <- as.matrix(
+      format.data.frame(
+        y, na.encode = TRUE, justify = "right"
+      )
+    )
+  
+    rownames(m) <- rep("", nrow(m))
+    
+      # rename some column names
+    colnames(m)[ colnames(m) ==     "lhs" ] <- ""
+    colnames(m)[ colnames(m) ==      "op" ] <- ""
+    colnames(m)[ colnames(m) ==     "rhs" ] <- ""
+    colnames(m)[ colnames(m) ==     "est" ] <- "Estimate"
+    
+    row.idx <- which(x$op == "")
+    m[row.idx,1] <- makeName(x$lhs[row.idx])
+    M <- m[row.idx,,drop=FALSE]
+    colnames(M) <- colnames(m)
+    rownames(M) <- rep("", NROW(M))
+    cat("\n", "R-SQUARE", ":\n", sep = "")
+    print(M, quote = FALSE)
+
+  }
+   
   if(restrict.tests & !is.null(object$r$R)){
     
     r.tests <- restrict.tests(object)

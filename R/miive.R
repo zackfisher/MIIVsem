@@ -521,8 +521,12 @@ miive <- function(model = model,
                  "equations."))
     }
     
-    v <- list()
-    v$coefficients <- estVarCovarCoefs(data, g, results$eqn, pt, ordered)
+  
+    v <- estVarCovarCoef(data = data, 
+                         g = g, 
+                         eqns = results$eqn, 
+                         pt = pt, 
+                         ordered = ordered)
     
   } else {
     
@@ -570,9 +574,9 @@ miive <- function(model = model,
       
       if (var.cov){
         
-        v.b <- estVarCovarCoefs(bsample, g.b, brep$eqn, pt, ordered)
+        v.b <- estVarCovarCoef(bsample, g.b, brep$eqn, pt, ordered)
         
-        c(brep$coefficients, v.b)
+        c(brep$coefficients, v.b$coefficients)
         
       } else {
         
@@ -623,7 +627,19 @@ miive <- function(model = model,
       eq
     })
     
-    results$coefCov <- coefCov
+    results$coefCov <- coefCov[
+      names(results$coefficients),
+      names(results$coefficients),
+      drop = FALSE
+    ]
+    
+    if (var.cov){
+      v$coefCov <- coefCov[
+        names(v$coefficients),
+        names(v$coefficients),
+        drop = FALSE
+      ]
+    }
     # Store the boot object as a part of the result object. 
     # This is useful for calculating CIs or
     # other bootstrap postestimation.
@@ -634,23 +650,12 @@ miive <- function(model = model,
 
   if (missing == "twostage" & se == "standard" & var.cov == TRUE){
     
-    coefCov <- estTwoStageML(g,v,results$eqn,pt)
+    twoStageCoefCov <- estTwoStageML(g,v,results$eqn,pt)
     
-    results$eqn <- lapply(results$eqn, function(eq) {
-      eq$coefCov <- coefCov[
-          names(eq$coefficients),
-          names(eq$coefficients),
-          drop = FALSE
-      ]
-      eq
-    })
-    
-    results$coefCov <- coefCov
-    
-    v$coefcov <- coefCov[
-         names(v$coefficients), 
-         names(v$coefficients), 
-         drop = FALSE
+    v$coefCov <- twoStageCoefCov[
+      names(v$coefficients), 
+      names(v$coefficients), 
+      drop = FALSE
     ]
   }
   
@@ -658,6 +663,7 @@ miive <- function(model = model,
   results$model          <- model
   results$estimator      <- estimator
   results$se             <- se
+  results$var.cov        <- var.cov
   results$missing        <- missing
   results$bootstrap      <- bootstrap
   results$call           <- match.call()

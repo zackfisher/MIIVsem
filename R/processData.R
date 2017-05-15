@@ -167,6 +167,7 @@ processData <- function(data = data,
           information = "observed"
         )
         
+        #lavInspect(fit, "sampstat.h1")
         sample.cov  <- unclass(lavaan::inspect(saturated.fit, "cov.ov"))
         sample.mean <- unclass(lavaan::lavInspect(saturated.fit, "mean.ov"))
         sample.nobs <- lavaan::lavInspect(saturated.fit, "nobs") 

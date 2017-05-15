@@ -134,9 +134,10 @@ Estimate SEM models using model-implied instrumental variables (MIIVs).
   factor \code{L1}.
   
   \preformatted{model <- '
-     H1 =~ L1 + L2 
+     H1 =~ L1 + L2 + L3
      L1 =~ Z1 + Z2 + Z3
      L2 =~ Z4 + Z5 + Z6
+     L3 =~ Z7 + Z8 + Z9
   '}
   
   \strong{Equality Constraints and Parameter Restrictions}

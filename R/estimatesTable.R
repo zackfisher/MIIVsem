@@ -78,6 +78,23 @@ estimatesTable <- function(x, v = NULL){
       })
     ))
     
+    # if there is a duplicated scaling indicator
+    # in column 2 of lv.si, it should be replcad
+    # by it's latent variable counterpart. 
+    latVars <- unique(x$pt$lhs[x$pt$op=="=~"])
+    higherOrderFactors <-  unique(x$pt$lhs[
+      x$pt$op == "=~" &  x$pt$rhs %in% latVars
+    ])
+    
+    if (length(higherOrderFactors) > 0){
+      for ( i in 1:nrow(lv.si)){
+        if (lv.si[i,1] %in% higherOrderFactors){
+          lv.si[i,2]<- x$pt$rhs[x$pt$op == "=~" & x$pt$lhs == lv.si[i,1]][1]
+        }
+      }
+    }
+
+    
     if (!is.null(lv.si)){
       meas.coef.mat <- 
         rbind(do.call("rbind", apply(lv.si, 1, function(x){

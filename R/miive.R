@@ -97,9 +97,10 @@
 #'   factor \code{L1}.
 #'   
 #'   \preformatted{model <- '
-#'      H1 =~ L1 + L2 
+#'      H1 =~ L1 + L2 + L3
 #'      L1 =~ Z1 + Z2 + Z3
 #'      L2 =~ Z4 + Z5 + Z6
+#'      L3 =~ Z7 + Z8 + Z9
 #'   '}
 #'   
 #'   \strong{Equality Constraints and Parameter Restrictions}
@@ -668,6 +669,8 @@ miive <- function(model = model,
   results$bootstrap      <- bootstrap
   results$call           <- match.call()
   results$ordered        <- ordered
+  results$pt             <- unclass(pt)
+  results$eqn.unid       <- d.un
   results$eqn.unid       <- d.un
   results$r              <- r
   results$v              <- v

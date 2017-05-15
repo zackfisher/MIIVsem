@@ -22,30 +22,29 @@
 #' \itemize{
 #' \item{\code{model}} {
 #' 
-#'   A model specified using a subset of the uses a subset of the model syntax 
-#'   employed by \pkg{lavaan}. The following model syntax operators 
-#'   are currently supported: \code{=~},
-#'   \code{~}, \code{~~} and \code{*}. See below for details 
-#'   on default behavior descriptions of how to specify the scaling 
-#'   indicator in latent variable models and impose equality constraints 
-#'   on the parameter estimates. 
+#'   A model specified using the model syntax employed by \pkg{lavaan} 
+#'   or a \code{miivs} object return by the  \code{miivs()} functions. 
+#'   The following model syntax operators are currently supported: =~,
+#'   ~, ~~ and *. See below for details on default behavior descriptions 
+#'   of how to specify the scaling indicator in latent variable models 
+#'   and impose equality constraints on the parameter estimates. 
 #'   
 #'   \strong{Example using Syntax Operators}
 #'   
-#'   In the model below, 'L1 \code{=~} Z1 + Z2 + Z3'  indicates the 
+#'   In the model below, 'L1 =~ Z1 + Z2 + Z3'  indicates the 
 #'   latent variable L1 is measured by 3 indicators, Z1, Z2, and Z3. Likewise,
 #'   L2 is measured by 3 indicators, Z4, Z5, and Z6. The statement
-#'   'L1 \code{~} L2' specifies latent  variable L1 is regressed on latent 
-#'   variable L2. 'Z1 \code{~~} Z2' specifies the error of indicator 
+#'   'L1 ~ L2' specifies latent  variable L1 is regressed on latent 
+#'   variable L2. 'Z1 ~~ Z2' specifies the error of indicator 
 #'   Z2 is allowed to covary with the error of indicator Z3. The label
-#'   L3 appended to Z3 and Z6 in the measurement model equations 
+#'   LA3 appended to Z3 and Z6 in the measurement model equations 
 #'   constrains the factor loadings for Z3 and Z6 to equality. Additional 
 #'   details on constraints see Equality Constraints  and Parameter 
 #'   Restrictions.
 #'   
 #'   \preformatted{model <- '
-#'      L1 =~ Z1 + Z2 + L3*Z3
-#'      L2 =~ Z4 + Z5 + L3*Z6
+#'      L1 =~ Z1 + Z2 + LA3*Z3
+#'      L2 =~ Z4 + Z5 + LA3*Z6
 #'      L1  ~ L2
 #'      Z2 ~~ Z3
 #'   '}
@@ -64,12 +63,41 @@
 #'      L2 =~ Z4 + Z5 + Z6
 #'   '}
 #'   
+#'   
+#'   \strong{Equality Constraints and Parameter Restrictions}
+#'   
+#'   Within- and across-equation equality constraints on the factor loading
+#'   and regression coefficients can be imposed directly in the model syntax. 
+#'   To specify equality constraints between different parameters equivalent
+#'   labels should be prepended to the variable name using the 
+#'   * operator. For example, we could constrain the factor 
+#'   loadings for two non-scaling indicators of latent factor \code{L1} to 
+#'   equality using the following  model syntax.
+#'   
+#'   \preformatted{model <- '
+#'      L1 =~ Z1 + LA2*Z2 + LA2*Z3
+#'      L2 =~ Z4 + Z5 + Z6
+#'   '}
+#'   
+#'   Researchers also can constrain the factor loading and regression 
+#'   coefficients to specific numeric values in a similar fashion. Below 
+#'   we constrain the regression coefficient  of \code{L1} on \code{L2} 
+#'   to \code{1}.
+#'   
+#'   \preformatted{model <- '
+#'      L1 =~ Z1 + Z2 + Z3
+#'      L2 =~ Z4 + Z5 + Z6
+#'      L3 =~ Z7 + Z8 + Z9
+#'      L1  ~ 1*L2 + L3
+#'   '}
+#'
 #'   \strong{Higher-order Factor Models}
 #'   
 #'   For example, in the model below, the  scaling indicator for the 
 #'   higher-order factor \code{H1} is taken to be \code{Z1}, the scaling 
 #'   indicator that would have been assigned to the first lower-order 
-#'   factor \code{L1}.
+#'   factor \code{L1}. The intercepts for lower-order latent variables 
+#'   are set to zero, by default
 #'   
 #'   \preformatted{model <- '
 #'      H1 =~ L1 + L2 + L3
@@ -78,47 +106,20 @@
 #'      L3 =~ Z7 + Z8 + Z9
 #'   '}
 #'   
-#'   \strong{Equality Constraints and Parameter Restrictions}
-#'   
-#'   Within- and across-equation equality constraints on the factor loading
-#'   and regression coefficients can be imposed directly in the model syntax. 
-#'   To specify equality constraints between different parameters equivalent
-#'   labels should be prepended to the variable name using the 
-#'   \code{*} operator. For example, we could constrain the factor 
-#'   loadings for two non-scaling indicators of latent factor \code{L1} to 
-#'   equality using the following  model syntax.
-#'   
-#'   \preformatted{model <- '
-#'      L1 =~ Z1 + B1*Z2 + B1*Z3
-#'      L2 =~ Z4 + Z5 + Z6
-#'   '}
-#'   
-#'   The factor loading and regression coefficients can also be constrained
-#'   to specific numeric values in a similar fashion. Below we constrain
-#'   the regression coefficient  of \code{L1} on \code{L2} to \code{1}.
-#'   
-#'   \preformatted{model <- '
-#'      L1 =~ Z1 + Z2 + Z3
-#'      L2 =~ Z4 + Z5 + Z6
-#'      L3 =~ Z7 + Z8 + Z9
-#'      L1  ~ 1*L2 + L3
-#'   '}
-#'   
 #'   \strong{Model Defaults}
 #'   
 #'   In addition to those relationships specified in the model syntax 
 #'   \pkg{MIIVsem} will automatically include the intercepts of any 
-#'   observed or latent variables endogenous variable. The intercepts
+#'   observed or latent endogenous variable. The intercepts
 #'   for any scaling indicators and lower-order latent variables are
 #'   set to zero, by default. Covariances among exogenous latent
 #'   and observed  variables are included by default when \code{
-#'   var.cov = TRUE}. Where appropriate the covariances of latent and 
-#'   observed dependent variables are also automatically included 
-#'   in the model specification. These defaults correspond to those used by 
-#'   \pkg{lavaan} and \code{auto = TRUE}, except that endogenous latent
-#'   variable intercepts are estimated by default, and the intercepts of
-#'   scaling indicators are fixed to zero.. 
-#'   
+#'   var.cov = TRUE}. Where appropriate the covariances of the errors
+#'   of latent and observed dependent variables are also automatically 
+#'   included in the model specification. These defaults correspond 
+#'   to those used by \pkg{lavaan} and \code{auto = TRUE}, except that 
+#'   endogenous latent variable intercepts are estimated by default, 
+#'   and the intercepts of scaling indicators are fixed to zero.
 #'   
 #'   \strong{Invalid Specifications}
 #'   

@@ -1,21 +1,25 @@
 #' Model-implied instrumental variable (MIIV) estimation
 #'
-#' Estimate SEM models using model-implied instrumental variables (MIIVs).
+#' Estimate structural equation models using model-implied instrumental 
+#' variables (MIIVs).
 #'
 #' @param model A model specified using lavaan model syntax or a
 #'        \code{\link{miivs}} object returned by the \code{\link{miivs}}
-#'        function. See details for more information about permissible
+#'        function. See Details for more information about permissible
 #'        operators and example syntax.
 #' @param data A data frame, list or environment or an object coercible 
-#'        by \code{as.data.frame} to data frame.
-#' @param instruments A user-supplied list of instruments for each 
-#'        equation. See below and the \code{miivs.out} argument of 
+#'        by \code{as.data.frame} to data frame. The most common 
+#'        application is to supply a data.frame.
+#' @param instruments This allows user to specify the instruments for 
+#'        each equation. See Details and the \code{miivs.out} argument of 
 #'        \code{\link{summary.miivs}} for more information on the correct 
 #'        input format. External (auxiliary) instruments can be 
 #'        supplied, however, the \code{miiv.check} argument must
-#'        be set to \code{FALSE}. 
+#'        be set to \code{FALSE}. In the typical application, the program 
+#'        will choose the MIIVs for each equation based on the model 
+#'        specification. 
 #' @param sample.cov Numeric matrix. A sample variance-covariance 
-#'        matrix. The rownames and colnames must contain each of
+#'        matrix. The rownames and colnames attributes must contain all
 #'        the observed variable names indicated in the model syntax.
 #' @param sample.mean A sample mean vector. If \code{sample.cov} is provided
 #'        and the \code{sample.mean} argument is \code{NULL}, intercepts
@@ -31,16 +35,19 @@
 #' @param var.cov If \code{TRUE}, variance and covariance parameters are
 #'        estimated.
 #' @param se If "standard", conventional closed form standard errors are
-#'        computed. If \code{"boot"} or \code{"bootstrap"}, bootstrap standard 
-#'        errors are computed.
+#'        computed. If \code{"bootstrap"} (or \code{"boot"}), bootstrap 
+#'        standard errors are computed.
 #' @param bootstrap Number of bootstrap draws, if bootstrapping is used. The
 #'        default is \code{1000}
-#' @param missing Default is \code{"listwise"} however, \code{"twostage"} is 
-#'        also available. See details below  on \code{missing} for more 
+#' @param missing Default is \code{"listwise"} however, a maximum likelihood 
+#'        related missing data method called \code{"twostage"} is 
+#'        also available. See Details below  on \code{missing} for more 
 #'        information.
-#' @param miiv.check Default is \code{TRUE}. Options to turn off check for 
-#'        user-supplied instruments validity as MIIVs. Needed when auxiliary
-#'        instruments are provided.
+#' @param miiv.check Default is \code{TRUE}. \code{miiv.check} provides a 
+#'        check to detrmine whether user-upplied instruments are implied
+#'        by the model specification (e.g. valid MIIVs). When auxiliary or 
+#'        external instruments are provided \code{miiv.check} should be 
+#'        set to \code{FALSE}. 
 #' @param ordered A vector of variable names to be treated as ordered factors
 #'        in generating the polychoric correlation matrix and subsequent PIV
 #'        estimate. See details on \code{ordered} below for more information.
@@ -49,31 +56,29 @@
 #' \itemize{
 #' \item{\code{model}} {
 #' 
-#'   A model specified using a subset of the uses a subset of the model syntax 
-#'   employed by \pkg{lavaan} or a \code{miivs} object return by the 
-#'   \code{miivs} functions. 
-#'   The following model syntax operators are currently supported: \code{=~},
-#'   \code{~}, \code{~~} and \code{*}. See below for details 
-#'   on default behavior descriptions of how to specify the scaling 
-#'   indicator in latent variable models and impose equality constraints 
-#'   on the parameter estimates. 
+#'   A model specified using the model syntax employed by \pkg{lavaan} 
+#'   or a \code{miivs} object return by the  \code{miivs()} functions. 
+#'   The following model syntax operators are currently supported: =~,
+#'   ~, ~~ and *. See below for details on default behavior descriptions 
+#'   of how to specify the scaling indicator in latent variable models 
+#'   and impose equality constraints on the parameter estimates. 
 #'   
 #'   \strong{Example using Syntax Operators}
 #'   
-#'   In the model below, 'L1 \code{=~} Z1 + Z2 + Z3'  indicates the 
+#'   In the model below, 'L1 =~ Z1 + Z2 + Z3'  indicates the 
 #'   latent variable L1 is measured by 3 indicators, Z1, Z2, and Z3. Likewise,
 #'   L2 is measured by 3 indicators, Z4, Z5, and Z6. The statement
-#'   'L1 \code{~} L2' specifies latent  variable L1 is regressed on latent 
-#'   variable L2. 'Z1 \code{~~} Z2' specifies the error of indicator 
+#'   'L1 ~ L2' specifies latent  variable L1 is regressed on latent 
+#'   variable L2. 'Z1 ~~ Z2' specifies the error of indicator 
 #'   Z2 is allowed to covary with the error of indicator Z3. The label
-#'   L3 appended to Z3 and Z6 in the measurement model equations 
+#'   LA3 appended to Z3 and Z6 in the measurement model equations 
 #'   constrains the factor loadings for Z3 and Z6 to equality. Additional 
 #'   details on constraints see Equality Constraints  and Parameter 
 #'   Restrictions.
 #'   
 #'   \preformatted{model <- '
-#'      L1 =~ Z1 + Z2 + L3*Z3
-#'      L2 =~ Z4 + Z5 + L3*Z6
+#'      L1 =~ Z1 + Z2 + LA3*Z3
+#'      L2 =~ Z4 + Z5 + LA3*Z6
 #'      L1  ~ L2
 #'      Z2 ~~ Z3
 #'   '}
@@ -92,12 +97,41 @@
 #'      L2 =~ Z4 + Z5 + Z6
 #'   '}
 #'   
+#'   
+#'   \strong{Equality Constraints and Parameter Restrictions}
+#'   
+#'   Within- and across-equation equality constraints on the factor loading
+#'   and regression coefficients can be imposed directly in the model syntax. 
+#'   To specify equality constraints between different parameters equivalent
+#'   labels should be prepended to the variable name using the 
+#'   * operator. For example, we could constrain the factor 
+#'   loadings for two non-scaling indicators of latent factor \code{L1} to 
+#'   equality using the following  model syntax.
+#'   
+#'   \preformatted{model <- '
+#'      L1 =~ Z1 + LA2*Z2 + LA2*Z3
+#'      L2 =~ Z4 + Z5 + Z6
+#'   '}
+#'   
+#'   Researchers also can constrain the factor loading and regression 
+#'   coefficients to specific numeric values in a similar fashion. Below 
+#'   we constrain the regression coefficient  of \code{L1} on \code{L2} 
+#'   to \code{1}.
+#'   
+#'   \preformatted{model <- '
+#'      L1 =~ Z1 + Z2 + Z3
+#'      L2 =~ Z4 + Z5 + Z6
+#'      L3 =~ Z7 + Z8 + Z9
+#'      L1  ~ 1*L2 + L3
+#'   '}
+#'
 #'   \strong{Higher-order Factor Models}
 #'   
 #'   For example, in the model below, the  scaling indicator for the 
 #'   higher-order factor \code{H1} is taken to be \code{Z1}, the scaling 
 #'   indicator that would have been assigned to the first lower-order 
-#'   factor \code{L1}.
+#'   factor \code{L1}. The intercepts for lower-order latent variables 
+#'   are set to zero, by default
 #'   
 #'   \preformatted{model <- '
 #'      H1 =~ L1 + L2 + L3
@@ -106,46 +140,20 @@
 #'      L3 =~ Z7 + Z8 + Z9
 #'   '}
 #'   
-#'   \strong{Equality Constraints and Parameter Restrictions}
-#'   
-#'   Within- and across-equation equality constraints on the factor loading
-#'   and regression coefficients can be imposed directly in the model syntax. 
-#'   To specify equality constraints between different parameters equivalent
-#'   labels should be prepended to the variable name using the 
-#'   \code{*} operator. For example, we could constrain the factor 
-#'   loadings for two non-scaling indicators of latent factor \code{L1} to 
-#'   equality using the following  model syntax.
-#'   
-#'   \preformatted{model <- '
-#'      L1 =~ Z1 + B1*Z2 + B1*Z3
-#'      L2 =~ Z4 + Z5 + Z6
-#'   '}
-#'   
-#'   The factor loading and regression coefficients can also be constrained
-#'   to specific numeric values in a similar fashion. Below we constrain
-#'   the regression coefficient  of \code{L1} on \code{L2} to \code{1}.
-#'   
-#'   \preformatted{model <- '
-#'      L1 =~ Z1 + Z2 + Z3
-#'      L2 =~ Z4 + Z5 + Z6
-#'      L3 =~ Z7 + Z8 + Z9
-#'      L1  ~ 1*L2 + L3
-#'   '}
-#'   
 #'   \strong{Model Defaults}
 #'   
 #'   In addition to those relationships specified in the model syntax 
 #'   \pkg{MIIVsem} will automatically include the intercepts of any 
-#'   observed or latent variables endogenous variable. The intercepts
+#'   observed or latent endogenous variable. The intercepts
 #'   for any scaling indicators and lower-order latent variables are
 #'   set to zero, by default. Covariances among exogenous latent
 #'   and observed  variables are included by default when \code{
-#'   var.cov = TRUE}. Where appropriate the covariances of latent and 
-#'   observed dependent variables are also automatically included 
-#'   in the model specification. These defaults correspond to those used by 
-#'   \pkg{lavaan} and \code{auto = TRUE}, except that endogenous latent
-#'   variable intercepts are estimated by default, and the intercepts of
-#'   scaling indicators are fixed to zero.. 
+#'   var.cov = TRUE}. Where appropriate the covariances of the errors
+#'   of latent and observed dependent variables are also automatically 
+#'   included in the model specification. These defaults correspond 
+#'   to those used by \pkg{lavaan} and \code{auto = TRUE}, except that 
+#'   endogenous latent variable intercepts are estimated by default, 
+#'   and the intercepts of scaling indicators are fixed to zero.
 #'   
 #'   
 #'   \strong{Invalid Specifications}
@@ -173,30 +181,26 @@
 #'     Z1  ~ Z4
 #'     Z4  ~ Z5 + Z6
 #'   '}
-#'    
-#'   
 #'   }
-#'   
 #'   
 #'   \item{\code{instruments}} {
 #' 
-#'   Using the \code{instruments} option you can specify the MIIVs directly 
-#'   for each equation in the model. To utilize this option you must first 
-#'   define a list of instruments using the syntax displayed below. Here,
+#'   To utilize this option you must first define a list of instruments 
+#'   using the syntax displayed below. Here,
 #'   the dependent variable for each equation is listed on the LHS of the
-#'   \code{"~"} operator. In the case of latent variable equations, the
+#'   ~ operator. In the case of latent variable equations, the
 #'   dependent variable is the scaling indicator associated with that
 #'   variable. The instruments are then given on the RHS, separated
-#'   by \code{"+"} signs. For example, 
+#'   by + signs. For example, 
 #'   
-#'   \preformatted{myInstruments <- '
+#'   \preformatted{customIVs <- '
 #'      y1 ~ z1 + z2 + z3
 #'      y2 ~ z4 + z5
 #'   '
 #'   }
 #'     
 #'   After this list is defined, set the \code{instruments} argument equal to 
-#'   the name of the list of instruments (e.g. \code{myInstruments}). 
+#'   the name of the list of instruments (e.g. \code{customIVs}). 
 #'   Note, that \code{instruments} are specified for an equation, 
 #'   and not for a specific endogenous variable. If only a subset of dependent
 #'   variables are listed in the instruments argument, only those  equations 
@@ -208,9 +212,11 @@
 #'   \item{\code{sample.cov}} {
 #'   
 #'   The user may provide a sample covariance matrix in lieu of raw data.
-#'   If \code{sample.cov} is not \code{NULL} the user must also supply a
-#'   vector of sample means (\code{sample.mean}), and the number of sample
-#'   observations (\code{sample.nobs}) from which the means and covariances 
+#'   The rownames and colnames must contain each of the observed variable 
+#'   names indicated in the model syntax. If \code{sample.cov} is not 
+#'   \code{NULL} the user must also supply a vector of sample means 
+#'   (\code{sample.mean}), and the number of sample observations 
+#'   (\code{sample.nobs}) from which the means and covariances 
 #'   were calculated.  Currently, \pkg{MIIVsem} does not support bootstrap 
 #'   standard errors or polychoric instrumental variable estimtation when
 #'   the sample moments, rather than raw data, are used as input.  
@@ -218,10 +224,11 @@
 #'   
 #'   \item{\code{sample.mean}} {
 #'   
-#'   A named vector of length corresponding to the row and column dimensions
-#'   of the \code{sample.cov} matrix.  Names must also match those in the
-#'   \code{sample.cov}.  If the user supplies a covariance matrix but no 
-#'   vector of sample means intercepts will not be estimated.
+#'   A vector of length corresponding to the row and column dimensions
+#'   of the \code{sample.cov} matrix.  The names of \code{sample.mean} 
+#'   must match those in the \code{sample.cov}.  If the user supplies a 
+#'   covariance matrix but no vector of sample means intercepts will not 
+#'   be estimated.
 #'   }
 #'   
 #'   \item{\code{sample.cov.rescale}} {
@@ -278,7 +285,7 @@
 #'   
 #'  \item{\code{missing}} {
 #'   There are two ways to handle missing data in \pkg{MIIVsem}. First, missing 
-#'   data may be handled by listwise deletion (\code{mising = "listwise"}),
+#'   data may be handled by listwise deletion (\code{missing = "listwise"}),
 #'   In this case any row of data containing missing observation is 
 #'   excluded from the analysis and the sample moments are adjusted 
 #'   accordingly. Estimation then proceeds normally. The second option 
@@ -288,10 +295,9 @@
 #'   in the first stage. These quantities are often referred to as
 #'   the "EM means" and "EM covariance matrix." In the second stage
 #'   the saturated estimates are used to calculate the MIIV-2SLS
-#'   structural coefficients. <MORE> Justification needed. <MORE> 
-#'   Bootstrap standard errors are recommended but will be 
-#'   computationally burdensome due to the calculation of the EM-based 
-#'   moments at each bootstrap replication. When  
+#'   structural coefficients. Bootstrap standard errors are recommended 
+#'   but will be  computationally burdensome due to the calculation of 
+#'   the EM-based  moments at each bootstrap replication. When  
 #'   \code{missing = "twostage"}  and \code{var.cov = TRUE} standard 
 #'   errors for the variance covariance parameters of the model are 
 #'   calculated using the two-stage ML procedure for nonnormal missing
@@ -320,8 +326,9 @@
 #'   }
 #' }
 #' 
-#' \strong{Sargan's Test of Overidentification}
-#' An essential ingredient in the MIIV-2SLS approach are 
+#' \strong{Sargan's Test of Overidentification}  
+#' 
+#' An essential ingredient in the MIIV-2SLS approach is 
 #' overidentification tests when a given model specification
 #' leads to an excess of instruments. Empirically 
 #' overidentification tests are used to evalulate the assumption
@@ -329,11 +336,10 @@
 #' residuals. Rejection of the null hypothesis implies a 
 #' deficit in the logic leading to the instrument selection.  
 #' In the context of MIIV-2SLS this is the model specification 
-#' itself.  By default, \pkg{MIIVsem} provides Sargan's test
-#' (Sargan, 1958) for each overidentified equation in the system.  
+#' itself.  By default, \pkg{MIIVsem} provides Sargan's overidentification
+#' test (Sargan, 1958) for each overidentified equation in the system.  
 #' When cross-equation restrictions or missing data are present the
-#' properties of the test are unknown and results should not be
-#' interpreted.
+#' properties of the test are not known.
 #' 
 #' @references 
 #' 
@@ -394,7 +400,6 @@ miive <- function(model = model,
                   missing = "listwise",
                   est.only = FALSE, 
                   var.cov = FALSE, 
-                  var.cov.estimator = "ML",
                   miiv.check = TRUE, 
                   ordered = NULL){
   

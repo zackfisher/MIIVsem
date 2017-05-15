@@ -20,7 +20,7 @@ linaer hypotheses imposed on the MIIV-2SLS coefficient
 matrix should be provided. The first statistic is 
 an approximate F and  the second is Chi-square. 
 Assumptions and additional details for each test 
-are given by Greene (2003, p. 346-347) and Henningsen 
+are given by Greene (2000, p. 346-347) and Henningsen 
 and Hamman (2007).}
 
 \item{rsquare}{A logical indicating whether R-square values for

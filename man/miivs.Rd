@@ -32,14 +32,13 @@ without latent variables.
 \itemize{
 \item{\code{model}} {
 
-  A model specified using a subset of the model syntax 
-  employed by \pkg{lavaan}. See the \code{model} argumen within the 
-  \code{\link[lavaan]{lavaanify}} function for more information. 
-  The following model syntax operators are currently supported: \code{=~},
+  A model specified using a subset of the uses a subset of the model syntax 
+  employed by \pkg{lavaan}. The following model syntax operators 
+  are currently supported: \code{=~},
   \code{~}, \code{~~} and \code{*}. See below for details 
-  on default behavior, how to specify the scaling 
+  on default behavior descriptions of how to specify the scaling 
   indicator in latent variable models and impose equality constraints 
-  on parameter estimates. 
+  on the parameter estimates. 
   
   \strong{Example using Syntax Operators}
   
@@ -50,7 +49,7 @@ without latent variables.
   variable L2. 'Z1 \code{~~} Z2' specifies the error of indicator 
   Z2 is allowed to covary with the error of indicator Z3. The label
   L3 appended to Z3 and Z6 in the measurement model equations 
-  constrains the factor loadings for Z3 and Z6 to equality. For additional 
+  constrains the factor loadings for Z3 and Z6 to equality. Additional 
   details on constraints see Equality Constraints  and Parameter 
   Restrictions.
   
@@ -119,20 +118,17 @@ without latent variables.
   
   In addition to those relationships specified in the model syntax 
   \pkg{MIIVsem} will automatically include the intercepts of any 
-  observed or latent variables. Covariances among exogenous latent
-  and observed  variables are included by default. 
-  Where appropriate the covariances of latent and observed dependent 
-  variables are also automatically included in the model specification.
-  These defaults correspond to those used by \pkg{lavaan} and 
-  \code{auto = TRUE}. 
+  observed or latent variables endogenous variable. The intercepts
+  for any scaling indicators and lower-order latent variables are
+  set to zero, by default. Covariances among exogenous latent
+  and observed  variables are included by default when \code{
+  var.cov = TRUE}. Where appropriate the covariances of latent and 
+  observed dependent variables are also automatically included 
+  in the model specification. These defaults correspond to those used by 
+  \pkg{lavaan} and \code{auto = TRUE}, except that endogenous latent
+  variable intercepts are estimated by default, and the intercepts of
+  scaling indicators are fixed to zero.. 
   
-  For example, in the model below the errors of Z1 and Z4 are allowed to 
-  covary, in addition to all pairs of exogenous variables.
-  
-  \preformatted{model <- '
-    Z1 ~ Z2 + Z3 
-    Z4 ~ Z5 + Z6
-  '}
   
   \strong{Invalid Specifications}
   
@@ -148,6 +144,18 @@ without latent variables.
     L1 =~ Z1 + Z2 + Z3
     L2 =~ Z4 + Z5 + Z6 + Z1
   '}
+  
+  In addition, \pkg{MIIVsem} does not currently support relations
+  where the scaling indicator of a latent variable is also the 
+  dependent variable in a regression equation.  For example, the
+  model below would not be valid under the current algorithm.
+  
+  \preformatted{model <- '
+    L1 =~ Z1 + Z2 + Z3
+    Z1  ~ Z4
+    Z4  ~ Z5 + Z6
+  '}
+   
   
   }
 }

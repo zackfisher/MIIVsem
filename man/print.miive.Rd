@@ -9,7 +9,7 @@
 \arguments{
 \item{x}{a miive object}
 
-\item{...}{Optional arguments to print}
+\item{...}{Optional arguments to print, not used by user.}
 }
 \description{
 Print method for a MIIV estimation object

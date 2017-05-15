@@ -10,15 +10,15 @@
 \arguments{
 \item{object}{An object of class \code{miive}}
 
-\item{eq.info}{A logical indicating whether the 
-equation-specific information should be printed. 
-Useful in models with large numbers of variables.}
+\item{eq.info}{A logical indicating whether equation-specific 
+information should be printed. Useful in models with 
+large numbers of variables.}
 
 \item{restrict.tests}{A logical indicating whether two 
 test statistics for a large-sample wald test of 
 linaer hypotheses imposed on the MIIV-2SLS coefficient 
 matrix should be provided. The first statistic is 
-an approximate F and  the second is Chi-square. 
+an approximate F and the second is Chi-square. 
 Assumptions and additional details for each test 
 are given by Greene (2000, p. 346-347) and Henningsen 
 and Hamman (2007).}
@@ -27,7 +27,7 @@ and Hamman (2007).}
 endogeneous variables are included in the output. Only
 available when \code{var.cov} is \code{TRUE}.}
 
-\item{...}{Optional arguments to summary.}
+\item{...}{Optional arguments to summary, not used by user.}
 }
 \description{
 Summary information for a MIIV estimation object

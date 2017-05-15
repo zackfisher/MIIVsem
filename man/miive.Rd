@@ -77,8 +77,7 @@ Estimate SEM models using model-implied instrumental variables (MIIVs).
 
   A model specified using a subset of the uses a subset of the model syntax 
   employed by \pkg{lavaan} or a \code{miivs} object return by the 
-  \code{miivs} functions. See the \code{model} argument within the 
-  \code{\link[lavaan]{lavaanify}} function for more information. 
+  \code{miivs} functions. 
   The following model syntax operators are currently supported: \code{=~},
   \code{~}, \code{~~} and \code{*}. See below for details 
   on default behavior descriptions of how to specify the scaling 
@@ -346,6 +345,21 @@ Estimate SEM models using model-implied instrumental variables (MIIVs).
   endogenous variables.
   }
 }
+
+\strong{Sargan's Test of Overidentification}
+An essential ingredient in the MIIV-2SLS approach are 
+overidentification tests when a given model specification
+leads to an excess of instruments. Empirically 
+overidentification tests are used to evalulate the assumption
+of orthogonality between the instruments and equation 
+residuals. Rejection of the null hypothesis implies a 
+deficit in the logic leading to the instrument selection.  
+In the context of MIIV-2SLS this is the model specification 
+itself.  By default, \pkg{MIIVsem} provides Sargan's test
+(Sargan, 1958) for each overidentified equation in the system.  
+When cross-equation restrictions or missing data are present the
+properties of the test are unknown and results should not be
+interpreted.
 }
 \examples{
 # Example 1

@@ -51,8 +51,7 @@
 #' 
 #'   A model specified using a subset of the uses a subset of the model syntax 
 #'   employed by \pkg{lavaan} or a \code{miivs} object return by the 
-#'   \code{miivs} functions. See the \code{model} argument within the 
-#'   \code{\link[lavaan]{lavaanify}} function for more information. 
+#'   \code{miivs} functions. 
 #'   The following model syntax operators are currently supported: \code{=~},
 #'   \code{~}, \code{~~} and \code{*}. See below for details 
 #'   on default behavior descriptions of how to specify the scaling 
@@ -320,7 +319,21 @@
 #'   endogenous variables.
 #'   }
 #' }
-#'
+#' 
+#' \strong{Sargan's Test of Overidentification}
+#' An essential ingredient in the MIIV-2SLS approach are 
+#' overidentification tests when a given model specification
+#' leads to an excess of instruments. Empirically 
+#' overidentification tests are used to evalulate the assumption
+#' of orthogonality between the instruments and equation 
+#' residuals. Rejection of the null hypothesis implies a 
+#' deficit in the logic leading to the instrument selection.  
+#' In the context of MIIV-2SLS this is the model specification 
+#' itself.  By default, \pkg{MIIVsem} provides Sargan's test
+#' (Sargan, 1958) for each overidentified equation in the system.  
+#' When cross-equation restrictions or missing data are present the
+#' properties of the test are unknown and results should not be
+#' interpreted.
 #' 
 #' @references 
 #' 
@@ -346,6 +359,9 @@
 #' 
 #' Hayashi, F. (2000). Econometrics. Princeton, NJ: Princeton University 
 #' Press
+#' 
+#' Sargan, J. D. (1958). The Estimation of Economic Relationships 
+#' using Instrumental Variables. Econometrica, 26(3), 393–415. 
 #' 
 #' Savalei, V. (2010). Expected versus Observed Information in SEM with 
 #' Incomplete Normal and Nonnormal Data. \emph{Psychological Methods}, 
@@ -606,6 +622,10 @@ miive <- function(model = model,
   #-------------------------------------------------------#
   
   if(se == "boot" | se == "bootstrap"){
+    
+    if(is.null(data)){
+      stop(paste("miive: raw data required for bootstrap SEs."))
+    }
     
     # Do this outside of the bootstrap loop
 

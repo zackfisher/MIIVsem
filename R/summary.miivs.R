@@ -1,16 +1,15 @@
 #' Summary information for a MIIV search object 
 #'
-#'
 #' @param object An object of class \code{miivs}
 #' @param miivs.out A logical indicating whether the model-implied 
-#' instrumental variables found for \code{model} should be printed
-#' to the console. This is a temporary convenience function to 
-#' provide an editable, baseline format, for the \code{instruments}
-#' argument of \code{\link{miive}}.
-#' @param eq.info A logical indicating whether the 
-#' equation-specific information should be printed. Useful in models
-#' with a large number of variables.
-#' @param ... Optional arguments to summary.
+#'        instrumental variables found for \code{model} should be printed
+#'        to the console. This is a temporary convenience function to 
+#'        provide an editable, baseline format, for the \code{instruments}
+#'        argument of \code{\link{miive}}.
+#' @param eq.info A logical indicating whether equation-specific 
+#'        information should be printed. Useful in models with a large number 
+#'        of variables.
+#' @param ... Optional arguments to summary, not used by user.
 #' @export
 summary.miivs <- function(object, miivs.out = FALSE, eq.info = FALSE,...){
   

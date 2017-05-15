@@ -15,11 +15,11 @@ to the console. This is a temporary convenience function to
 provide an editable, baseline format, for the \code{instruments}
 argument of \code{\link{miive}}.}
 
-\item{eq.info}{A logical indicating whether the 
-equation-specific information should be printed. Useful in models
-with a large number of variables.}
+\item{eq.info}{A logical indicating whether equation-specific 
+information should be printed. Useful in models with a large number 
+of variables.}
 
-\item{...}{Optional arguments to summary.}
+\item{...}{Optional arguments to summary, not used by user.}
 }
 \description{
 Summary information for a MIIV search object

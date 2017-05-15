@@ -1,6 +1,4 @@
 #'@keywords internal
-
-# Partial derivative of theta with respect to regression params
 derRegPIV <- function(Pvv, Pvz, Pvy){
 
   dPvv   <- derPvv(Pvv, Pvz, Pvy)

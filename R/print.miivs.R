@@ -1,7 +1,7 @@
 #' Print method for a MIIV search object
 #' 
 #' @param x a miivs object
-#' @param ... Optional arguments to print
+#' @param ... Optional arguments to print, not used by user.
 #' 
 #' @export
 print.miivs <- function(x,...){

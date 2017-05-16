@@ -76,7 +76,7 @@ estimate. See details on \code{ordered} below for more information.}
 
 \item{sarg.adjust}{Adjusment methods used to adjust the p-values associated
 with the Sargan test due to multiple comparisons. Defaults is 
-\coded{none}. For options see \code{\link[stats]{p.adjust}}.}
+\code{none}. For options see \code{\link[stats]{p.adjust}}.}
 }
 \description{
 Estimate structural equation models using model-implied instrumental 

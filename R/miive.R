@@ -53,7 +53,7 @@
 #'        estimate. See details on \code{ordered} below for more information.
 #' @param sarg.adjust Adjusment methods used to adjust the p-values associated
 #'        with the Sargan test due to multiple comparisons. Defaults is 
-#'        \coded{none}. For options see \code{\link[stats]{p.adjust}}.
+#'        \code{none}. For options see \code{\link[stats]{p.adjust}}.
 #' @details 
 #' 
 #' \itemize{

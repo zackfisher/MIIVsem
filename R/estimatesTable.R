@@ -21,10 +21,15 @@ estimatesTable <- function(x, v = NULL){
   
   meas.coef.mat <- data.frame(
     "lhs" = unlist(lapply(x$eqn[meas.eqns], function(eq){
+      # if(eq$categorical){
+      #   rep(eq$IVlat, length(eq$coefficients))
+      # } else {
+      #   c(eq$DVlat, rep(eq$IVlat, length(eq$coefficients)-1))
+      # }
       if(eq$categorical){
-        rep(eq$IVlat, length(eq$coefficients))
+        eq$IVlat
       } else {
-        c(eq$DVlat, rep(eq$IVlat, length(eq$coefficients)-1))
+        c(eq$DVlat, eq$IVlat)
       }
     })),
     "op"  = unlist(lapply(x$eqn[meas.eqns], function(eq){
@@ -35,10 +40,15 @@ estimatesTable <- function(x, v = NULL){
       }
     })),
     "rhs" = unlist(lapply(x$eqn[meas.eqns], function(eq){
+      # if(eq$categorical){
+      #   eq$DVlat
+      # } else {
+      #   c("", eq$DVlat)
+      # }
       if(eq$categorical){
-        eq$DVlat
+        rep(eq$DVlat, length(eq$IVlat))
       } else {
-        c("", eq$DVlat)
+        c("", rep(eq$DVlat, length(eq$IVlat)))
       }
     })),
     "est" = unlist(lapply(x$eqn[meas.eqns], "[[", "coefficients")),
@@ -74,9 +84,12 @@ estimatesTable <- function(x, v = NULL){
   # add a scaling indicator for each latent variable
     lv.si <- unique(do.call("rbind",
       lapply(x$eqn[meas.eqns], function(eq){
-        c(eq$IVlat, eq$IVobs, eq$categorical)
+        cbind(eq$IVlat, eq$IVobs, eq$categorical)
       })
     ))
+    
+
+
     
     # if there is a duplicated scaling indicator
     # in column 2 of lv.si, it should be replcad

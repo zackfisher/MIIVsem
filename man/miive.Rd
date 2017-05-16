@@ -8,7 +8,7 @@ miive(model = model, data = NULL, instruments = NULL, sample.cov = NULL,
   sample.mean = NULL, sample.nobs = NULL, sample.cov.rescale = TRUE,
   estimator = "2SLS", se = "standard", bootstrap = 1000L,
   missing = "listwise", est.only = FALSE, var.cov = FALSE,
-  miiv.check = TRUE, ordered = NULL)
+  miiv.check = TRUE, ordered = NULL, sarg.adjust = "none")
 }
 \arguments{
 \item{model}{A model specified using lavaan model syntax or a
@@ -73,6 +73,10 @@ set to \code{FALSE}.}
 \item{ordered}{A vector of variable names to be treated as ordered factors
 in generating the polychoric correlation matrix and subsequent PIV
 estimate. See details on \code{ordered} below for more information.}
+
+\item{sarg.adjust}{Adjusment methods used to adjust the p-values associated
+with the Sargan test due to multiple comparisons. Defaults is 
+\coded{none}. For options see \code{\link[stats]{p.adjust}}.}
 }
 \description{
 Estimate structural equation models using model-implied instrumental 
@@ -112,7 +116,7 @@ variables (MIIVs).
   \strong{Scaling Indicators}
   
   Following the \pkg{lavaan} model syntax, latent variables are defined 
-  using the \code{=~} operator.  For first order factors, the scaling 
+  using the =~ operator.  For first order factors, the scaling 
   indicator chosen is the first observed variable on the RHS of an 
   equation. For the model  below \code{Z1} would be chosen as the 
   scaling indicator for \code{L1} and \code{Z4} would be chosen as 

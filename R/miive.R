@@ -51,6 +51,9 @@
 #' @param ordered A vector of variable names to be treated as ordered factors
 #'        in generating the polychoric correlation matrix and subsequent PIV
 #'        estimate. See details on \code{ordered} below for more information.
+#' @param sarg.adjust Adjusment methods used to adjust the p-values associated
+#'        with the Sargan test due to multiple comparisons. Defaults is 
+#'        \coded{none}. For options see \code{\link[stats]{p.adjust}}.
 #' @details 
 #' 
 #' \itemize{
@@ -86,7 +89,7 @@
 #'   \strong{Scaling Indicators}
 #'   
 #'   Following the \pkg{lavaan} model syntax, latent variables are defined 
-#'   using the \code{=~} operator.  For first order factors, the scaling 
+#'   using the =~ operator.  For first order factors, the scaling 
 #'   indicator chosen is the first observed variable on the RHS of an 
 #'   equation. For the model  below \code{Z1} would be chosen as the 
 #'   scaling indicator for \code{L1} and \code{Z4} would be chosen as 
@@ -401,7 +404,8 @@ miive <- function(model = model,
                   est.only = FALSE, 
                   var.cov = FALSE, 
                   miiv.check = TRUE, 
-                  ordered = NULL){
+                  ordered = NULL,
+                  sarg.adjust = "none"){
   
   #-------------------------------------------------------# 
   # A few basic sanity checks for user-supplied covariance 
@@ -585,7 +589,7 @@ miive <- function(model = model,
   #-------------------------------------------------------#
   results <- switch(
     estimator,
-      "2SLS" = miive.2sls(d, g, r, est.only, se, missing, var.cov),
+      "2SLS" = miive.2sls(d, g, r, est.only, se, missing, var.cov, sarg.adjust),
       # "GMM"  = miive.gmm(d, d.un, g, r, est.only, se), # Not implemented
       # In other cases, raise an error
       stop(

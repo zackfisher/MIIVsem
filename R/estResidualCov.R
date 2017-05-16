@@ -16,6 +16,10 @@ estResidualCov <- function(d, sample.cov){
     B[idx[,2:1, drop = FALSE]] <- -1*as.numeric(idx[,3])
     
     residCov <- t(B) %*% sample.cov[dvs,dvs] %*% B
+     B %*% sample.cov[dvs,dvs] %*% t(B)
+    
+    colnames(residCov) <- rownames(residCov) <- unlist(lapply(d,"[[","DVlat"))
     residCov
+    
   
 }

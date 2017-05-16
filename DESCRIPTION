@@ -4,10 +4,10 @@ Title: Model Implied Instrumental Variable (MIIV) Estimation of Structural
     Equation Models
 Version: 0.5.2
 Authors@R: c(
- person("Fisher", "Zachary", email = "fish.zachary@gmail.com", role = c("aut", "cre")),
- person("Bollen", "Keneth", role = "aut"),
- person("Gates", "Kathleen", role = "aut"),
- person("Rönkkö", "Mikko", role = "aut")
+ person("Zachary","Fisher", email = "fish.zachary@gmail.com", role = c("aut", "cre")),
+ person("Keneth", "Bollen", role = "aut"),
+ person("Kathleen", "Gates", role = "aut"),
+ person("Mikko", "Rönkkö", role = "aut")
  )
 Description: Functions for estimating structural equation models using model-
     implied instrumental variables.

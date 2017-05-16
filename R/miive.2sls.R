@@ -7,7 +7,7 @@
 #' @param se se estimation
 #' 
 #'@keywords internal
-miive.2sls <- function(d, g, r, est.only, se, missing, var.cov){
+miive.2sls <- function(d, g, r, est.only, se, missing, var.cov, sarg.adjust="none"){
   
   #------------------------------------------------------------------------#
   # MIIV-2SLS point estimates
@@ -79,6 +79,16 @@ miive.2sls <- function(d, g, r, est.only, se, missing, var.cov){
       }
       eq
      })
+    
+    if (sarg.adjust != "none"){
+      sarg.pvals <- unlist(lapply(d, "[[", "sargan.p"))
+      adj.sarg.pvals <- stats::p.adjust(sarg.pvals, sarg.adjust)
+      
+      for (i in 1:length(adj.sarg.pvals)){
+        d[[i]]$sargan.p <- adj.sarg.pvals[i]
+      }
+      
+    }
     
   }
   

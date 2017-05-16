@@ -64,9 +64,9 @@ estimatesTable <- function(x, v = NULL){
     "sarg.p" = unlist(lapply(x$eqn[meas.eqns], function(eq){
       rep(eq$sargan.p, length(eq$coefficients))})
     ), 
-    "eq" = unlist(lapply(x$eqn[meas.eqns], function(eq){
-      rep(eq$EQnum, length(eq$coefficients))})
-    ), 
+    # "eq" = unlist(lapply(x$eqn[meas.eqns], function(eq){
+    #   rep(eq$EQnum, length(eq$coefficients))})
+    # ), 
     stringsAsFactors = FALSE
   )
   
@@ -110,7 +110,7 @@ estimatesTable <- function(x, v = NULL){
               "sarg"    = NA,
               "sarg.df" = NA,
               "sarg.p"  = NA, 
-              "eq"      = NA, 
+              #"eq"      = NA, 
               stringsAsFactors = FALSE
             )
           } else {
@@ -125,7 +125,7 @@ estimatesTable <- function(x, v = NULL){
               "sarg"    = NA,
               "sarg.df" = NA,
               "sarg.p"  = NA, 
-              "eq"      = NA, 
+              #"eq"      = NA, 
               stringsAsFactors = FALSE
             )
           }
@@ -184,9 +184,9 @@ estimatesTable <- function(x, v = NULL){
     "sarg.p" = unlist(lapply(x$eqn[str.eqns], function(eq){
       rep(eq$sargan.p, length(eq$coefficients))})
     ), 
-    "eq" = unlist(lapply(x$eqn[str.eqns], function(eq){
-      rep(eq$EQnum, length(eq$coefficients))})
-    ), 
+    # "eq" = unlist(lapply(x$eqn[str.eqns], function(eq){
+    #   rep(eq$EQnum, length(eq$coefficients))})
+    # ), 
     stringsAsFactors = FALSE
   )
   
@@ -214,7 +214,7 @@ estimatesTable <- function(x, v = NULL){
       "sarg" = NA,
       "sarg.df" = NA, 
       "sarg.p" = NA,
-      "eq" = NA,
+      #"eq" = NA,
       stringsAsFactors = FALSE
     )
 

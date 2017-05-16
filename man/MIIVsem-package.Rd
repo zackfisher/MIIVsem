@@ -10,13 +10,13 @@
 using model-implied instrumental variables (MIIVs).
 }
 \author{
-\strong{Maintainer}: Fisher Zachary \email{fish.zachary@gmail.com}
+\strong{Maintainer}: Zachary Fisher \email{fish.zachary@gmail.com}
 
 Authors:
 \itemize{
-  \item Bollen Keneth
-  \item Gates Kathleen
-  \item Rönkkö Mikko
+  \item Keneth Bollen
+  \item Kathleen Gates
+  \item Mikko Rönkkö
 }
 
 }

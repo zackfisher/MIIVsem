@@ -9,6 +9,14 @@
 \pkg{MIIVsem} is a package for estimating structural equation models 
 using model-implied instrumental variables (MIIVs).
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/zackfisher/MIIVsem}
+  \item Report bugs at \url{https://github.com/zackfisher/MIIVsem/issues}
+}
+
+}
 \author{
 \strong{Maintainer}: Zachary Fisher \email{fish.zachary@gmail.com}
 

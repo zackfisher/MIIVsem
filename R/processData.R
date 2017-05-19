@@ -97,6 +97,7 @@ processData <- function(data = data,
       )
       
       sample.sscp <- NULL
+      sample.nobs <- nrow(data)
  
       # Polychoric correlation matrix. 
       sample.polychoric <- unclass(lavaan::inspect(fit, "cor.ov"))
@@ -181,7 +182,7 @@ processData <- function(data = data,
           nrow(data[,continuous.vars])
         
         sample.mean <- colMeans(data[,continuous.vars])
-        
+        sample.nobs <- nrow(data)
         sample.sscp <- buildSSCP(sample.cov, sample.mean, sample.nobs)
       
       }

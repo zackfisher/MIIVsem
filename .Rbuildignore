@@ -1,4 +1,7 @@
 ^\.travis\.yml$
 ^.*\.Rproj$
+^README\.Rmd$       
 ^\.Rproj\.user$
 ^example
+^README\.Rmd$
+^README-.*\.png$

@@ -24,7 +24,7 @@ minus their errors.  Upon substitution the SEM is transformed
 from a model with latent variables to one containing observed 
 variables with composite errors. The miivs function 
 automatically makes this transformation. The miivs function
-will can also identify equation-specific model-implied 
+will also identify equation-specific model-implied 
 instrumental variables in simultaneous equation models
 without latent variables.
 }
@@ -32,25 +32,24 @@ without latent variables.
 \itemize{
 \item{\code{model}} {
 
-  A model specified using the model syntax employed by \pkg{lavaan} 
-  or a \code{miivs} object return by the  \code{miivs()} functions. 
+  A model specified using the model syntax employed by \pkg{lavaan}. 
   The following model syntax operators are currently supported: =~,
-  ~, ~~ and *. See below for details on default behavior descriptions 
-  of how to specify the scaling indicator in latent variable models 
-  and impose equality constraints on the parameter estimates. 
+  ~, ~~ and *. See below for details on default behaviors, 
+  how to specify the scaling indicator in latent variable models, 
+  and how to impose equality constraints on the parameter estimates. 
   
   \strong{Example using Syntax Operators}
   
   In the model below, 'L1 =~ Z1 + Z2 + Z3'  indicates the 
   latent variable L1 is measured by 3 indicators, Z1, Z2, and Z3. Likewise,
   L2 is measured by 3 indicators, Z4, Z5, and Z6. The statement
-  'L1 ~ L2' specifies latent  variable L1 is regressed on latent 
-  variable L2. 'Z1 ~~ Z2' specifies the error of indicator 
-  Z2 is allowed to covary with the error of indicator Z3. The label
+  'L1 ~ L2' specifies latent variable L1 is regressed on latent 
+  variable L2. 'Z1 ~~ Z2' indicates the error of Z2 is allowed to 
+  covary with the error of Z3. The label
   LA3 appended to Z3 and Z6 in the measurement model equations 
-  constrains the factor loadings for Z3 and Z6 to equality. Additional 
-  details on constraints see Equality Constraints  and Parameter 
-  Restrictions.
+  constrains the factor loadings for Z3 and Z6 to equality. For 
+  additional details on constraints see Equality Constraints 
+  and Parameter Restrictions.
   
   \preformatted{model <- '
      L1 =~ Z1 + Z2 + LA3*Z3
@@ -89,7 +88,7 @@ without latent variables.
      L2 =~ Z4 + Z5 + Z6
   '}
   
-  Researchers also can constrain the factor loading and regression 
+  Researchers can also constrain the factor loadings and regression 
   coefficients to specific numeric values in a similar fashion. Below 
   we constrain the regression coefficient  of \code{L1} on \code{L2} 
   to \code{1}.
@@ -122,7 +121,7 @@ without latent variables.
   \pkg{MIIVsem} will automatically include the intercepts of any 
   observed or latent endogenous variable. The intercepts
   for any scaling indicators and lower-order latent variables are
-  set to zero, by default. Covariances among exogenous latent
+  set to zero. Covariances among exogenous latent
   and observed  variables are included by default when \code{
   var.cov = TRUE}. Where appropriate the covariances of the errors
   of latent and observed dependent variables are also automatically 
@@ -135,7 +134,7 @@ without latent variables.
   
   Certain model specifications are not currently supported.  For example,
   the scaling indicator of a latent variable is not permitted to
-  cross-load on another latent variable. For example, in the model below
+  cross-load on another latent variable. In the model below
   \code{Z1}, the scaling indicator for L1, cross-loads on the latent 
   variable \code{L2}. Executing a search on the model below will 
   result in the warning: \emph{miivs: scaling indicators with a factor 

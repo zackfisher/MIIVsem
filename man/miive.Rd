@@ -7,14 +7,15 @@
 miive(model = model, data = NULL, instruments = NULL, sample.cov = NULL,
   sample.mean = NULL, sample.nobs = NULL, sample.cov.rescale = TRUE,
   estimator = "2SLS", se = "standard", bootstrap = 1000L,
-  missing = "listwise", est.only = FALSE, var.cov = FALSE,
-  miiv.check = TRUE, ordered = NULL, sarg.adjust = "none")
+  boot.ci = "norm", missing = "listwise", est.only = FALSE,
+  var.cov = FALSE, miiv.check = TRUE, ordered = NULL,
+  sarg.adjust = "none")
 }
 \arguments{
 \item{model}{A model specified using lavaan model syntax or a
 \code{\link{miivs}} object returned by the \code{\link{miivs}}
 function. See Details for more information about permissible
-operators and example syntax.}
+operators and example model syntax.}
 
 \item{data}{A data frame, list or environment or an object coercible 
 by \code{as.data.frame} to data frame. The most common 
@@ -27,7 +28,9 @@ input format. External (auxiliary) instruments can be
 supplied, however, the \code{miiv.check} argument must
 be set to \code{FALSE}. In the typical application, the program 
 will choose the MIIVs for each equation based on the model 
-specification.}
+specification. To view the model implied instruments after 
+estimation see the \code{eq.info} argument of 
+ \code{\link{summary.miive}}.}
 
 \item{sample.cov}{Numeric matrix. A sample variance-covariance 
 matrix. The rownames and colnames attributes must contain all
@@ -47,12 +50,19 @@ it with a factor (N-1)/N.}
 model parameters. Default is \code{"2SLS"}. Currently, only 
 \code{2SLS} is supported.}
 
-\item{se}{If "standard", conventional closed form standard errors are
+\item{se}{If "standard", asymptotic standard errors are
 computed. If \code{"bootstrap"} (or \code{"boot"}), bootstrap 
 standard errors are computed.}
 
 \item{bootstrap}{Number of bootstrap draws, if bootstrapping is used. The
 default is \code{1000}}
+
+\item{boot.ci}{Method for calculating bootstrap confidence intervals. 
+Options are normal approximation (\code{"norm"}), basic bootstrap 
+interval (\code{"basic"}), percentile interval (\code{"perc"}), 
+and adjusted bootstrap percentile (\code{"bca"}). The default is 
+normal approximation. See \code{\link[boot]{boot.ci}} for more 
+information.}
 
 \item{missing}{Default is \code{"listwise"} however, a maximum likelihood 
 related missing data method called \code{"twostage"} is 
@@ -65,14 +75,14 @@ information.}
 estimated.}
 
 \item{miiv.check}{Default is \code{TRUE}. \code{miiv.check} provides a 
-check to detrmine whether user-upplied instruments are implied
+check to determine whether user-upplied instruments are implied
 by the model specification (e.g. valid MIIVs). When auxiliary or 
 external instruments are provided \code{miiv.check} should be 
 set to \code{FALSE}.}
 
 \item{ordered}{A vector of variable names to be treated as ordered factors
 in generating the polychoric correlation matrix and subsequent PIV
-estimate. See details on \code{ordered} below for more information.}
+estimates. See details on \code{ordered} below for more information.}
 
 \item{sarg.adjust}{Adjusment methods used to adjust the p-values associated
 with the Sargan test due to multiple comparisons. Defaults is 
@@ -86,25 +96,21 @@ variables (MIIVs).
 \itemize{
 \item{\code{model}} {
 
-  A model specified using the model syntax employed by \pkg{lavaan} 
-  or a \code{miivs} object return by the  \code{miivs()} functions. 
   The following model syntax operators are currently supported: =~,
-  ~, ~~ and *. See below for details on default behavior descriptions 
-  of how to specify the scaling indicator in latent variable models 
-  and impose equality constraints on the parameter estimates. 
+  ~, ~~ and *. See below for details on default behavior, descriptions 
+  of how to specify the scaling indicator in latent variable models, 
+  and how to impose equality constraints on the parameter estimates. 
   
   \strong{Example using Syntax Operators}
   
-  In the model below, 'L1 =~ Z1 + Z2 + Z3'  indicates the 
-  latent variable L1 is measured by 3 indicators, Z1, Z2, and Z3. Likewise,
-  L2 is measured by 3 indicators, Z4, Z5, and Z6. The statement
-  'L1 ~ L2' specifies latent  variable L1 is regressed on latent 
-  variable L2. 'Z1 ~~ Z2' specifies the error of indicator 
-  Z2 is allowed to covary with the error of indicator Z3. The label
-  LA3 appended to Z3 and Z6 in the measurement model equations 
-  constrains the factor loadings for Z3 and Z6 to equality. Additional 
-  details on constraints see Equality Constraints  and Parameter 
-  Restrictions.
+  In the model below, 'L1 =~ Z1 + Z2 + Z3'  indicates the latent variable L1
+  is measured by 3 indicators, Z1, Z2, and Z3. Likewise, L2 is measured by 3
+  indicators, Z4, Z5, and Z6. The statement 'L1 ~ L2' specifies latent
+  variable L1 is regressed on latent variable L2. 'Z1 ~~ Z2' indicates the
+  error of Z2 is allowed to covary with the error of Z3. The label LA3
+  appended to Z3 and Z6 in the measurement model constrains the factor
+  loadings for Z3 and Z6 to equality. For additional details on constraints
+  see Equality Constraints  and Parameter Restrictions.
   
   \preformatted{model <- '
      L1 =~ Z1 + Z2 + LA3*Z3
@@ -115,28 +121,25 @@ variables (MIIVs).
  
   \strong{Scaling Indicators}
   
-  Following the \pkg{lavaan} model syntax, latent variables are defined 
-  using the =~ operator.  For first order factors, the scaling 
-  indicator chosen is the first observed variable on the RHS of an 
-  equation. For the model  below \code{Z1} would be chosen as the 
-  scaling indicator for \code{L1} and \code{Z4} would be chosen as 
-  the scaling indicator for \code{L2}.
+  Following the \pkg{lavaan} model syntax, latent variables are defined using
+  the =~ operator.  For first order factors, the scaling indicator chosen is
+  the first observed variable on the RHS of an equation. For the model  below
+  \code{Z1} would be chosen as the scaling indicator for \code{L1} and
+  \code{Z4} would be chosen as the scaling indicator for \code{L2}.
   
   \preformatted{model <- '
      L1 =~ Z1 + Z2 + Z3
      L2 =~ Z4 + Z5 + Z6
   '}
   
-  
   \strong{Equality Constraints and Parameter Restrictions}
   
-  Within- and across-equation equality constraints on the factor loading
-  and regression coefficients can be imposed directly in the model syntax. 
-  To specify equality constraints between different parameters equivalent
-  labels should be prepended to the variable name using the 
-  * operator. For example, we could constrain the factor 
-  loadings for two non-scaling indicators of latent factor \code{L1} to 
-  equality using the following  model syntax.
+  Within- and across-equation equality constraints on the factor loading and
+  regression coefficients can be imposed directly in the model syntax. To
+  specify equality constraints between different parameters equivalent labels
+  should be prepended to the variable name using the * operator. For example,
+  we could constrain the factor loadings for the two non-scaling indicators
+  of \code{L1} to equality using the following  model syntax.
   
   \preformatted{model <- '
      L1 =~ Z1 + LA2*Z2 + LA2*Z3
@@ -144,9 +147,9 @@ variables (MIIVs).
   '}
   
   Researchers also can constrain the factor loading and regression 
-  coefficients to specific numeric values in a similar fashion. Below 
-  we constrain the regression coefficient  of \code{L1} on \code{L2} 
-  to \code{1}.
+  coefficients to specific numeric values in a similar fashion. Below we
+  constrain the regression coefficient  of \code{L1} on \code{L2} to
+  \code{1}.
   
   \preformatted{model <- '
      L1 =~ Z1 + Z2 + Z3
@@ -159,9 +162,9 @@ variables (MIIVs).
   
   For example, in the model below, the  scaling indicator for the 
   higher-order factor \code{H1} is taken to be \code{Z1}, the scaling 
-  indicator that would have been assigned to the first lower-order 
-  factor \code{L1}. The intercepts for lower-order latent variables 
-  are set to zero, by default
+  indicator that would have been assigned to the first lower-order factor
+  \code{L1}. The intercepts for lower-order latent variables are set to zero,
+  by default
   
   \preformatted{model <- '
      H1 =~ L1 + L2 + L3
@@ -173,28 +176,27 @@ variables (MIIVs).
   \strong{Model Defaults}
   
   In addition to those relationships specified in the model syntax 
-  \pkg{MIIVsem} will automatically include the intercepts of any 
-  observed or latent endogenous variable. The intercepts
-  for any scaling indicators and lower-order latent variables are
-  set to zero, by default. Covariances among exogenous latent
-  and observed  variables are included by default when \code{
-  var.cov = TRUE}. Where appropriate the covariances of the errors
-  of latent and observed dependent variables are also automatically 
-  included in the model specification. These defaults correspond 
-  to those used by \pkg{lavaan} and \code{auto = TRUE}, except that 
-  endogenous latent variable intercepts are estimated by default, 
-  and the intercepts of scaling indicators are fixed to zero.
+  \pkg{MIIVsem} will automatically include the intercepts of any observed or
+  latent endogenous variable. The intercepts for any scaling indicators and
+  lower-order latent variables are set to zero by default. Covariances among
+  exogenous latent and observed  variables are included when \code{var.cov =
+  TRUE}. Where appropriate the covariances of the errors of latent and
+  observed dependent variables are automatically included in the model
+  specification. These defaults correspond to those used by \pkg{lavaan} and
+  \code{auto = TRUE}, except that endogenous latent variable intercepts are
+  estimated by default, and the intercepts of scaling indicators are fixed to
+  zero.
   
   
   \strong{Invalid Specifications}
   
-  Certain model specifications are not currently supported.  For example,
-  the scaling indicator of a latent variable is not permitted to
-  cross-load on another latent variable. For example, in the model below
-  \code{Z1}, the scaling indicator for L1, cross-loads on the latent 
-  variable \code{L2}. Executing a search on the model below will 
-  result in the warning: \emph{miivs: scaling indicators with a factor 
-  complexity greater than 1 are not currently supported}.
+  Certain model specifications are not currently supported.  For example, the
+  scaling indicator of a latent variable is not permitted to cross-load on
+  another latent variable. In the model below \code{Z1}, the scaling
+  indicator for L1, cross-loads on the latent variable \code{L2}. Executing a
+  search on the model below will result in the warning: \emph{miivs: scaling
+  indicators with a factor complexity greater than 1 are not currently
+  supported}.
   
   \preformatted{model <- '
     L1 =~ Z1 + Z2 + Z3
@@ -203,7 +205,7 @@ variables (MIIVs).
   
   In addition, \pkg{MIIVsem} does not currently support relations
   where the scaling indicator of a latent variable is also the 
-  dependent variable in a regression equation.  For example, the
+  dependent variable in a regression equation.  The
   model below would not be valid under the current algorithm.
   
   \preformatted{model <- '
@@ -215,13 +217,12 @@ variables (MIIVs).
   
   \item{\code{instruments}} {
 
-  To utilize this option you must first define a list of instruments 
-  using the syntax displayed below. Here,
-  the dependent variable for each equation is listed on the LHS of the
-  ~ operator. In the case of latent variable equations, the
-  dependent variable is the scaling indicator associated with that
-  variable. The instruments are then given on the RHS, separated
-  by + signs. For example, 
+  To utilize this option you must first define a list of instruments using
+  the syntax displayed below. Here, the dependent variable for each equation
+  is listed on the LHS of the ~ operator. In the case of latent variable
+  equations, the dependent variable is the scaling indicator associated with
+  that variable. The instruments are then given on the RHS, separated by +
+  signs. The instrument syntax is then encloses in single quotes. For example,
   
   \preformatted{customIVs <- '
      y1 ~ z1 + z2 + z3
@@ -230,26 +231,26 @@ variables (MIIVs).
   }
     
   After this list is defined, set the \code{instruments} argument equal to 
-  the name of the list of instruments (e.g. \code{customIVs}). 
-  Note, that \code{instruments} are specified for an equation, 
-  and not for a specific endogenous variable. If only a subset of dependent
-  variables are listed in the instruments argument, only those  equations 
-  will be estimated.  If external or auxiliary instruments (instruments 
-  not otherwise included in the model) the \code{miiv.check} argument 
-  should be set to \code{FALSE}.
+  the name of the list of instruments (e.g. \code{customIVs}). Note, that
+  \code{instruments} are specified for an equation, and not for a specific
+  endogenous variable. If only a subset of dependent variables are listed in
+  the instruments argument, only those  equations listed will be estimated. 
+  If external or auxiliary instruments (instruments not otherwise included in
+  the model) are included the \code{miiv.check} argument should be set to
+  \code{FALSE}.
   }
   
   \item{\code{sample.cov}} {
   
-  The user may provide a sample covariance matrix in lieu of raw data.
-  The rownames and colnames must contain each of the observed variable 
-  names indicated in the model syntax. If \code{sample.cov} is not 
-  \code{NULL} the user must also supply a vector of sample means 
-  (\code{sample.mean}), and the number of sample observations 
-  (\code{sample.nobs}) from which the means and covariances 
-  were calculated.  Currently, \pkg{MIIVsem} does not support bootstrap 
-  standard errors or polychoric instrumental variable estimtation when
-  the sample moments, rather than raw data, are used as input.  
+  The user may provide a sample covariance matrix in lieu of raw data. The
+  rownames and colnames must contain the observed variable names indicated in
+  the model syntax. If \code{sample.cov} is not \code{NULL} the user must
+  also supply a vector of sample means (\code{sample.mean}), and the number
+  of sample observations (\code{sample.nobs}) from which the means and
+  covariances were calculated.  If no vector of sample means is provided 
+  intercepts will not be estimated. \pkg{MIIVsem} does not support bootstrap 
+  standard errors or polychoric instrumental variable estimtation when the
+  sample moments, rather than raw data, are used as input.
   }
   
   \item{\code{sample.mean}} {
@@ -270,71 +271,61 @@ variables (MIIVs).
   
   \item{\code{estimator}} {
   
-  The default estimator is \code{2SLS}. For equations with continuous
-  variables only and no restrictions the estimates are identical to 
-  those described in Bollen (1996, 2001). If restrictions are present 
-  a restricted MIIV-2SLS estimator is implemented using methods 
-  similar to those described by Greene (2003) but adapted for 
-  moment based estimation. 2SLS coefficients and overidentifcation
-  tests are constructed using the sample moments for 
-  increased computational efficiency. 
+  The default estimator is \code{2SLS}. For equations with continuous 
+  variables only and no restrictions the estimates are identical to those
+  described in Bollen (1996, 2001). If restrictions are present a restricted
+  MIIV-2SLS estimator is implemented using methods similar to those described
+  by Greene (2003) but adapted for moment based estimation. 2SLS coefficients
+  and overidentifcation tests are constructed using the sample moments for 
+  increased computational efficiency.
   
-  If an equation contains ordered categorical variables, 
-  declared in the \code{ordered} argument,
-  the PIV estimator described by Bollen and Maydeu-Olivares (2007)
-  is implemented. The PIV estimator does not currently support 
-  exogenous observed predictors of endogenous categorical variables. 
-  See details of the \code{ordered} argument for more information
-  about the PIV estimator.
+  If an equation contains ordered categorical variables, declared in the
+  \code{ordered} argument, the PIV estimator described by Bollen and
+  Maydeu-Olivares (2007) is implemented. The PIV estimator does not currently
+  support exogenous observed predictors of endogenous categorical variables. 
+  See details of the \code{ordered} argument for more information about the
+  PIV estimator.
   }
   
  \item{\code{se}} {
   When \code{se} is set to \code{"boot"} or \code{"bootstrap"} standard 
-  errors are computed using the pairs bootstrap (Freedman, 1984). The
-  number of bootstrap replications is set using the \code{bootstrap} 
-  argument, the default is \code{1000}. Here, the standard errors are 
-  based on the standard deviation of successful 
-  bootstrap replications. The \code{z-value} and \code{P(>|z|)} assume 
-  the ratio of the coefficient estimate to the bootstrap standard 
-  deviation approximates a normal  distribution.  Note, the Sargan 
-  test statistic is calculated from the original sample and is not 
-  a bootstrap-based estimate. When \code{se} is set to \code{"standard"}
-  standard errors for the MIIV-2SLS coefficients are calculated using 
-  analytic expressions. For equations with categorical endogenous 
-  variables, the asymptotic distribution of the coefficients is obtained 
-  via a first order expansion where the matrix of partial derivatives is 
-  evaluated at the sample polychoric correlations. For technical details 
-  on these standard errors see Bollen & Maydeu-Olivares (2007, p. 315). If 
-  \code{var.cov = TRUE} only point estimates for the variance and
-  covariance estimates are calculated.  To obtain standard
-  errors for the variance and covariance parameters we 
-  recommend setting \code{se = "bootstrap"}. Analytic standard errors
-  for the variance covariance parameters accounting for the first stage
-  estimation have been derived and will be available in future releases. 
+  errors are computed using a nonparametric bootstrap assuming an independent
+  random sample. If \code{var.cov = TRUE} nonceonvergence may occur and any
+  datasets with impproper solutions will be recorded as such and discarded.
+  Bootstrapping is implemented using the \pkg{boot} by resampling the
+  observations in \code{data} and refitting the model with the resampled
+  data. The number of bootstrap replications is set using the
+  \code{bootstrap} argument, the default is \code{1000}. Here, the standard
+  errors are based on the standard deviation of successful bootstrap
+  replications.   Note, the Sargan test statistic is calculated from the
+  original sample and is not a bootstrap-based estimate. When \code{se} is
+  set to \code{"standard"} standard errors for the MIIV-2SLS coefficients are
+  calculated using analytic expressions. For equations with categorical
+  endogenous variables, the asymptotic distribution of the coefficients is
+  obtained via a first order expansion where the matrix of partial
+  derivatives is evaluated at the sample polychoric correlations. For some
+  details on these standard errors see Bollen & Maydeu-Olivares (2007, p.
+  315). If \code{var.cov = TRUE} only point estimates for the variance and 
+  covariance estimates are calculated.  To obtain standard errors for the
+  variance and covariance parameters we recommend setting \code{se =
+  "bootstrap"}. Analytic standard errors for the variance covariance
+  parameters accounting for the first stage estimation have been derived and
+  will be available in future releases.
   }
   
  \item{\code{missing}} {
   There are two ways to handle missing data in \pkg{MIIVsem}. First, missing 
-  data may be handled by listwise deletion (\code{missing = "listwise"}),
-  In this case any row of data containing missing observation is 
-  excluded from the analysis and the sample moments are adjusted 
-  accordingly. Estimation then proceeds normally. The second option 
-  for handling missing data is through a two-stage procedures 
-  \code{missing = "twostage"} procedure where consistent estimates
-  of the saturated populations means and covariance are obtained
-  in the first stage. These quantities are often referred to as
-  the "EM means" and "EM covariance matrix." In the second stage
-  the saturated estimates are used to calculate the MIIV-2SLS
-  structural coefficients. Bootstrap standard errors are recommended 
-  but will be  computationally burdensome due to the calculation of 
-  the EM-based  moments at each bootstrap replication. When  
-  \code{missing = "twostage"}  and \code{var.cov = TRUE} standard 
-  errors for the variance covariance parameters of the model are 
-  calculated using the two-stage ML procedure for nonnormal missing
-  data described in Savalei et al. (2010, 2014). The application of
-  these standard to MIIV-2SLS is still under development and  should
-  be considered experimental. If this option is set a  note will be 
-  printed in the output. 
+  data may be handled by listwise deletion (\code{missing = "listwise"}), In
+  this case any row of data containing missing observation is excluded from
+  the analysis and the sample moments are adjusted accordingly. Estimation
+  then proceeds normally. The second option for handling missing data is
+  through a two-stage procedures \code{missing = "twostage"} where consistent
+  estimates of the saturated populations means and covariance are obtained in
+  the first stage. These quantities are often referred to as the "EM means"
+  and "EM covariance matrix." In the second stage the saturated estimates are
+  used to calculate the MIIV-2SLS structural coefficients. Bootstrap standard
+  errors are recommended but will be  computationally burdensome due to the
+  cost of calculating the EM-based moments at each bootstrap replication.
   }
  \item{\code{ordered}} {  
   For equations containing ordered categorical variables MIIV-2SLS
@@ -342,7 +333,7 @@ variables (MIIVs).
   & Maydeu-Olivares (2007). The asymptotic distribution of the 
   these coefficients is obtained via a first order expansion where 
   the matrix of partial derivatives is evaluated at the sample 
-  polychoric correlations. For technical details on these
+  polychoric correlations. For some details on these
   standard errors see Bollen & Maydeu-Olivares (2007, p. 315). If 
   \code{var.cov = TRUE} only point estimates for the variance and
   covariance estimates are calculated using the \code{DWLS} estimator
@@ -358,18 +349,19 @@ variables (MIIVs).
 
 \strong{Sargan's Test of Overidentification}  
 
-An essential ingredient in the MIIV-2SLS approach is 
-overidentification tests when a given model specification
-leads to an excess of instruments. Empirically 
-overidentification tests are used to evalulate the assumption
-of orthogonality between the instruments and equation 
-residuals. Rejection of the null hypothesis implies a 
-deficit in the logic leading to the instrument selection.  
-In the context of MIIV-2SLS this is the model specification 
-itself.  By default, \pkg{MIIVsem} provides Sargan's overidentification
-test (Sargan, 1958) for each overidentified equation in the system.  
-When cross-equation restrictions or missing data are present the
-properties of the test are not known.
+An essential ingredient in the MIIV-2SLS approach is the application of 
+overidentification tests when a given model specification leads to an excess
+of instruments. Empirically, overidentification tests are used to evalulate
+the assumption of orthogonality between the instruments and equation 
+residuals. Rejection of the null hypothesis implies a deficit in the logic
+leading to the instrument selection. In the context of MIIV-2SLS this is the
+model specification itself.  By default, \pkg{MIIVsem} provides Sargan's
+overidentification test (Sargan, 1958) for each overidentified equation in
+the system. When cross-equation restrictions or missing data are present the 
+properties of the test are not known. When the system contains many equations
+the \code{sarg.adjust} option provides methods to adjust the p-values
+associated with the Sargan test due to multiple comparisons. Defaults is 
+\code{none}. For other options see \code{\link[stats]{p.adjust}}.
 }
 \examples{
 # Example 1

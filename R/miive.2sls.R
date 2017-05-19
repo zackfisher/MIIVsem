@@ -30,17 +30,20 @@ miive.2sls <- function(d, g, r, est.only, se, missing, var.cov, sarg.adjust="non
     # calculate sigma^2
     d <- est2SLSSigmaSq(d, cov.mat = g$sample.cov)
   
-    coefCov <- est2SLSCoefCov( 
-      d           = d, 
-      poly.mat    = g$sample.polychoric,
-      cov.mat     = g$sample.cov,
-      mean.vec    = g$sample.mean, 
-      acov        = g$asymptotic.cov, 
-      acov.sat    = g$asymptotic.cov.sat,
-      r           = r 
-    )
-    
-    
+     if(se != "boot" & se != "bootstrap"){
+       
+        coefCov <- est2SLSCoefCov( 
+          d           = d, 
+          poly.mat    = g$sample.polychoric,
+          cov.mat     = g$sample.cov,
+          mean.vec    = g$sample.mean, 
+          acov        = g$asymptotic.cov, 
+          acov.sat    = g$asymptotic.cov.sat,
+          r           = r 
+        )
+        
+     }
+  
   #------------------------------------------------------------------------#
   # MIIV-2SLS overidentification tests
   #------------------------------------------------------------------------#

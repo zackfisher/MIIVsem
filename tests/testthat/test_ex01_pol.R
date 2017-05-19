@@ -17,7 +17,6 @@ library("MIIVsem")
 
   fit <- miive(model, bollen1989a)
   
-  
  #-------------------------------------------------------# 
   context("ex01: poldemo coefficients correct")
  #-------------------------------------------------------# 

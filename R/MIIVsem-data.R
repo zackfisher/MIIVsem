@@ -113,3 +113,43 @@ NULL
 #' Subjective Class Identification: A Multiple Indicator 
 #' Approach. American Sociological Review, 42(4), 599–611. 
 NULL
+
+#' Perceived accessibility data
+#'
+#' Data come from a survey that was conducted in rural clusters of 
+#' Tanzania in 1993. The goal was to collect information on the perceived 
+#' accessibility of a specific family planning facility that serviced each 
+#' cluster. Six informants were chosen: 3 female and 3 male. New informants 
+#' were chosen for each cluster. Each informant was independently asked to 
+#' rate the accessibility of the facility, and how easy it was to get to the
+#' facility. More specifically the women informants were asked to rate how 
+#' women of childbearing age perceived the accessibility and easiness and 
+#' men were asked to rate how accessible and easy men perceived access to 
+#' the clinic to be. Higher values indicate greater accessibility and ease 
+#' of travel. The female informants' ratings are 1 to 3 and the male 
+#' informants' ratings are 4 to 6. 
+#'
+#' \itemize{
+#'   \item access1. 
+#'   \item access2. 
+#'   \item access3. 
+#'   \item access4. 
+#'   \item access5. 
+#'   \item access6. 
+#'   \item easy1. 
+#'   \item easy2. 
+#'   \item easy3. 
+#'   \item easy4. 
+#'   \item easy5. 
+#'   \item easy6. 
+#' }
+#'
+#' @docType data
+#' @keywords datasets
+#' @name bollen1996
+#' @usage bollen1996
+#' @format A data frame with 220 rows and 12 variables
+#' @references 
+#' Bollen, K. A., Speizer, I. S., & Mroz, T. A. (1996). Family Planning 
+#' Facilities in Rural Tanzania: His and Her Perceptions of Time and Distance. 
+NULL

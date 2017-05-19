@@ -9,8 +9,10 @@ Authors@R: c(
  person("Kathleen", "Gates", role = "aut"),
  person("Mikko", "Rönkkö", role = "aut")
  )
-Description: Functions for estimating structural equation models using model-
-    implied instrumental variables.
+Description: Functions for estimating structural equation models using 
+    instrumental variables.
+URL: https://github.com/zackfisher/MIIVsem
+BugReports: https://github.com/zackfisher/MIIVsem/issues
 Depends: R (>= 2.10)
 Suggests: R.rsp
 Imports:

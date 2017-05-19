@@ -6,6 +6,8 @@
 #' @export
 print.miive <- function(x,...){
   
+  ## an ugly simplification of the truly
+  ## impressive lavan::lav_print function
 
   # What esimtators were used?
   eq.estimators <- unlist(lapply(x$eqn, function(eq){
@@ -47,32 +49,46 @@ print.miive <- function(x,...){
   for(i in 1:nrow(head.txt)){
     cat(sprintf("%-*s %*s\n", w1, head.txt[i,1], w2, head.txt[i, 2]));
   }
+    
+  cat("\n")
   
   if (x$se  %in% c("boot", "bootstrap")){
+    
+    if (x$boot.ci == "norm"){ boot.ci <- "Normal"}     else if
+       (x$boot.ci == "perc"){ boot.ci <- "Percentile"} else if
+       (x$boot.ci == "basic"){boot.ci <- "Basic"}      else if
+       (x$boot.ci == "bca"){  boot.ci <- "Adjusted Percentile"} else 
+       {                      boot.ci <- x$boot.ci            }
+    
     boot.txt  <- do.call("rbind",
       list(
         c("Bootstrap reps requested", x$bootstrap),
-        c("Bootstrap reps successful", x$bootstrap.true)
+        c("Bootstrap reps successful", x$bootstrap.true),
+        c("Bootstrap intervals", boot.ci)
       )
     )
     for(i in 1:nrow(boot.txt)){
       cat(sprintf("%-*s %*s\n", w1, boot.txt[i,1], w2, boot.txt[i, 2]));
     }
+    cat("\n")
   } 
   
-  cat("\n")
+
   
-  ## code taken from the extraordinary
-  ## lavan::lav_print function
-  ## with slight modification
-  
+  if(length(x$eqn.unid) > 0){
+    cat(paste0("***", "Insufficient MIIVs to estimate the ",
+      paste(lapply(x$eqn.unid, "[[","DVlat"),collapse=", "),
+    " equations.***"), "\n")
+  }
+    
+    
   sections <-  c("MEASUREMENT MODEL", 
                  "STRUCTURAL MODEL", 
                  "INTERCEPTS",
                  "VARIANCES",
                  "COVARIANCES")
   
-  x    <- estimatesTable(x)
+  x    <- estimatesTable(x, sarg = TRUE)
   
   ## remove duplicate Sargan test info from 
   # regression equations to avoid confusion
@@ -137,6 +153,22 @@ print.miive <- function(x,...){
     }
   }
   
+    if(!is.null(x$lower)) {
+
+      boot.idx <- which(is.na(x$lower)) 
+    
+      if(length(boot.idx) > 0L) {
+      
+        if(!is.null(x$lower)) {
+          m[boot.idx, "lower"] <- ""
+        }
+        
+        if(!is.null(x$lower)) {
+          m[boot.idx, "upper"] <- ""
+        }
+    }
+  }
+  
   if(!is.null(x$se)) {
     
     se.idx <- which(is.na(x$se))
@@ -150,18 +182,29 @@ print.miive <- function(x,...){
       if(!is.null(x$pvalue)) {
         m[se.idx, "pvalue"] <- ""
       }
+      if(!is.null(x$upper)) {
+        m[se.idx, "upper"] <- ""
+      }
+      if(!is.null(x$lower)) {
+        m[se.idx, "lower"] <- ""
+      }
     }
     
-    se.idx <- which(x$se == 0.000)
+    se.idx <- which(x$se == 0)
     
     if(length(se.idx) > 0L) {
       m[se.idx, "se"] <- ""
-      
       if(!is.null(x$z)) {
         m[se.idx, "z"] <- ""
       }
       if(!is.null(x$pvalue)) {
         m[se.idx, "pvalue"] <- ""
+      }
+      if(!is.null(x$upper)) {
+        m[se.idx, "upper"] <- ""
+      }
+      if(!is.null(x$lower)) {
+        m[se.idx, "lower"] <- ""
       }
     }
   }
@@ -174,6 +217,8 @@ print.miive <- function(x,...){
   colnames(m)[ colnames(m) ==      "se" ] <- "Std.Err"
   colnames(m)[ colnames(m) ==       "z" ] <- "z-value"
   colnames(m)[ colnames(m) ==  "pvalue" ] <- "P(>|z|)"
+  colnames(m)[ colnames(m) ==   "lower" ] <- "Lower"
+  colnames(m)[ colnames(m) ==   "upper" ] <- "Upper"
   colnames(m)[ colnames(m) ==    "sarg" ] <- "Sargan"
   colnames(m)[ colnames(m) == "sarg.df" ] <- "df"
   colnames(m)[ colnames(m) ==  "sarg.p" ] <- "P(Chi)"

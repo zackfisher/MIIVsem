@@ -16,8 +16,14 @@ est2SLSCoefCov <- function(d,
     rep(!eq$categorical, length(eq$coefficients))
   }))
 
+  coefCov <- matrix(0, length(unlist(coef.names)),  
+                       length(unlist(coef.names)) )
+  
+  rownames(coefCov) <- colnames(coefCov) <- unlist(coef.names)
   
   if (!is.null(acov.sat)) {
+    
+    # delta method standard errors
 
     acov.names <- colnames(acov.sat)
 
@@ -82,19 +88,27 @@ est2SLSCoefCov <- function(d,
       )
     
       XX1 <- lavaan::lav_matrix_bdiag(lapply(d, function (eq){
-        if (!eq$categorical) eq$XX1
+        if (!eq$categorical) eq$XX1 else matrix(0,0,0)
       }))
     
       R0 <- matrix(0, nrow(r$R), nrow(r$R))
       R1 <- r$R[,not.cat,drop=FALSE]
     
-      coefCov <- solve(
+      coefCovR <- solve(
         rbind(cbind(XX1 %*% t(solve(SIG)), t(R1)),cbind(R1,R0))
       )[1:nrow(XX1), 1:nrow(XX1)]
     
-      colnames(coefCov) <- rownames(coefCov) <- 
+      colnames(coefCovR) <- rownames(coefCovR) <- 
         unlist(coef.names)[not.cat]
-
+      
+      coefCov[rownames(coefCovR), colnames(coefCovR)] <- coefCovR
+      
+      for (i in 1:length(d)){
+        if (d[[i]]$categorical) {
+          coefCov[ rownames(d[[i]]$coefCov), 
+                   colnames(d[[i]]$coefCov) ] <- d[[i]]$coefCov
+        }
+      }
     
     } # end restrictions
   

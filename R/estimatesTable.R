@@ -1,10 +1,11 @@
 #' return a dataframe of parameter estimates for a fitted model.
 #' 
-#' @param x an object of class miive
-#' @param v a list containing variance snd covariance parameter information.
+#' @param x An object of class miive
+#' @param v A list containing variance snd covariance parameter information.
+#' @param sarg Logical. Should Sargan test results be included.
 #'  
 #' @export
-estimatesTable <- function(x, v = NULL){
+estimatesTable <- function(x, v = NULL, sarg = FALSE){
   
   # measurement equations
   meas.eqns <-  unlist(lapply(x$eqn, function(eq){
@@ -15,6 +16,45 @@ estimatesTable <- function(x, v = NULL){
   str.eqns <-  unlist(lapply(x$eqn, function(eq){
     ifelse(eq$EQmod == "regression", TRUE, FALSE)
   }))
+  
+  if (!is.null(x$boot)){
+    
+    zeroVariance <- function(x, tol = .Machine$double.eps ^ 0.5) {
+      if (length(x) == 1) return(TRUE)
+      x <- range(x) / mean(x)
+      isTRUE(all.equal(x[1], x[2], tolerance = tol))
+    }
+    
+    getAllCI <- function(z, type = type, w) {
+      
+      b.ci <- rbind(utils::tail(unlist(
+        boot::boot.ci(z, index = w, type = type)[-(1:3)]
+      ),2))
+      
+      rownames(b.ci) <- names(boot::boot.ci(z, index = w, type = type)$t0)
+      colnames(b.ci) <- c("lwr","upr")
+      
+      b.ci
+    }
+    
+    
+    b.ci <- do.call("rbind",
+      lapply(1:ncol(x$boot$t),function(col){
+        if (zeroVariance(x$boot$t[,col])){
+          tmp <- matrix(0,1,2)
+          colnames(tmp) <- c("lwr","upr")
+          rownames(tmp) <- names(x$boot$t0)[col]
+          tmp
+        } else {
+          getAllCI(z = x$boot, type = x$boot.ci, w = col)
+        }
+      })
+    )
+    
+  }
+  
+  
+  
   
   # vector of named SEs
   se.diag <- sqrt(diag(x$coefCov))
@@ -57,13 +97,22 @@ estimatesTable <- function(x, v = NULL){
       })
     ),
     "z" = unlist(lapply(x$eqn[meas.eqns], function(eq){
+      if (is.null(x$boot)){
         eq$coefficients/se.diag[names(eq$coefficients)]
+      } else {
+         b.ci[names(eq$coefficients), 1]
+      }
       })
     ),
     "pvalue" = unlist(lapply(x$eqn[meas.eqns], function(eq){
-      2*(stats::pnorm(abs(
-        eq$coefficients/se.diag[names(eq$coefficients)]
-      ), lower.tail=FALSE))})
+      if (is.null(x$boot)){
+        2*(stats::pnorm(abs(
+          eq$coefficients/se.diag[names(eq$coefficients)]
+        ), lower.tail=FALSE))
+      } else {
+        b.ci[names(eq$coefficients), 2]
+      }
+      })
     ),
     "sarg" = unlist(lapply(x$eqn[meas.eqns], function(eq){
       rep(eq$sargan, length(eq$coefficients))})
@@ -180,13 +229,22 @@ estimatesTable <- function(x, v = NULL){
       })
     ),
     "z" = unlist(lapply(x$eqn[str.eqns], function(eq){
-      eq$coefficients/se.diag[names(eq$coefficients)]
+      if(is.null(x$boot)){
+        eq$coefficients/se.diag[names(eq$coefficients)]
+      } else {
+         b.ci[names(eq$coefficients), 1]
+      }
       })
     ),
     "pvalue" = unlist(lapply(x$eqn[str.eqns], function(eq){
-      2*(stats::pnorm(abs(
-        eq$coefficients/se.diag[names(eq$coefficients)]
-      ), lower.tail=FALSE))})
+      if(is.null(x$boot)){
+        2*(stats::pnorm(abs(
+          eq$coefficients/se.diag[names(eq$coefficients)]
+        ), lower.tail=FALSE))
+      } else {
+        b.ci[names(eq$coefficients), 2]
+      }
+      })
     ),
     "sarg" = unlist(lapply(x$eqn[str.eqns], function(eq){
       rep(eq$sargan, length(eq$coefficients))})
@@ -218,12 +276,22 @@ estimatesTable <- function(x, v = NULL){
       "est" = v$coefficients,
       "se"  = if(is.null(v$coefCov)) NA else 
         sqrt(diag(vcov.coefCov)),
-      "z" = if(is.null(v$coefCov)) NA else 
-        v$coefficients/sqrt(diag(vcov.coefCov)),
-      "pvalue" = if(is.null(v$coefCov)) NA else  
-        2*(stats::pnorm(abs(
-          v$coefficients/sqrt(diag(vcov.coefCov))), 
-          lower.tail=FALSE)),
+      "z" = if(is.null(v$coefCov)) {
+        NA
+       } else if (is.null(x$boot)){
+         v$coefficients/sqrt(diag(vcov.coefCov))
+       } else {
+         b.ci[names(v$coefficients), 1]
+       },
+      "pvalue" = if(is.null(v$coefCov)) {
+        NA
+       } else if (is.null(x$boot)){
+         2*(stats::pnorm(abs(
+         v$coefficients/sqrt(diag(vcov.coefCov))), 
+         lower.tail=FALSE))
+       } else {
+         b.ci[names(v$coefficients), 2]
+       },
       "sarg" = NA,
       "sarg.df" = NA, 
       "sarg.p" = NA,
@@ -247,7 +315,17 @@ estimatesTable <- function(x, v = NULL){
   
   parTab <- parTab[order(parTab$op, parTab$lhs),] 
   
+  if(!is.null(x$boot)){
+    colnames(parTab)[colnames(parTab) ==      "z"] <- "lower"
+    colnames(parTab)[colnames(parTab) == "pvalue"] <- "upper"
+  }
+  
   rownames(parTab) <- NULL
+  
+  if (!sarg){
+    parTab$sarg <- parTab$sarg.df <- parTab$sarg.p <- NULL
+  }
+
   
   return(parTab)
 }

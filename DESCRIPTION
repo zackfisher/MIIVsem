@@ -2,7 +2,7 @@ Encoding: UTF-8
 Package: MIIVsem
 Title: Model Implied Instrumental Variable (MIIV) Estimation of Structural
     Equation Models
-Version: 0.5.2
+Version: 0.5.3
 Authors@R: c(
  person("Zachary","Fisher", email = "fish.zachary@gmail.com", role = c("aut", "cre")),
  person("Keneth", "Bollen", role = "aut"),
@@ -14,7 +14,6 @@ Description: Functions for estimating structural equation models using
 URL: https://github.com/zackfisher/MIIVsem
 BugReports: https://github.com/zackfisher/MIIVsem/issues
 Depends: R (>= 2.10)
-Suggests: R.rsp
 Imports:
     stats,
     utils,
@@ -27,5 +26,4 @@ Imports:
 License: GPL-2
 LazyData: true
 ByteCompile: true
-VignetteBuilder: R.rsp
 RoxygenNote: 6.0.1

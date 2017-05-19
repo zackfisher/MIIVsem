@@ -245,7 +245,7 @@ miive(model, bollen1996, ordered = c("access1", "access2","access3", "access4", 
 
 Following [Henningsen and Hamann (2007)](https://www.jstatsoft.org/article/view/v023i04)  we replicate textbook results from 
 
-**Klein's Model** I (Greene, 2003, p.381)
+**Klein's Model I** (Greene, 2003, p.381)
 
 ```{r}
 data("KleinI", package = "systemfit")

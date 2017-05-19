@@ -399,9 +399,8 @@ miive <- function(model = model,
                   sarg.adjust = "none"){
   
   #-------------------------------------------------------#
-  # In the current releasr disable two.stage analytic SE
+  # In the current release disable "twostage" missing
   #-------------------------------------------------------#
-  if (missing == "twostage"){ se = "bootstrap" }
   
   #-------------------------------------------------------# 
   # A few basic sanity checks for user-supplied covariance 
@@ -740,16 +739,18 @@ miive <- function(model = model,
 
   } # end bootstrap
   
-
+  
+  # Disable twostep procedure in the current release
+  
   if (missing == "twostage" & se == "standard" & var.cov == TRUE){
     
-    twoStageCoefCov <- estTwoStageML(g,v,results$eqn,pt)
+    # twoStageCoefCov <- estTwoStageML(g,v,results$eqn,pt)
     
-    v$coefCov <- twoStageCoefCov[
-      names(v$coefficients), 
-      names(v$coefficients), 
-      drop = FALSE
-    ]
+    # v$coefCov <- twoStageCoefCov[
+    #   names(v$coefficients), 
+    #   names(v$coefficients), 
+    #   drop = FALSE
+    # ]
   }
   
   # assemble return object

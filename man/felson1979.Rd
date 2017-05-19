@@ -13,7 +13,7 @@ This data comes from a study by Felson and Borhnstedt (1979)
 of perceived attractiveness and academic ability in teenagers, 
 sixth through ninth grade. The six variables are perception of 
 academic ability (academic), perception of physical 
-attractiveness (attract), grade point average (GPA),
+attractiveness (attract), grade point average (gpa),
 height, weight, and a strangers' rating of attractiveness 
 (rating).
 }
@@ -27,6 +27,17 @@ height, weight, and a strangers' rating of attractiveness
   \item weight. 
   \item rating. 
 }
+}
+\examples{
+
+\dontrun{
+  model <-  '
+	 acad    ~ gpa + attract
+    attract ~ height + weight + rating + acad
+  '
+}
+
+
 }
 \references{
 Felson, R.B. & Bohrnstedt, G.W. (1979). "Are the good 

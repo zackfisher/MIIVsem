@@ -2,17 +2,17 @@
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 ### Overview
 
-**MIIVsem** is an R package for estimating structural equation models using instrumental variables.
+**MIIVsem** is an R package for estimating structural equation models using model-implied instrumental variables.
 
 Version 0.5.2 includes the following features:
 
 -   Estimation of latent variable and simultaneous equation models.
--   Model-implied and external instrumental variable estimation.
+-   Model-implied and traditional instrumental variable estimation.
 -   Equation level specification tests.
 -   Efficient computation from covariance matrix input.
 -   Polychoric instrumental variable estimation for endogenous categorical variables.
 -   Impose and test within- and across-equation parameter restrictions.
--   Fast bootstrap standard errors.
+-   Bootstrap standard errors.
 -   Variance and covariance parameter estimation.
 
 ### Installation
@@ -97,7 +97,7 @@ model <- '
 
 **Model Defaults**
 
-In addition to those relationships specified in the model syntax MIIVsem will automatically include the intercepts of any observed or latent endogenous variable. The intercepts for any scaling indicators and lower-order latent variables are set to zero, by default. Covariances among exogenous latent and observed variables are included by default. Where appropriate the covariances of the errors of latent and observed dependent variables are also automatically included in the model specification. These defaults correspond to those used by lavaan and `auto = TRUE`, except that endogenous latent variable intercepts are estimated by default, and the intercepts of scaling indicators are fixed to zero.
+In addition to those relationships specified in the model syntax MIIVsem will automatically include the intercepts of any observed or latent endogenous variable. The intercepts for any scaling indicators and lower-order latent variables are set to zero. Covariances among exogenous latent and observed variables are included by default. Where appropriate the covariances of the errors of latent and observed dependent variables are also included in the model specification. These defaults correspond to those used by lavaan and `auto = TRUE`, except that endogenous latent variable intercepts are estimated by default, and the intercepts of scaling indicators are fixed to zero.
 
 ### Getting Started
 
@@ -225,9 +225,9 @@ microbenchmark::microbenchmark(
 )
 #> Unit: milliseconds
 #>                                                             expr      min
-#>  fit <- miive(model, bollen1989a, se = "boot", bootstrap = 100L) 188.1939
-#>        lq     mean   median       uq      max neval
-#>  198.8592 218.7548 204.0296 216.9082 445.1435   100
+#>  fit <- miive(model, bollen1989a, se = "boot", bootstrap = 100L) 193.4475
+#>        lq     mean   median      uq      max neval
+#>  203.1075 209.0176 207.8951 212.088 340.4677   100
 ```
 
 **Categorical Endogenous Variables (Bollen & Maydeu-Olivares (2007))**
@@ -245,7 +245,7 @@ miive(model, bollen1996, ordered = c("access1", "access2","access3", "access4", 
 
 Following [Henningsen and Hamann (2007)](https://www.jstatsoft.org/article/view/v023i04) we replicate textbook results from
 
-**Klein's Model** I (Greene, 2003, p.381)
+**Klein's Model I** (Greene, 2003, p.381)
 
 ``` r
 data("KleinI", package = "systemfit")

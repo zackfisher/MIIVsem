@@ -38,6 +38,18 @@ informants' ratings are 4 to 6.
   \item easy6. 
 }
 }
+\examples{
+
+\dontrun{
+ model <- ' 
+    femaleAccess  =~ access1 + access2 + access3
+    maleAccess    =~ access4 + access5 + access6
+    femaleEasy    =~ easy1   + easy2   + easy3
+    maleEasy      =~ easy4   + easy5   + easy6 
+ '
+}
+
+}
 \references{
 Bollen, K. A., Speizer, I. S., & Mroz, T. A. (1996). Family Planning 
 Facilities in Rural Tanzania: His and Her Perceptions of Time and Distance.

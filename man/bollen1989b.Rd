@@ -9,7 +9,8 @@
 bollen1989b
 }
 \description{
-A dataset from Bollen (1989) containing data on union sentiment of
+A dataset from McDonald and Clelland (1984) reanalyzed by
+Bollen (1989) containing data on union sentiment of
 southern nonunion textile workers.
 }
 \details{
@@ -21,8 +22,23 @@ southern nonunion textile workers.
   \item age. centered age
 }
 }
+\examples{
+
+\dontrun{
+ model <- '
+   unionsen ~  deferenc + laboract + yrsmill
+   deferenc ~  age
+   laboract ~  age + deferenc
+   yrsmill  ~~ age
+ '
+}
+
+}
 \references{
 Bollen, K. A. 1989. Structural Equations with Latent Variables. 
   New York: Wiley
+  
+  McDonald, A, J., & Clelland, D. A. (1984). Textile Workers 
+  and Union Sentiment. Social Forces, 63(2), 502–521.
 }
 \keyword{datasets}

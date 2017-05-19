@@ -23,6 +23,27 @@
 #' @name bollen1989a
 #' @usage bollen1989a
 #' @format A data frame with 75 rows and 9 variables
+#' 
+#' @examples 
+#' 
+#' \dontrun{
+#'   model <- '
+#'     Eta1 =~ y1 + y2  + y3  + y4  
+#'     Eta2 =~ y5 + y6  + y7  + y8    
+#'     Xi1  =~ x1 + x2 + x3 
+#'     Eta1 ~ Xi1  
+#'     Eta2 ~ Xi1 
+#'     Eta2 ~ Eta1 
+#'     y1   ~~ y5
+#'     y2   ~~ y4
+#'     y2   ~~ y6
+#'     y3   ~~ y7
+#'     y4   ~~ y8
+#'     y6   ~~ y8 devtools::build_win()
+
+#'   '
+#' }
+#' 
 #' @references 
 #'   Bollen, K. A. (1989). Structural equation models. 
 #'   New York: Wiley-Interscience.
@@ -30,7 +51,8 @@ NULL
 
 #' Union sentiment data
 #'
-#' A dataset from Bollen (1989) containing data on union sentiment of
+#' A dataset from McDonald and Clelland (1984) reanalyzed by
+#' Bollen (1989) containing data on union sentiment of
 #' southern nonunion textile workers. 
 #'
 #' \itemize{
@@ -46,9 +68,24 @@ NULL
 #' @name bollen1989b
 #' @usage bollen1989b
 #' @format A data frame with 173 rows and 5 variables
+#' 
+#' @examples 
+#' 
+#' \dontrun{
+#'  model <- '
+#'    unionsen ~  deferenc + laboract + yrsmill
+#'    deferenc ~  age
+#'    laboract ~  age + deferenc
+#'    yrsmill  ~~ age
+#'  '
+#' }
+#' 
 #' @references 
 #'   Bollen, K. A. 1989. Structural Equations with Latent Variables. 
 #'   New York: Wiley
+#'   
+#'   McDonald, A, J., & Clelland, D. A. (1984). Textile Workers 
+#'   and Union Sentiment. Social Forces, 63(2), 502–521.
 NULL
 
 #' Attractiveness and academic ability
@@ -57,7 +94,7 @@ NULL
 #' of perceived attractiveness and academic ability in teenagers, 
 #' sixth through ninth grade. The six variables are perception of 
 #' academic ability (academic), perception of physical 
-#' attractiveness (attract), grade point average (GPA),
+#' attractiveness (attract), grade point average (gpa),
 #' height, weight, and a strangers' rating of attractiveness 
 #' (rating). 
 #'
@@ -76,6 +113,17 @@ NULL
 #' @name felson1979
 #' @usage felson1979
 #' @format A data frame with 209 rows and 7 variables
+#' 
+#' @examples 
+#' 
+#' \dontrun{
+#'   model <-  '
+#'		 acad    ~ gpa + attract
+#'     attract ~ height + weight + rating + acad
+#'   '
+#' }
+#' 
+#' 
 #' @references 
 #'   Felson, R.B. & Bohrnstedt, G.W. (1979). "Are the good 
 #'   beautiful or the beautiful good?" The relationship between 
@@ -105,6 +153,20 @@ NULL
 #' @name bollen1989c
 #' @usage bollen1989c
 #' @format A data frame with 432 rows and 5 variables
+#' 
+#' @examples
+#' 
+#'\dontrun{
+#'  model <-    '
+#'		subinc  ~ inc + subocc
+#'    subocc  ~ occ + subinc
+#'    subgen  ~ subinc + subocc
+#'		subinc ~~ subocc + subgen
+#'    subocc ~~ subgen
+#'		inc    ~~ occ
+#'  '
+#'}
+#' 
 #' @references 
 #' Bollen, K. A. 1989. Structural Equations with Latent Variables. 
 #' New York: Wiley
@@ -149,6 +211,18 @@ NULL
 #' @name bollen1996
 #' @usage bollen1996
 #' @format A data frame with 220 rows and 12 variables
+#' 
+#' @examples
+#'
+#'\dontrun{
+#'  model <- ' 
+#'     femaleAccess  =~ access1 + access2 + access3
+#'     maleAccess    =~ access4 + access5 + access6
+#'     femaleEasy    =~ easy1   + easy2   + easy3
+#'     maleEasy      =~ easy4   + easy5   + easy6 
+#'  '
+#'}
+#'
 #' @references 
 #' Bollen, K. A., Speizer, I. S., & Mroz, T. A. (1996). Family Planning 
 #' Facilities in Rural Tanzania: His and Her Perceptions of Time and Distance. 

@@ -24,6 +24,20 @@ occupational prestige (subocc), and overall SES status (subgen).
   \item subgen. respondents' subjective assessments of SES status
 }
 }
+\examples{
+
+\dontrun{
+ model <-    '
+	subinc  ~ inc + subocc
+   subocc  ~ occ + subinc
+   subgen  ~ subinc + subocc
+	subinc ~~ subocc + subgen
+   subocc ~~ subgen
+	inc    ~~ occ
+ '
+}
+
+}
 \references{
 Bollen, K. A. 1989. Structural Equations with Latent Variables. 
 New York: Wiley

@@ -12,6 +12,19 @@ parseInstrumentSyntax <- function(d, instruments, miiv.check){
        stop("miive: instruments argument not properly specified.")
     }
     
+    mt <- tryCatch(
+        {
+            lavaan::lavaanify(instruments)
+        },
+        error=function(cond) {
+             stop("miive: instruments argument not properly specified.")
+        },
+        
+        finally={
+          # do nothing 
+        }
+    )
+    
     mt   <- lavaan::lavaanify(instruments)
     mt   <- mt[mt$op == "~",]
     mts  <- split(mt[,c("lhs", "rhs")], mt$lhs)

@@ -1,17 +1,21 @@
-#' Parse user-implied instrumental variables 
+#' Parse user-supplied instrumental variables 
 #'@keywords internal
 parseInstrumentSyntax <- function(d, instruments, miiv.check){
   
   if (!is.null(instruments) & miiv.check){
     
+    if (class(instruments) != "character"){
+      stop("miive: instruments argument must be of class character."
+    }
+    
     mt   <- lavaan::lavParTable(instruments)
     mt   <- mt[mt$op == "~",]
     mts  <- split(mt[,c("lhs", "rhs")], mt$lhs)
-  
+    
     # Are all the dvs from the instrument list in the eqns list?
     if (length(setdiff(names(mts), lapply(d,"[[","DVobs"))) > 0) {
       
-      stop("MIIVsem: dependent variables ", 
+      stop("miive: dependent variables ", 
            paste0(setdiff(
              names(mts), 
              lapply(d,"[[","DVobs")),collapse="," 

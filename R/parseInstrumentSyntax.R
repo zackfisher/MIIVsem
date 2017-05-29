@@ -5,10 +5,14 @@ parseInstrumentSyntax <- function(d, instruments, miiv.check){
   if (!is.null(instruments) & miiv.check){
     
     if (class(instruments) != "character"){
-      stop("miive: instruments argument must be of class character."
+      stop("miive: instruments argument must be of class character.")
     }
     
-    mt   <- lavaan::lavParTable(instruments)
+    if (!grepl("~", instruments)){
+       stop("miive: instruments argument not properly specified.")
+    }
+    
+    mt   <- lavaan::lavaanify(instruments)
     mt   <- mt[mt$op == "~",]
     mts  <- split(mt[,c("lhs", "rhs")], mt$lhs)
     

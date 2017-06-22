@@ -22,7 +22,8 @@ Imports:
     numDeriv,
     Matrix,
     car,
-    boot
+    boot,
+    rsem
 License: GPL-2
 LazyData: true
 ByteCompile: true

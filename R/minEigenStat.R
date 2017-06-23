@@ -17,15 +17,16 @@ minEigenStat <- function(IVobs, MIIVs, data){
 
   if (length(intersect(IVobs, MIIVs)) > 0 ){
     
-      X <- cbind(1, data[,intersect(IVobs, MIIVs), drop = FALSE])
-      Z <- data[,MIIVs[!MIIVs %in% intersect(IVobs, MIIVs)], drop = FALSE]
+      X <- as.matrix(cbind(1, data[,intersect(IVobs, MIIVs), drop = FALSE]))
+      Z <- as.matrix(data[,MIIVs[!MIIVs %in% intersect(IVobs, MIIVs)], drop = FALSE])
       
   } else {
     
       X <- matrix(1, nrow(data), 1)
-      Z <- data[,MIIVs, drop = FALSE]
+      Z <- as.matrix(data[,MIIVs, drop = FALSE])
   }
   
+  Y   <- as.matrix(data[,IVobs, drop = FALSE])
   MX1 <- M(X)
   Zb  <- cbind(X, Z)
   MZ  <- M(Zb) 
@@ -37,5 +38,6 @@ minEigenStat <- function(IVobs, MIIVs, data){
        t(Z) %*% MX1 %*% Y %*% (SigVV.5) * (1/Kz)
 
   minEigen <- min(eigen(G)$values) 
+  
   return(minEigen)
 }

@@ -9,7 +9,8 @@ miive(model = model, data = NULL, instruments = NULL, sample.cov = NULL,
   estimator = "2SLS", se = "standard", bootstrap = 1000L,
   boot.ci = "norm", missing = "listwise", est.only = FALSE,
   var.cov = FALSE, miiv.check = TRUE, ordered = NULL,
-  sarg.adjust = "none")
+  sarg.adjust = "none", overid.degree = NULL,
+  overid.method = "minimum.eigen")
 }
 \arguments{
 \item{model}{A model specified using lavaan model syntax or a
@@ -87,6 +88,15 @@ estimates. See details on \code{ordered} below for more information.}
 \item{sarg.adjust}{Adjusment methods used to adjust the p-values associated
 with the Sargan test due to multiple comparisons. Defaults is 
 \code{none}. For options see \code{\link[stats]{p.adjust}}.}
+
+\item{overid.degree}{A numeric value indicating the degree of 
+overidentification to be used in estimation.}
+
+\item{overid.method}{The method by which excess MIIVs should
+be pruned to satisfy the \code{overid.degree}. Options include
+the minimum eigenvalue statistic of Cragg and Donald (1993) 
+(\code{minimum.eigen}) or Shea's Partial R-Square (1997)
+(\code{partial.R2}).The default is \code{minimum.eigen}.}
 }
 \description{
 Estimate structural equation models using model-implied instrumental 

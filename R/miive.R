@@ -62,6 +62,13 @@
 #' @param sarg.adjust Adjusment methods used to adjust the p-values associated
 #'        with the Sargan test due to multiple comparisons. Defaults is 
 #'        \code{none}. For options see \code{\link[stats]{p.adjust}}.
+#' @param overid.degree A numeric value indicating the degree of 
+#'        overidentification to be used in estimation. 
+#' @param overid.method The method by which excess MIIVs should
+#'        be pruned to satisfy the \code{overid.degree}. Options include
+#'        the minimum eigenvalue statistic of Cragg and Donald (1993) 
+#'        (\code{minimum.eigen}) or Shea's Partial R-Square (1997)
+#'        (\code{partial.R2}).The default is \code{minimum.eigen}.
 #' @details 
 #' 
 #' \itemize{
@@ -396,7 +403,9 @@ miive <- function(model = model,
                   var.cov = FALSE, 
                   miiv.check = TRUE, 
                   ordered = NULL,
-                  sarg.adjust = "none"){
+                  sarg.adjust = "none",
+                  overid.degree = NULL,
+                  overid.method = "minimum.eigen"){
   
   #-------------------------------------------------------#
   # In the current release disable "twostage" missing
@@ -512,6 +521,20 @@ miive <- function(model = model,
                    missing,
                    se,
                    pt )
+  
+  #-------------------------------------------------------# 
+  # Instrument pruning takes place here. 
+  #-------------------------------------------------------# 
+  if (!is.null(overid.degree)){
+    d <- pruneExcessMIIVs(d, 
+                          overid.degree,  
+                          overid.method, 
+                          data = data, 
+                          sample.cov = g$sample.cov, 
+                          sample.mean = g$sample.mean, 
+                          sample.nobs = g$sample.nobs)
+  }
+  
   
   #-------------------------------------------------------# 
   # Add some fields to d and check for any problematic

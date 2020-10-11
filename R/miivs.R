@@ -367,7 +367,7 @@ miivs <- function(model){
   # Try to invert BetaNA
   
   trySolve <- function(mat){
-    class(try(solve(mat),silent=T))=="matrix"
+    "matrix" %in% class(try(solve(mat),silent=T))
   }
   if (trySolve(BetaNA)){ 
     BetaNA <- solve(BetaNA) 

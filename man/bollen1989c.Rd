@@ -4,7 +4,9 @@
 \name{bollen1989c}
 \alias{bollen1989c}
 \title{Subjective class data}
-\format{A data frame with 432 rows and 5 variables}
+\format{
+A data frame with 432 rows and 5 variables
+}
 \usage{
 bollen1989c
 }

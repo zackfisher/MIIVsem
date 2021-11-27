@@ -1,3 +1,0 @@
-load("/Users/macuser/Documents/pkgs/MIIVsem/MIIVsem/tests/testthat/rds/ex01_pol_residcov.RDS")
-load("/Users/macuser/Documents/pkgs/MIIVsem/MIIVsem/tests/testthat/rds/ex01_pol_sargan.RDS")
-load("/Users/macuser/Documents/pkgs/MIIVsem/MIIVsem/tests/testthat/rds/ex01_pol_sargan.RDS")

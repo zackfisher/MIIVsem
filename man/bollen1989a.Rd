@@ -4,7 +4,9 @@
 \name{bollen1989a}
 \alias{bollen1989a}
 \title{Industrialization-Democracy Data}
-\format{A data frame with 75 rows and 9 variables}
+\format{
+A data frame with 75 rows and 9 variables
+}
 \usage{
 bollen1989a
 }

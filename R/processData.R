@@ -144,56 +144,37 @@ processData <- function(data = data,
       
       if (missing == "twostage"){ # begin missing data
         
-        # var.cov <- outer(
-        #   continuous.vars, continuous.vars,
-        #   function(x, y) {
-        #     paste(x, "~~", y)
-        #   }
-        # )
-        # 
-        # saturated.model <- c(
-        #   var.cov[lower.tri(var.cov, diag = TRUE)],
-        #   paste(continuous.vars, "~ 1")
-        # )
-        # 
-        # saturated.fit <- lavaan::lavaan(
-        #   model = saturated.model,
-        #   data = data[,continuous.vars],
-        #   meanstructure = TRUE,
-        #   conditional.x = FALSE,
-        #   fixed.x = FALSE,
-        #   missing = "FIML",
-        #   estimator = "ML",
-        #   se = "robust.huber.white",
-        #   information = "observed"
-        # )
-        # 
-        # sample.cov  <- unclass(lavaan::inspect(saturated.fit, "cov.ov"))
-        # sample.mean <- unclass(lavaan::lavInspect(saturated.fit, "mean.ov"))
-        # sample.nobs <- lavaan::lavInspect(saturated.fit, "nobs")
-        # sample.sscp <- buildSSCP(sample.cov, sample.mean, sample.nobs)
-        # asymptotic.cov.sat <- unclass(lavaan::vcov(saturated.fit))
+        var.cov <- outer(
+          continuous.vars, continuous.vars, 
+          function(x, y) {
+            paste(x, "~~", y)
+          }
+        )
         
-        saturated.fit <- rsem::rsem(data[,continuous.vars], 
-                                    moment = TRUE, 
-                                    varphi = 0.0, 
-                                    st = 'i', 
-                                    max.it = 1000)
+        saturated.model <- c(
+          var.cov[lower.tri(var.cov, diag = TRUE)],
+          paste(continuous.vars, "~ 1")
+        )
         
-        sample.mean <- saturated.fit$sem$mu
-        sample.cov  <- saturated.fit$sem$sigma
-        sample.nobs <- nrow(data)
+        saturated.fit <- lavaan::lavaan(
+          model = saturated.model, 
+          data = data[,continuous.vars], 
+          meanstructure = TRUE, 
+          conditional.x = FALSE, 
+          fixed.x = FALSE,
+          missing = "FIML", 
+          estimator = "ML", 
+          se = "robust.huber.white", 
+          information = "observed"
+        )
+        
+        #lavInspect(fit, "sampstat.h1")
+        sample.cov  <- unclass(lavaan::inspect(saturated.fit, "cov.ov"))
+        sample.mean <- unclass(lavaan::lavInspect(saturated.fit, "mean.ov"))
+        sample.nobs <- lavaan::lavInspect(saturated.fit, "nobs") 
         sample.sscp <- buildSSCP(sample.cov, sample.mean, sample.nobs)
-        asymptotic.cov.sat <- saturated.fit$sem$gamma
-        
-        cov.str <- outer(continuous.vars, continuous.vars,function(x, y){paste0(x,"~~",y)})
-        cov.nms <- t(cov.str)[lower.tri(cov.str, diag = TRUE)]
-        mu.nms  <- paste0(continuous.vars,"~1")
+        asymptotic.cov.sat <- unclass(lavaan::vcov(saturated.fit))
 
-        colnames(asymptotic.cov.sat) <- rownames(asymptotic.cov.sat) <- c(mu.nms,cov.nms)
-
-        asymptotic.cov.sat <- asymptotic.cov.sat[c(cov.nms,mu.nms),c(cov.nms,mu.nms)]
-        
       } else { # end missing data
         
         sample.cov  <- stats::cov(data[,continuous.vars])*

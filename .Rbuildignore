@@ -1,6 +1,2 @@
-^\.travis\.yml$
 ^.*\.Rproj$
 ^\.Rproj\.user$
-^example
-^README\.Rmd$
-^README-.*\.png$

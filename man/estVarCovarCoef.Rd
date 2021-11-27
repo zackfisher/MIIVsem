@@ -4,8 +4,15 @@
 \alias{estVarCovarCoef}
 \title{estimate the variance and covariance parameters}
 \usage{
-estVarCovarCoef(data, g, eqns, pt, ordered, vc.coef.estimator = "ML",
-  vc.coef.missing = "FIML")
+estVarCovarCoef(
+  data,
+  g,
+  eqns,
+  pt,
+  ordered,
+  vc.coef.estimator = "ML",
+  vc.coef.missing = "FIML"
+)
 }
 \description{
 estimate the variance and covariance parameters

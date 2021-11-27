@@ -227,3 +227,68 @@ NULL
 #' Bollen, K. A., Speizer, I. S., & Mroz, T. A. (1996). Family Planning 
 #' Facilities in Rural Tanzania: His and Her Perceptions of Time and Distance. 
 NULL
+
+
+#' Reisenzein data
+#'
+#' This dataset comes from Reisenzein (1986). In this paper Reisenzein designed 
+#' a randomized experiment to test Weiner's attribution-affect model of 
+#' helping behavior. According to this theory, whether people help others is 
+#' determined by their anger or sympathy. Anger and sympathy are affected by 
+#' perceived controllability.  If the individuals have gotten into difficult 
+#' situations as a result of their own controllable actions, then this 
+#' negatively affects sympathy and positively affects anger of the potential 
+#' helpers. The opposite holds if the situation seems beyond the individuals’ 
+#' control. This data comes from an experiment that describes a person 
+#' collapsing and lying on the floor of a subway.  Subjects were told that the 
+#' person was either drunk (controllable situation) or ill 
+#' (uncontrollable situation). This randomized story was intended to affect 
+#' perceptions of controllability, and controllability in turn affected 
+#' feelings of sympathy and anger.  Finally, sympathy should positively affect 
+#' helping behavior while anger would negatively affect helping.   
+#'
+#' \itemize{
+#'   \item Z1. Eliciting Situation
+#'   \item Z2. How controllable, do you think, is the cause of the person's 
+#'   present condition? (1 = not at all under personal control, 9 = completely 
+#'   under personal control).
+#'   \item Z3. How responsible, do you think, is that person for his present 
+#'   condition? (1 = not at all responsible, 9 = very much responsible).
+#'   \item Z4. I would think that it was the person's own fault that he is in 
+#'   the present situation. (1 = no. not at all. 9 = yes, absolutely so).
+#'   \item Z5. How much sympathy would you feel for that person? (1 = none at 
+#'   all. 9 = very much).
+#'   \item Z6. I would feel pity for this person. (1 = none at all, 9 = very 
+#'   much).
+#'   \item Z7. How much concern would you feel for this person? (1 = none al 
+#'   all, 9 = very much).
+#'   \item Z8. How angry would you feel at that person? (1 = not at all, 9 = 
+#'   very much).
+#'   \item Z9. How irritated would you feel by that person? (1 = not at all, 9 
+#'   = very much).
+#'   \item Z10. I would feel aggravated by that person. (1 = not at all, 9 = 
+#'   very much so).
+#'   \item Z11.	How likely is it that you would help that person? (1 = 
+#'   definitely would not help. 9 = definitely would help).
+#'   \item Z12.	How certain would you feel that you would help the person? 
+#'   (1 = not at all certain. 9 = absolutely certain).
+#'   \item Z13.	Which of the following actions would you most likely engage in? 
+#'   1 = not help at all; 2 = try to alert other bystanders, but stay 
+#'   uninvolved myself; 3 = try to inform the conductor or another official in 
+#'   charge; 4 = go over and help the person to a seat; 5 = help in any way 
+#'   that might be necessary, including if necessary first aid and/or 
+#'   accompanying the person to a hospital.
+#' }
+#'
+#' @docType data
+#' @keywords datasets
+#' @name reisenzein1986
+#' @usage reisenzein1986
+#' @format A data frame with 138 rows and 13 variables
+#' 
+#'
+#' @references 
+#' Reisenzein, R. (1986). A Structural Equation Analysis of Weiner's 
+#' Attribution-Affect Model of Helping Behavior. Journal of Personality 
+#' and Social Psychology, 50(6), 1123–33.
+NULL

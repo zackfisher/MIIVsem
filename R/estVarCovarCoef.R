@@ -6,9 +6,9 @@ estVarCovarCoef <- function(data, g, eqns, pt, ordered,
   
   # if there are categorical variables
   # and the estimator was left at the
-  # default of "ML" set to  "DWLS"
+  # default of "ML" set to  "ULS"
   if(!is.null(ordered) & vc.coef.estimator == "ML"){
-    vc.coef.estimator <- "DWLS"
+    vc.coef.estimator <- "ULS"
     vc.coef.missing   <- "listwise"
   }
   

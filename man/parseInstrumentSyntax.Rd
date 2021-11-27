@@ -2,11 +2,11 @@
 % Please edit documentation in R/parseInstrumentSyntax.R
 \name{parseInstrumentSyntax}
 \alias{parseInstrumentSyntax}
-\title{Parse user-supplied instrumental variables}
+\title{Parse user-implied instrumental variables}
 \usage{
 parseInstrumentSyntax(d, instruments, miiv.check)
 }
 \description{
-Parse user-supplied instrumental variables
+Parse user-implied instrumental variables
 }
 \keyword{internal}

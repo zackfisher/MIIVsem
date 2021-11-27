@@ -25,7 +25,7 @@ install.packages("MIIVsem")
 
 ### Usage
 
-MIIVsem uses a subset of the model syntax employed by [lavaan](http://lavaan.ugent.be/) (Rosseel, 2012) for model specification. The following model syntax operators are currently supported:
+MIIVsem uses a subset of the model syntax employed by [lavaan](https://lavaan.ugent.be/) (Rosseel, 2012) for model specification. The following model syntax operators are currently supported:
 
 | Operators |                                                                    |
 |-----------|--------------------------------------------------------------------|

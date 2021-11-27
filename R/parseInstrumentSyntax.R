@@ -1,38 +1,17 @@
-#' Parse user-supplied instrumental variables 
+#' Parse user-implied instrumental variables 
 #'@keywords internal
 parseInstrumentSyntax <- function(d, instruments, miiv.check){
   
   if (!is.null(instruments) & miiv.check){
     
-    if (class(instruments) != "character"){
-      stop("miive: instruments argument must be of class character.")
-    }
-    
-    if (!grepl("~", instruments)){
-       stop("miive: instruments argument not properly specified.")
-    }
-    
-    mt <- tryCatch(
-        {
-            lavaan::lavaanify(instruments)
-        },
-        error=function(cond) {
-             stop("miive: instruments argument not properly specified.")
-        },
-        
-        finally={
-          # do nothing 
-        }
-    )
-    
-    mt   <- lavaan::lavaanify(instruments)
+    mt   <- lavaan::lavParTable(instruments)
     mt   <- mt[mt$op == "~",]
     mts  <- split(mt[,c("lhs", "rhs")], mt$lhs)
-    
+  
     # Are all the dvs from the instrument list in the eqns list?
     if (length(setdiff(names(mts), lapply(d,"[[","DVobs"))) > 0) {
       
-      stop("miive: dependent variables ", 
+      stop("MIIVsem: dependent variables ", 
            paste0(setdiff(
              names(mts), 
              lapply(d,"[[","DVobs")),collapse="," 

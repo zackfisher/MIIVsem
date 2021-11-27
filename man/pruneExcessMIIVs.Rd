@@ -4,8 +4,18 @@
 \alias{pruneExcessMIIVs}
 \title{Prune MIIVs based on some specified criterion.}
 \usage{
-pruneExcessMIIVs(d, overid.degree, overid.method, data = NULL,
-  sample.cov = NULL, sample.mean = NULL, sample.nobs = NULL)
+pruneExcessMIIVs(
+  d,
+  overid.degree,
+  overid.method,
+  data = NULL,
+  sample.cov = NULL,
+  sample.polychoric = NULL,
+  sample.mean = NULL,
+  sample.nobs = NULL,
+  overid.boot = FALSE,
+  cat.vars = NULL
+)
 }
 \description{
 Prune MIIVs based on some specified criterion.

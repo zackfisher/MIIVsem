@@ -169,7 +169,6 @@
 #' Bentler, P. M., and Weeks, D. G. (1980). Linear Structural 
 #' Equations with Latent Variables. \emph{Psychometrika}, 45, 289–308.                 
 #' 	
-#' @example example/bollen1989-miivs.R
 #'
 #' @seealso \code{\link{miive}}
 #' 
@@ -237,7 +236,7 @@ miivs <- function(model){
   latVars <- unique(pt$lhs[pt$op == "=~"])
   
   obsVars <- setdiff(
-    unique(c(pt$lhs[pt$op != "=="],pt$rhs[pt$op != "=="])), 
+    unique(c(pt$lhs[pt$op != "=="],pt$rhs[pt$op != "==" & pt$op != "~1"])), 
     latVars
   )
   
@@ -252,6 +251,14 @@ miivs <- function(model){
       unique(c(pt$rhs[pt$op!="=="], pt$lhs[pt$op!="=="])), 
       endVars
     ), errVars)
+  
+  
+  exoVarsObs <- intersect(exoVars, obsVars)
+  
+  if(length(exoVarsObs) > 0){
+    pt[pt$rhs %in% exoVarsObs & pt$op  == "~~" & pt$lhs == pt$rhs,"exo"] <- 1
+  }
+  
   
   allVars <- c(endVars,exoVars)
   
@@ -367,7 +374,7 @@ miivs <- function(model){
   # Try to invert BetaNA
   
   trySolve <- function(mat){
-    class(try(solve(mat),silent=T))=="matrix"
+    "matrix" %in% class(try(solve(mat),silent=T))
   }
   if (trySolve(BetaNA)){ 
     BetaNA <- solve(BetaNA) 
@@ -538,16 +545,26 @@ miivs <- function(model){
     
     eqns[[j]]$MIIVs <- names(which((e&i)[obsVars]))
     
+    # zf: edit on 2019-04-10 as higher order factors that receive paths
+    #     were being coded as measurement equations
     # Add equation type: we did this for higher order factors above. 
-    eqns[[j]]$EQmod <- if(is.na(eqns[[j]]$EQmod)){
-      if (eqns[[j]]$DVlat %in% pt$rhs[pt$op =="=~"] ){
+    eqns[[j]]$EQmod <-  if (eqns[[j]]$DVlat %in% pt$rhs[pt$op =="=~"] ){
         "measurement"
       } else {
         "regression"
-      }
-    } else {
-      eqns[[j]]$EQmod 
     }
+    # end fix.
+    
+    # old code.
+    # eqns[[j]]$EQmod <-  if(is.na(eqns[[j]]$EQmod)){
+    #   if (eqns[[j]]$DVlat %in% pt$rhs[pt$op =="=~"] ){
+    #     "measurement"
+    #   } else {
+    #     "regression"
+    #   }
+    # } else {
+    #   eqns[[j]]$EQmod 
+    # }
     
   }
   

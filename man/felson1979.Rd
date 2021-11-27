@@ -4,7 +4,9 @@
 \name{felson1979}
 \alias{felson1979}
 \title{Attractiveness and academic ability}
-\format{A data frame with 209 rows and 7 variables}
+\format{
+A data frame with 209 rows and 7 variables
+}
 \usage{
 felson1979
 }

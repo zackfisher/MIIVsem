@@ -4,7 +4,9 @@
 \name{bollen1996}
 \alias{bollen1996}
 \title{Perceived accessibility data}
-\format{A data frame with 220 rows and 12 variables}
+\format{
+A data frame with 220 rows and 12 variables
+}
 \usage{
 bollen1996
 }

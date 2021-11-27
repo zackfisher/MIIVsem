@@ -1,11 +1,11 @@
 Encoding: UTF-8
 Package: MIIVsem
-Title: Model Implied Instrumental Variable (MIIV) Estimation of Structural
-    Equation Models
-Version: 0.5.3
+Title: Model Implied Instrumental Variable (MIIV) Estimation of
+        Structural Equation Models
+Version: 0.5.8
 Authors@R: c(
  person("Zachary","Fisher", email = "fish.zachary@gmail.com", role = c("aut", "cre")),
- person("Keneth", "Bollen", role = "aut"),
+ person("Kenneth", "Bollen", role = "aut"),
  person("Kathleen", "Gates", role = "aut"),
  person("Mikko", "Rönkkö", role = "aut")
  )
@@ -14,17 +14,17 @@ Description: Functions for estimating structural equation models using
 URL: https://github.com/zackfisher/MIIVsem
 BugReports: https://github.com/zackfisher/MIIVsem/issues
 Depends: R (>= 2.10)
-Imports:
-    stats,
-    utils,
-    methods,
-    lavaan,
-    numDeriv,
-    Matrix,
-    car,
-    boot,
-    rsem
+Imports: stats, utils, lavaan, numDeriv, Matrix, car, boot
 License: GPL-2
 LazyData: true
 ByteCompile: true
-RoxygenNote: 6.0.1
+RoxygenNote: 7.1.1
+NeedsCompilation: no
+Packaged: 2021-06-10 15:24:15 UTC; lola
+Author: Zachary Fisher [aut, cre],
+  Kenneth Bollen [aut],
+  Kathleen Gates [aut],
+  Mikko Rönkkö [aut]
+Maintainer: Zachary Fisher <fish.zachary@gmail.com>
+Repository: CRAN
+Date/Publication: 2021-06-10 15:50:02 UTC

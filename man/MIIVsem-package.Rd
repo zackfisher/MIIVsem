@@ -22,7 +22,7 @@ Useful links:
 
 Authors:
 \itemize{
-  \item Keneth Bollen
+  \item Kenneth Bollen
   \item Kathleen Gates
   \item Mikko Rönkkö
 }

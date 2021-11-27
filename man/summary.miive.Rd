@@ -4,8 +4,7 @@
 \alias{summary.miive}
 \title{Summary information for a MIIV estimation object}
 \usage{
-\method{summary}{miive}(object, eq.info = FALSE, restrict.tests = FALSE,
-  rsquare = FALSE, ...)
+\method{summary}{miive}(object, eq.info = FALSE, restrict.tests = FALSE, rsquare = FALSE, ...)
 }
 \arguments{
 \item{object}{An object of class \code{miive}}

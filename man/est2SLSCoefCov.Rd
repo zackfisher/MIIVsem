@@ -4,8 +4,15 @@
 \alias{est2SLSCoefCov}
 \title{estimate the 2SLS coefficient covariance matrix}
 \usage{
-est2SLSCoefCov(d, poly.mat = NULL, cov.mat = NULL, mean.vec = NULL,
-  acov = NULL, acov.sat = NULL, r = NULL)
+est2SLSCoefCov(
+  d,
+  poly.mat = NULL,
+  cov.mat = NULL,
+  mean.vec = NULL,
+  acov = NULL,
+  acov.sat = NULL,
+  r = NULL
+)
 }
 \description{
 estimate the 2SLS coefficient covariance matrix

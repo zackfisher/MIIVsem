@@ -4,7 +4,9 @@
 \name{bollen1989b}
 \alias{bollen1989b}
 \title{Union sentiment data}
-\format{A data frame with 173 rows and 5 variables}
+\format{
+A data frame with 173 rows and 5 variables
+}
 \usage{
 bollen1989b
 }

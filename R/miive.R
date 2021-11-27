@@ -66,9 +66,8 @@
 #'        overidentification to be used in estimation. 
 #' @param overid.method The method by which excess MIIVs should
 #'        be pruned to satisfy the \code{overid.degree}. Options include
-#'        the minimum eigenvalue statistic of Cragg and Donald (1993) 
-#'        (\code{minimum.eigen}) or Shea's Partial R-Square (1997)
-#'        (\code{partial.R2}).The default is \code{minimum.eigen}.
+#'        random (\code{minimum.eigen}) or stepwise R2.
+#'        (\code{stepwise.R2}).The default is \code{stepwise.R2}.
 #' @details 
 #' 
 #' \itemize{
@@ -314,7 +313,7 @@
 #'   polychoric correlations. For some details on these
 #'   standard errors see Bollen & Maydeu-Olivares (2007, p. 315). If 
 #'   \code{var.cov = TRUE} only point estimates for the variance and
-#'   covariance estimates are calculated using the \code{DWLS} estimator
+#'   covariance estimates are calculated using the \code{ULS} estimator
 #'   in \pkg{lavaan}. To obtain standard errors for the variance and 
 #'   covariance parameters we recommend the bootstrap approach. 
 #'   Analytic standard errors for the variance covariance parameters 
@@ -378,9 +377,6 @@
 #' Incomplete Nonnormal Data. \emph{Structural Equation Modeling: 
 #' A Multidisciplinary Journal}, 21(2), 280–302. 
 #'
-#' @example example/bollen1989-miive1.R
-#' @example example/bollen1989-miive2.R
-#' @example example/bollen1989-miive3.R
 #' 
 #' @seealso \link{MIIVsem}{miivs}
 #' 
@@ -405,7 +401,8 @@ miive <- function(model = model,
                   ordered = NULL,
                   sarg.adjust = "none",
                   overid.degree = NULL,
-                  overid.method = "minimum.eigen"){
+                  overid.method = "stepwise.R2"
+                  ){
   
   #-------------------------------------------------------#
   # In the current release disable "twostage" missing
@@ -511,7 +508,7 @@ miive <- function(model = model,
   } 
 
   #-------------------------------------------------------# 
-  # Process data. See documentation of processRawData. 
+  # Process data. See documentation of processData. 
   #-------------------------------------------------------# 
   g <- processData(data, 
                    sample.cov, 
@@ -531,10 +528,11 @@ miive <- function(model = model,
                           overid.method, 
                           data = data, 
                           sample.cov = g$sample.cov, 
+                          sample.polychoric = g$sample.polychoric,
                           sample.mean = g$sample.mean, 
-                          sample.nobs = g$sample.nobs)
+                          sample.nobs = g$sample.nobs,
+                          cat.vars    = g$var.categorical)
   }
-  
   
   #-------------------------------------------------------# 
   # Add some fields to d and check for any problematic

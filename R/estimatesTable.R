@@ -7,6 +7,7 @@
 #' @export
 estimatesTable <- function(x, v = NULL, sarg = FALSE){
   
+  
   # measurement equations
   meas.eqns <-  unlist(lapply(x$eqn, function(eq){
     ifelse(eq$EQmod == "measurement", TRUE, FALSE)

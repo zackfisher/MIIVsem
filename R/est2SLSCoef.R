@@ -13,17 +13,17 @@ est2SLSCoef <- function(d = d, r = NULL, poly.mat = NULL, sscp.mat = NULL){
   
    sVV <- lapply(d, function(eq){
     if(eq$categorical){
-      chol2inv(chol(
+      matInv(
         poly.mat[
           eq[["MIIVs"]], eq[["MIIVs"]], drop = FALSE
         ]
-      ))
+      )
     } else {
-      chol2inv(chol(
+      matInv(
         sscp.mat[
           c("1",eq[["MIIVs"]]), c("1",eq[["MIIVs"]]), drop = FALSE
         ]
-      ))
+      )
     }
   })
   

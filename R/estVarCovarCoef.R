@@ -1,6 +1,7 @@
 #' estimate the variance and covariance parameters
 #'@keywords internal
 estVarCovarCoef <- function(data, g, eqns, pt, ordered,
+                            missing,
                             vc.coef.estimator = "ML",
                             vc.coef.missing = "FIML"){
   
@@ -22,7 +23,7 @@ estVarCovarCoef <- function(data, g, eqns, pt, ordered,
   # estimate the variance covariance point estimates
   v  <- tryCatch(
     {
-      if(!is.null(data)){
+      if(!is.null(data) & missing != "twostage"){
   
         fit <- lavaan::lavaan(
                  var.cov.model,

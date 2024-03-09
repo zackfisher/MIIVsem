@@ -68,6 +68,12 @@
 #'        be pruned to satisfy the \code{overid.degree}. Options include
 #'        random (\code{minimum.eigen}) or stepwise R2.
 #'        (\code{stepwise.R2}).The default is \code{stepwise.R2}.
+#' @param information The type of information to be used in the two-step 
+#'        missing data approach. Options are "observed" or "expected".
+#' @param twostage.se The type of standard error to be used in the two-step 
+#'        missing data approach. Options are "standard" or "robust.huber.white".
+#' @param auxiliary Names of any auxiliary variables to be used in the two-step 
+#'        missing data approach. 
 #' @details 
 #' 
 #' \itemize{
@@ -293,11 +299,11 @@
 #'  \item{\code{missing}} {
 #'   There are two ways to handle missing data in \pkg{MIIVsem}. First, missing 
 #'   data may be handled by listwise deletion (\code{missing = "listwise"}), In
-#'   this case any row of data containing missing observation is excluded from
+#'   this case any row of data containing missing observations is excluded from
 #'   the analysis and the sample moments are adjusted accordingly. Estimation
 #'   then proceeds normally. The second option for handling missing data is
 #'   through a two-stage procedures \code{missing = "twostage"} where consistent
-#'   estimates of the saturated populations means and covariance are obtained in
+#'   estimates of the saturated population means and covariances are obtained in
 #'   the first stage. These quantities are often referred to as the "EM means"
 #'   and "EM covariance matrix." In the second stage the saturated estimates are
 #'   used to calculate the MIIV-2SLS structural coefficients. Bootstrap standard
@@ -401,12 +407,16 @@ miive <- function(model = model,
                   ordered = NULL,
                   sarg.adjust = "none",
                   overid.degree = NULL,
-                  overid.method = "stepwise.R2"
+                  overid.method = "stepwise.R2",
+                  information = "observed",
+                  twostage.se = "standard",
+                  auxiliary = NULL
                   ){
   
   #-------------------------------------------------------#
   # In the current release disable "twostage" missing
   #-------------------------------------------------------#
+  
   
   #-------------------------------------------------------# 
   # A few basic sanity checks for user-supplied covariance 
@@ -463,6 +473,7 @@ miive <- function(model = model,
   
   #-------------------------------------------------------# 
   # parseInstrumentSyntax
+  #  - primarily for user-supplied instruments
   #-------------------------------------------------------#
   d  <- parseInstrumentSyntax(d, instruments, miiv.check)
   
@@ -481,6 +492,10 @@ miive <- function(model = model,
   if(!is.null(data)){
     
     obs.vars <- unique(unlist(lapply(d,"[", c("DVobs", "IVobs", "MIIVs"))))
+    
+    if(!is.null(auxiliary)){
+      obs.vars <- unique(c(obs.vars, auxiliary))
+    }
     
     if (any(!obs.vars %in% colnames(data))){
      stop(paste(
@@ -517,7 +532,10 @@ miive <- function(model = model,
                    ordered, 
                    missing,
                    se,
-                   pt )
+                   pt,
+                   information,
+                   twostage.se,
+                   auxiliary)
   
   #-------------------------------------------------------# 
   # Instrument pruning takes place here. 
@@ -633,7 +651,8 @@ miive <- function(model = model,
                          g = g, 
                          eqns = results$eqn, 
                          pt = pt, 
-                         ordered = ordered)
+                         ordered = ordered,
+                         missing = missing)
     
   } else {
     
@@ -764,14 +783,14 @@ miive <- function(model = model,
   # Disable twostep procedure in the current release
   
   if (missing == "twostage" & se == "standard" & var.cov == TRUE){
-    
-    # twoStageCoefCov <- estTwoStageML(g,v,results$eqn,pt)
-    
-    # v$coefCov <- twoStageCoefCov[
-    #   names(v$coefficients), 
-    #   names(v$coefficients), 
-    #   drop = FALSE
-    # ]
+
+    twoStageCoefCov <- estTwoStageVarCovSE(g,v,results$eqn,pt)
+
+    v$coefCov <- twoStageCoefCov[
+       names(v$coefficients),
+       names(v$coefficients),
+       drop = FALSE
+    ]
   }
   
   # assemble return object

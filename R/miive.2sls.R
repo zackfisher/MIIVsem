@@ -30,7 +30,8 @@ miive.2sls <- function(d, g, r, est.only, se, missing, var.cov, sarg.adjust="non
     # calculate sigma^2
     d <- est2SLSSigmaSq(d, cov.mat = g$sample.cov)
   
-     if(se != "boot" & se != "bootstrap" & missing != "twostage"){ 
+     #if(se != "boot" & se != "bootstrap" & missing != "twostage"){ 
+    if(se != "boot" & se != "bootstrap"){ 
         coefCov <- est2SLSCoefCov( 
           d           = d, 
           poly.mat    = g$sample.polychoric,

@@ -8,6 +8,12 @@ est2SLSCoefCov <- function(d,
                            acov.sat = NULL,
                            r        = NULL){
   
+  # poly.mat    = g$sample.polychoric
+  # cov.mat     = g$sample.cov
+  # mean.vec    = g$sample.mean
+  # acov        = g$asymptotic.cov
+  # acov.sat    = g$asymptotic.cov.sat
+  
   coef.names <- lapply(d, function(eq) { 
     paste0(eq$DVlat, "~",if(eq$categorical) eq$IVlat else c("1",eq$IVlat))
   })

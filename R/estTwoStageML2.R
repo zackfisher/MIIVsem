@@ -1,6 +1,6 @@
 #' estimate the SEs using two-stage ML
 #'@keywords internal
-estTwoStageML_old <- function(g, v,eqns,pt){
+estTwoStageML2 <- function(g,v,eqns,pt){
   
   #-------------------------------------------------------#
   # two stage ML

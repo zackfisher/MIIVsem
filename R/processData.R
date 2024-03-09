@@ -7,7 +7,10 @@ processData <- function(data = data,
                         ordered = ordered,
                         missing = missing,
                         se = se,
-                        pt = pt){
+                        pt = pt,
+                        information = information,
+                        twostage.se = twostage.se,
+                        auxiliary){
   
   # if the user supplied a covariance matrix.
   if (is.null(data)){
@@ -123,7 +126,7 @@ processData <- function(data = data,
           paste0(x[1], "~~", x[2])
       })
         
-        # Reorder asymptotic covariance matrix.
+      # Reorder asymptotic covariance matrix.
       asymptotic.cov  <- asymptotic.cov[
         ordered.varnames, 
         ordered.varnames
@@ -135,6 +138,7 @@ processData <- function(data = data,
       
     }
     
+    # zf 2024/2/8: this contains auxiliary variables, but should it?
     continuous.vars <- colnames(data)[!var.categorical]
     
     if (length(continuous.vars) > 1){
@@ -144,17 +148,14 @@ processData <- function(data = data,
       
       if (missing == "twostage"){ # begin missing data
         
-        var.cov <- outer(
-          continuous.vars, continuous.vars, 
-          function(x, y) {
-            paste(x, "~~", y)
-          }
-        )
-        
-        saturated.model <- c(
-          var.cov[lower.tri(var.cov, diag = TRUE)],
-          paste(continuous.vars, "~ 1")
-        )
+        if(is.null(auxiliary)){
+          vars <- c(continuous.vars)
+        } else {
+          vars <- c(continuous.vars, auxiliary)
+        }
+
+        covstruc <- outer(continuous.vars, continuous.vars, function(x, y) paste(x, "~~", y))
+        saturated.model <- c(covstruc[lower.tri(covstruc, diag = TRUE)],paste(continuous.vars, "~ 1"))
         
         saturated.fit <- lavaan::lavaan(
           model = saturated.model, 
@@ -164,12 +165,13 @@ processData <- function(data = data,
           fixed.x = FALSE,
           missing = "FIML", 
           estimator = "ML", 
-          se = "robust.huber.white", 
-          information = "observed"
+          se = "standard", # or "robust.huber.white" ?
+          information = information
         )
+
         
         #lavInspect(fit, "sampstat.h1")
-        sample.cov  <- unclass(lavaan::inspect(saturated.fit, "cov.ov"))
+        sample.cov  <- unclass(lavaan::lavInspect(saturated.fit, "cov.ov"))
         sample.mean <- unclass(lavaan::lavInspect(saturated.fit, "mean.ov"))
         sample.nobs <- lavaan::lavInspect(saturated.fit, "nobs") 
         sample.sscp <- buildSSCP(sample.cov, sample.mean, sample.nobs)

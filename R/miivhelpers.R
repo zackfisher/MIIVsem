@@ -414,4 +414,50 @@ matInv <- function(mat){
    
 }
 
+#-----------------------------------------#
+#-----------------------------------------#
+# Jacobian Naming
+#-----------------------------------------#
+#-----------------------------------------#
 
+fn1 <- function(x, y) {paste0(x, "~", y)}
+
+fn2 <- function(x, y) {paste0(x, "~~", y)}
+
+fn3 <- function(x, y) {paste0(x, "=~", y)}
+
+flip <- function(y) {
+  if(grepl("~~", y)){
+    paste0(rev(unlist(strsplit(as.character(y), split="[~]+"))), collapse = "~~")
+  } else {
+    paste0(rev(unlist(strsplit(as.character(y), split="[~]+"))), collapse = "~")
+  }
+}  
+
+
+#-----------------------------------------#
+#-----------------------------------------#
+# arbDupMat: arbitrary duplication matrix
+#-----------------------------------------#
+#-----------------------------------------#
+arbDupMat <- function(m){
+  
+  vecM <- c(MIIVsem:::vec(m))
+  vecM <- vecM[!(vecM==0 | duplicated(vecM)) ]
+  kM   <- matrix(0, nrow = nrow(MIIVsem:::vec(m)), ncol = length(vecM))
+  
+  for(r in 1:nrow(kM)){
+    for(c in 1:ncol(kM)){
+      
+      if(MIIVsem:::vec(m)[r,]==0){
+        kM[r,c] <- 0
+      } else if (MIIVsem:::vec(m)[r,]==vecM[c]) {
+        kM[r,c] <- 1
+      }
+      
+    }
+  }
+  
+  return(kM)
+  
+}

@@ -5,7 +5,7 @@ buildVarCovSyntax <- function(pt){
   # model syntax
   var.cov.model <- unlist(apply(pt, 1, function(r){
     
-    if (r["op"] %in% c("~","=~")) {
+    if (r["op"] %in% c("~", "=~")) {
       
       paste0(r["lhs"],r["op"],r["ustart"],"*",r["rhs"])
       

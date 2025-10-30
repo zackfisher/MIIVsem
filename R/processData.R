@@ -94,7 +94,7 @@ processData <- function(data = data,
         output = "fit", 
         missing = "listwise",
         estimator = "two.step",
-        se = "standard",
+        se = "robust.sem",
         ov.names.x = ov.names.x,
         ordered = setdiff(ordered, ov.names.x)
       )
@@ -103,7 +103,7 @@ processData <- function(data = data,
       sample.nobs <- nrow(data)
  
       # Polychoric correlation matrix. 
-      sample.polychoric <- unclass(lavaan::inspect(fit, "cor.ov"))
+      sample.polychoric <- unclass(lavaan::inspect(fit, "cov.ov"))
       
       # is polycor faster
       # corS<-matrix(NA,12,12)
@@ -182,10 +182,32 @@ processData <- function(data = data,
         sample.cov  <- stats::cov(data[,continuous.vars])*
           (nrow(data[,continuous.vars])-1) / 
           nrow(data[,continuous.vars])
-        
+        # cat(all(eigen(sample.cov)$values > 1e-8)) # test ex04
         sample.mean <- colMeans(data[,continuous.vars])
         sample.nobs <- nrow(data)
         sample.sscp <- buildSSCP(sample.cov, sample.mean, sample.nobs)
+        
+        # 2025/9 asymptotic.cov for continuous only data---
+        if (is.null(ordered)) {
+          fit <- lavaan::lavCor(
+          data,
+          output = "fit",
+          missing = "listwise",
+          estimator = "two.step",
+          se = "robust.sem"
+        )
+        asymptotic.cov  <- unclass(lavaan::inspect(fit, "vcov"))
+        ordered.varnames <- apply(
+          t(utils::combn(colnames(sample.cov), 2)), 1, function(x){
+            paste0(x[1], "~~", x[2])
+          })
+        asymptotic.cov  <- asymptotic.cov[
+          ordered.varnames,
+          ordered.varnames
+        ] 
+        }
+
+        # 2025/9 ---
       
       }
     } 

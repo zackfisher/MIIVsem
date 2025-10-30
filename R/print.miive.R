@@ -43,7 +43,8 @@ print.miive <- function(x,...){
       c("Standard Errors", ifelse(
         any(x$se %in% c("boot", "bootstrap")), "bootstrap", x$se
       )),
-      c("Missing", x$missing)
+      c("Missing", x$missing),
+      c("Overidentification Test", x$sarg.test)
     )
   )
   for(i in 1:nrow(head.txt)){
@@ -88,6 +89,9 @@ print.miive <- function(x,...){
                  "VARIANCES",
                  "COVARIANCES")
   
+  # 2025/10 ----
+  sarg.test <- x$sarg.test
+  # 2025/10 ---
   x    <- estimatesTable(x, sarg = TRUE)
   
   ## remove duplicate Sargan test info from 
@@ -123,7 +127,13 @@ print.miive <- function(x,...){
   suppressWarnings(
     y$sarg.df    <- as.numeric(as.character(y$sarg.df))
   )
-  sarg.format  <- paste("%", max(4), ".", 0, "f", sep = "")
+  # 2025/15 ----
+  if (sarg.test %in% c("default","meanvar")) {
+    sarg.format  <- paste("%", max(4), ".", 2, "f", sep = "")
+  } else {
+    sarg.format  <- paste("%", max(4), ".", 0, "f", sep = "")
+  }
+  # 2025/15 ---
   y$sarg.df    <- sprintf(sarg.format, y$sarg.df)
 
   
@@ -219,7 +229,7 @@ print.miive <- function(x,...){
   colnames(m)[ colnames(m) ==  "pvalue" ] <- "P(>|z|)"
   colnames(m)[ colnames(m) ==   "lower" ] <- "Lower"
   colnames(m)[ colnames(m) ==   "upper" ] <- "Upper"
-  colnames(m)[ colnames(m) ==    "sarg" ] <- "Sargan"
+  colnames(m)[ colnames(m) ==    "sarg" ] <- "Overid" # 2025/10 "Sargan" changed to "Overid" here and in the following line: 320,336,340 
   colnames(m)[ colnames(m) == "sarg.df" ] <- "df"
   colnames(m)[ colnames(m) ==  "sarg.p" ] <- "P(Chi)"
   
@@ -306,7 +316,7 @@ print.miive <- function(x,...){
       
     
       if(s %in% "COVARIANCES"){
-        colnames(M)[ grepl("Sargan",  colnames(M))] <- ""
+        colnames(M)[ grepl("Overid",  colnames(M))] <- ""
         colnames(M)[ grepl("df",      colnames(M))] <- ""
         colnames(M)[ grepl("Chi",    colnames(M)) ] <- ""
         print(M, quote = FALSE)
@@ -322,11 +332,11 @@ print.miive <- function(x,...){
       cat("\n", s, ":\n", sep = "")
       if(s %in% c("INTERCEPTS", "VARIANCES")){
         
-        M[,grepl("Sargan",  colnames(M))] <- ""
+        M[,grepl("Overid",  colnames(M))] <- ""
         M[,grepl("df",      colnames(M))] <- ""
         M[,grepl("Chi",     colnames(M))] <- ""
         
-        colnames(M)[ grepl("Sargan",  colnames(M))] <- ""
+        colnames(M)[ grepl("Overid",  colnames(M))] <- ""
         colnames(M)[ grepl("df",      colnames(M))] <- ""
         colnames(M)[ grepl("Chi",     colnames(M))] <- ""
         print(M, quote = FALSE)

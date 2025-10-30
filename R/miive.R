@@ -410,7 +410,9 @@ miive <- function(model = model,
                   overid.method = "stepwise.R2",
                   information = "observed",
                   twostage.se = "standard",
-                  auxiliary = NULL
+                  auxiliary = NULL,
+                  # overid.ordered = "mean.var.adjust",
+                  sarg.test="default"
                   ){
   
   #-------------------------------------------------------#
@@ -623,7 +625,7 @@ miive <- function(model = model,
   #-------------------------------------------------------#
   results <- switch(
     estimator,
-      "2SLS" = miive.2sls(d, g, r, est.only, se, missing, var.cov, sarg.adjust),
+      "2SLS" = miive.2sls(d, g, r, est.only, se, missing, var.cov, sarg.adjust, sarg.test),
       # "GMM"  = miive.gmm(d, d.un, g, r, est.only, se), # Not implemented
       # In other cases, raise an error
       stop(
@@ -807,6 +809,7 @@ miive <- function(model = model,
   results$eqn.unid       <- d.un
   results$r              <- r
   results$v              <- v
+  results$sarg.test      <- sarg.test
 
   class(results)  <- "miive"
   

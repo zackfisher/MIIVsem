@@ -18,7 +18,7 @@ library("MIIVsem")
     y6   ~~ y8
   '
 
-  fit <- miive(model, bollen1989a)
+  fit <- miive(model, bollen1989a,sarg.test = "classic")
   
   
  #-------------------------------------------------------# 

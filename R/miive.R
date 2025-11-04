@@ -346,6 +346,16 @@
 #' associated with the Sargan test due to multiple comparisons. Defaults is 
 #' \code{none}. For other options see \code{\link[stats]{p.adjust}}.
 #' 
+#'  \item{\code{overid}}{
+#'  The default overidentification test 'meanvar' is mean and variance adjusted 
+#'  test statistics. Other choice including: 'classic' is Sargan Chi-square 
+#'  statistic, 'adjusted' is adjusted Sargan Chi-square statistic, 'mean' is 
+#'  mean scaled test. See Jin & Cao (2018) and Jin et al. (2021). When using 
+#'  the 'meanvar' option, the degrees of freedom are not shown when printing 
+#'  to avoid misinterpretation of the df values shown with digits. Users can find the df 
+#'  in the returned object.
+#'  }
+#' 
 #' @references 
 #' 
 #' Bollen, K. A. (1996).	An	Alternative	2SLS Estimator	for	Latent	
@@ -370,6 +380,15 @@
 #' 
 #' Hayashi, F. (2000). Econometrics. Princeton, NJ: Princeton University 
 #' Press
+#' 
+#' Jin, S., & Cao, C. (2018). Selecting polychoric instrumental variables 
+#' in confirmatory factor analysis: An alternative specification test and 
+#' effects of instrumental variables. British Journal of Mathematical and 
+#' Statistical Psychology, 71(2), 387-413.
+#' 
+#' Jin, S., Yang-Wallentin, F., & Bollen, K. A. (2021). A unified model-
+#' implied instrumental variable approach for structural equation modeling 
+#' with mixed variables. psychometrika, 86(2), 564-594.
 #' 
 #' Sargan, J. D. (1958). The Estimation of Economic Relationships 
 #' using Instrumental Variables. Econometrica, 26(3), 393–415. 
@@ -406,13 +425,13 @@ miive <- function(model = model,
                   miiv.check = TRUE, 
                   ordered = NULL,
                   sarg.adjust = "none",
+                  overid="meanvar",
                   overid.degree = NULL,
                   overid.method = "stepwise.R2",
                   information = "observed",
                   twostage.se = "standard",
-                  auxiliary = NULL,
+                  auxiliary = NULL
                   # overid.ordered = "mean.var.adjust",
-                  sarg.test="default"
                   ){
   
   #-------------------------------------------------------#
@@ -625,7 +644,7 @@ miive <- function(model = model,
   #-------------------------------------------------------#
   results <- switch(
     estimator,
-      "2SLS" = miive.2sls(d, g, r, est.only, se, missing, var.cov, sarg.adjust, sarg.test),
+      "2SLS" = miive.2sls(d, g, r, est.only, se, missing, var.cov, sarg.adjust, overid),
       # "GMM"  = miive.gmm(d, d.un, g, r, est.only, se), # Not implemented
       # In other cases, raise an error
       stop(
@@ -809,7 +828,7 @@ miive <- function(model = model,
   results$eqn.unid       <- d.un
   results$r              <- r
   results$v              <- v
-  results$sarg.test      <- sarg.test
+  results$overid      <- overid
 
   class(results)  <- "miive"
   

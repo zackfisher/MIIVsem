@@ -17,6 +17,11 @@ Help ~ Sympathy + Anger
 
 # part1 ----
 fit <- miive( model, data = reisenzein1986)
+# summary(fit)
+# miive( model, data = reisenzein1986,overid = "meanvar")
+# miive( model, data = reisenzein1986,overid = "mean")
+# miive( model, data = reisenzein1986,overid = "adjusted")
+# miive( model, data = reisenzein1986,overid = "classic")
 
 #-------------------------------------------------------#  
 context("ex05: overidentification test statistics correct (continuous variables)")

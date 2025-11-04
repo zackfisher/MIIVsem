@@ -5,10 +5,10 @@
 #' @param r a list containing coefficient restrictions 
 #' @param est.only should we only calculate coefficient estimates
 #' @param se se estimation
-#' @param sarg.test default: meanvar. other choice including: mean, adjusted, classic
+#' @param overid the default test is meanvar, other choice including: mean, adjusted, classic
 #' 
 #'@keywords internal
-miive.2sls <- function(d, g, r, est.only, se, missing, var.cov, sarg.adjust="none",sarg.test="default"){
+miive.2sls <- function(d, g, r, est.only, se, missing, var.cov, sarg.adjust="none",overid){
   
   #------------------------------------------------------------------------#
   # MIIV-2SLS point estimates
@@ -63,22 +63,22 @@ miive.2sls <- function(d, g, r, est.only, se, missing, var.cov, sarg.adjust="non
         test.stat <- over.stat.eq(eq,g)
         eq$test.stat <- test.stat
         
-        if (sarg.test == "default" | sarg.test == "meanvar") {
+        if (overid == "meanvar") {
           
           eq$sargan <- matrix(test.stat$mean.var.adjust,dimnames = list(eq$DVobs,eq$DVobs))
           eq$sargan.df <- matrix(test.stat$mean.var.df,dimnames = list(eq$DVobs,eq$DVobs))
           
-        } else if (sarg.test == "adjusted") {
+        } else if (overid == "adjusted") {
           
           eq$sargan <- matrix(test.stat$chi.sq,dimnames = list(eq$DVobs,eq$DVobs))
           eq$sargan.df <- matrix(test.stat$chi.sq.df,dimnames = list(eq$DVobs,eq$DVobs))
           
-        } else if (sarg.test == "classic") {
+        } else if (overid == "classic") {
           
           eq$sargan <- matrix(test.stat$sargan.stat,dimnames = list(eq$DVobs,eq$DVobs))
           eq$sargan.df <- matrix(test.stat$chi.sq.df,dimnames = list(eq$DVobs,eq$DVobs))
           
-        } else if (sarg.test == "mean") {
+        } else if (overid == "mean") {
           
           eq$sargan <- matrix(test.stat$mean.scale,dimnames = list(eq$DVobs,eq$DVobs))
           eq$sargan.df <- matrix(test.stat$chi.sq.df,dimnames = list(eq$DVobs,eq$DVobs))

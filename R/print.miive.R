@@ -5,6 +5,15 @@
 #' 
 #' @export
 print.miive <- function(x,...){
+  if (x$overid=="meanvar") {
+    overid.label <- "Mean and Variance Adjusted"
+  } else if (x$overid=="mean") {
+    overid.label <- "Mean Scaled"
+  } else if (x$overid=="classic") {
+    overid.label <- "Sargan"
+  } else if (x$overid=="adjusted") {
+    overid.label <- "Adjusted Sargan"
+  }
   
   ## an ugly simplification of the truly
   ## impressive lavan::lav_print function
@@ -44,7 +53,7 @@ print.miive <- function(x,...){
         any(x$se %in% c("boot", "bootstrap")), "bootstrap", x$se
       )),
       c("Missing", x$missing),
-      c("Overidentification Test", x$sarg.test)
+      c("Overidentification Test", overid.label)
     )
   )
   for(i in 1:nrow(head.txt)){
@@ -89,8 +98,8 @@ print.miive <- function(x,...){
                  "VARIANCES",
                  "COVARIANCES")
   
-  # 2025/10 ----
-  sarg.test <- x$sarg.test
+  # 2025/10 ---
+  overid <- x$overid
   # 2025/10 ---
   x    <- estimatesTable(x, sarg = TRUE)
   
@@ -127,13 +136,13 @@ print.miive <- function(x,...){
   suppressWarnings(
     y$sarg.df    <- as.numeric(as.character(y$sarg.df))
   )
-  # 2025/15 ----
-  if (sarg.test %in% c("default","meanvar")) {
+  # 2025/10 ---
+  if (overid %in% c("default","meanvar")) {
     sarg.format  <- paste("%", max(4), ".", 2, "f", sep = "")
   } else {
     sarg.format  <- paste("%", max(4), ".", 0, "f", sep = "")
   }
-  # 2025/15 ---
+  # 2025/10 ---
   y$sarg.df    <- sprintf(sarg.format, y$sarg.df)
 
   
@@ -244,6 +253,12 @@ print.miive <- function(x,...){
   )
 
   ht <- TRUE
+  
+  # 2025/11---
+  if (overid=="meanvar") {
+    m <- m[,-grep("df",      colnames(m))]
+  }
+  # 2025/11---
   
   for(s in sections) {
     if(s == "MEASUREMENT MODEL") {

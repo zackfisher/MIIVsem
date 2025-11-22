@@ -4,7 +4,8 @@
 #' @param ... Optional arguments to print, not used by user.
 #' 
 #' @export
-print.miive <- function(x,...){
+#' @meanvar.df print df of overidentification test when using "meanvar"
+print.miive <- function(x,meanvar.df = F,...){
   if (x$overid=="meanvar") {
     overid.label <- "Mean and Variance Adjusted"
   } else if (x$overid=="mean") {
@@ -255,7 +256,7 @@ print.miive <- function(x,...){
   ht <- TRUE
   
   # 2025/11---
-  if (overid=="meanvar") {
+  if (meanvar.df==F & overid=="meanvar") {
     m <- m[,-grep("df",      colnames(m))]
   }
   # 2025/11---

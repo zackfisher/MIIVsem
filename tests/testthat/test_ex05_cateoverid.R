@@ -17,7 +17,12 @@ Help ~ Sympathy + Anger
 
 # part1 ----
 fit <- miive( model, data = reisenzein1986)
+# print(fit)
 # summary(fit)
+# print(fit,meanvar.df=F)
+# print(fit,meanvar.df=T)
+# summary(fit,meanvar.df=F)
+# summary(fit,meanvar.df=T)
 # miive( model, data = reisenzein1986,overid = "meanvar")
 # miive( model, data = reisenzein1986,overid = "mean")
 # miive( model, data = reisenzein1986,overid = "adjusted")

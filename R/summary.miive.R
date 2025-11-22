@@ -29,14 +29,15 @@
 #' @export
 summary.miive <- function(object, eq.info = FALSE,
                           restrict.tests = FALSE,
-                          rsquare = FALSE,...){
+                          rsquare = FALSE,
+                          meanvar.df = F,...){
   
   fUp <- function(x) {
     substr(x, 1, 1) <- toupper(substr(x, 1, 1)); x
   }
   
   # Print 
-  print(object)
+  print(object,meanvar.df)
   
   w1 <- 27 # width of column 1
   w2 <- 26 # width of column 2

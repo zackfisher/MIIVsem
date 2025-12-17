@@ -10,7 +10,8 @@ processData <- function(data = data,
                         pt = pt,
                         information = information,
                         twostage.se = twostage.se,
-                        auxiliary){
+                        auxiliary,
+                        legacy){
   
   # if the user supplied a covariance matrix.
   if (is.null(data)){
@@ -188,7 +189,7 @@ processData <- function(data = data,
         sample.sscp <- buildSSCP(sample.cov, sample.mean, sample.nobs)
         
         # 2025/9 asymptotic.cov for continuous only data---
-        if (is.null(ordered)) {
+        if (is.null(ordered) & legacy == F) {
           fit <- lavaan::lavCor(
           data,
           output = "fit",

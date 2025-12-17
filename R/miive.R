@@ -352,10 +352,15 @@
 #'  statistic, 'adjusted' is adjusted Sargan Chi-square statistic, 'mean' is 
 #'  mean scaled test. See Jin & Cao (2018) and Jin et al. (2021). When using 
 #'  the 'meanvar' option, the degrees of freedom are not shown when printing 
-#'  to avoid misinterpretation of the df values shown with digits. Users can find the df 
-#'  in the returned object.
+#'  to avoid misinterpretation of the df values shown with digits. Users can  
+#'  find the df in the returned object, or use meanvar.df = T to show the df.
 #'  }
 #' 
+#'  \item{\code{legacy}}{
+#'  use legacy = T to estimate without calculating asymptotic matrix and without 
+#'  adjusted overidentification when variables are all continuous. 
+#'  }
+#'  
 #' @references 
 #' 
 #' Bollen, K. A. (1996).	An	Alternative	2SLS Estimator	for	Latent	
@@ -426,6 +431,7 @@ miive <- function(model = model,
                   ordered = NULL,
                   sarg.adjust = "none",
                   overid="meanvar",
+                  legacy = FALSE,
                   overid.degree = NULL,
                   overid.method = "stepwise.R2",
                   information = "observed",
@@ -556,7 +562,8 @@ miive <- function(model = model,
                    pt,
                    information,
                    twostage.se,
-                   auxiliary)
+                   auxiliary,
+                   legacy)
   
   #-------------------------------------------------------# 
   # Instrument pruning takes place here. 
@@ -644,7 +651,7 @@ miive <- function(model = model,
   #-------------------------------------------------------#
   results <- switch(
     estimator,
-      "2SLS" = miive.2sls(d, g, r, est.only, se, missing, var.cov, sarg.adjust, overid),
+      "2SLS" = miive.2sls(d, g, r, est.only, se, missing, var.cov, sarg.adjust, overid, legacy),
       # "GMM"  = miive.gmm(d, d.un, g, r, est.only, se), # Not implemented
       # In other cases, raise an error
       stop(

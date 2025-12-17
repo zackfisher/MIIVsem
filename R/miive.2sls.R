@@ -8,7 +8,7 @@
 #' @param overid the default test is meanvar, other choice including: mean, adjusted, classic
 #' 
 #'@keywords internal
-miive.2sls <- function(d, g, r, est.only, se, missing, var.cov, sarg.adjust="none",overid){
+miive.2sls <- function(d, g, r, est.only, se, missing, var.cov, sarg.adjust="none",overid,legacy){
   
   #------------------------------------------------------------------------#
   # MIIV-2SLS point estimates
@@ -59,7 +59,7 @@ miive.2sls <- function(d, g, r, est.only, se, missing, var.cov, sarg.adjust="non
         eq$sargan <- NA; eq$sargan.df <- NA; eq$sargan.p  <- NA
         eq$test.stat <- NA
         
-      } else {
+      } else if (legacy == F) {
         test.stat <- over.stat.eq(eq,g)
         eq$test.stat <- test.stat
         
@@ -87,29 +87,29 @@ miive.2sls <- function(d, g, r, est.only, se, missing, var.cov, sarg.adjust="non
         
         eq$sargan.p <- stats::pchisq(eq$sargan, eq$sargan.df, lower.tail = FALSE)
 
-      } # else {
-# 
-#         eq$sargan.df <- length(eq$MIIVs) - length(eq$IVobs)
-# 
-#         eq$sargan <-
-#           (
-#             t( g$sample.cov[eq$MIIVs,eq$DVobs, drop = FALSE] -
-#                g$sample.cov[eq$MIIVs,eq$IVobs, drop = FALSE] %*%
-#                eq$coefficients[-1]) %*%
-#                solve(g$sample.cov[eq$MIIVs,eq$MIIVs] )
-#             %*%
-#              ( g$sample.cov[eq$MIIVs,eq$DVobs, drop = FALSE] -
-#                g$sample.cov[eq$MIIVs,eq$IVobs, drop = FALSE] %*%
-#                eq$coefficients[-1] )
-#             /  eq$sigma
-#           ) * g$sample.nobs
-# 
-#           eq$sargan.p <- stats::pchisq(
-# 
-#             eq$sargan, eq$sargan.df, lower.tail = FALSE
-# 
-#           )
-#       }
+      }  else if (legacy == T) {
+
+        eq$sargan.df <- length(eq$MIIVs) - length(eq$IVobs)
+
+        eq$sargan <-
+          (
+            t( g$sample.cov[eq$MIIVs,eq$DVobs, drop = FALSE] -
+               g$sample.cov[eq$MIIVs,eq$IVobs, drop = FALSE] %*%
+               eq$coefficients[-1]) %*%
+               solve(g$sample.cov[eq$MIIVs,eq$MIIVs] )
+            %*%
+             ( g$sample.cov[eq$MIIVs,eq$DVobs, drop = FALSE] -
+               g$sample.cov[eq$MIIVs,eq$IVobs, drop = FALSE] %*%
+               eq$coefficients[-1] )
+            /  eq$sigma
+          ) * g$sample.nobs
+
+          eq$sargan.p <- stats::pchisq(
+
+            eq$sargan, eq$sargan.df, lower.tail = FALSE
+
+          )
+      }
       eq
      })
     

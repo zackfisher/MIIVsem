@@ -347,7 +347,7 @@ library("MIIVsem")
     privWage ~ govExp + taxes + govWage + trend + capitalLag + corpProfLag + gnpLag
   '
 
-  fit <- miive(model, klein.data, instruments, miiv.check = FALSE)
+  fit <- miive(model, klein.data, instruments, miiv.check = FALSE, legacy = T)
 
   
  #-------------------------------------------------------# 
@@ -482,7 +482,7 @@ library("MIIVsem")
     supply  ~ income + farmPrice + trend
   '
 
-  fit <- miive(model, kmenta.data, instruments, miiv.check = FALSE)
+  fit <- miive(model, kmenta.data, instruments, miiv.check = FALSE,legacy = T)
    
   
   #-------------------------------------------------------# 
